@@ -1,0 +1,46 @@
+#ifndef W_INTERFACETRADING_H
+#define W_INTERFACETRADING_H
+
+#include <QWidget>
+#include "character.h"
+#include "w_itemtrader.h"
+
+namespace Ui {
+class Win_chest;
+}
+
+class Win_Interface_Trading : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit Win_Interface_Trading(QWidget *parent = nullptr, Hero * hero = nullptr);
+    ~Win_Interface_Trading();
+signals:
+    void sig_heroBagFull();
+protected:
+    void paintEvent(QPaintEvent *);
+protected:
+    W_ItemTrader * mItemTrader;
+    Hero * mHero;
+};
+
+
+class Win_Chest : public Win_Interface_Trading
+{
+    Q_OBJECT
+
+public:
+    explicit Win_Chest(QWidget *parent = nullptr, Hero * hero = nullptr, ChestEvent * chest = nullptr);
+    ~Win_Chest();
+private slots:
+    void on_buttonExit_clicked();
+private:
+    void initInterface();
+private:
+    ChestEvent * mChest;
+private:
+    Ui::Win_chest *ui;
+};
+
+#endif // W_INTERFACETRADING_H

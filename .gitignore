@@ -1,0 +1,6 @@
+cat .gitignore
+/Development/Ressources
+/Development/Game_MMORPG.pro.user
+*.o
+/Temp
+/Conception

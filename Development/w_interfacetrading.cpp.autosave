@@ -1,0 +1,61 @@
+#include "w_interfacetrading.h"
+#include "ui_win_chest.h"
+
+Win_Interface_Trading::Win_Interface_Trading(QWidget *parent, Hero * hero) :
+    QWidget(parent)
+{
+    mItemTrader = new W_ItemTrader(this);
+    mHero = hero;
+}
+
+Win_Interface_Trading::~Win_Interface_Trading()
+{
+
+}
+
+void Win_Interface_Trading::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    painter.drawPixmap(0,0,QPixmap(":/graphicItems/screenBackground.png"));
+}
+
+
+
+
+
+Win_Chest::Win_Chest(QWidget *parent, Hero * hero, ChestEvent * chest) :
+    Win_Interface_Trading(parent, hero),
+    ui(new Ui::Win_chest)
+{
+    ui->setupUi(this);
+    mChest = chest;
+    initInterface();
+}
+
+
+void Win_Chest::initInterface()
+{
+    ui->layout_itemTrader->addWidget(mItemTrader);
+    mItemTrader->addItemsRightSide(mChest->getItems());
+}
+
+
+void Win_Chest::on_buttonExit_clicked()
+{
+    QList<Item*> list = mItemTrader->getItemsLeftSide();
+    for(Item * item : list)
+    {
+        if(!mHero->getBag()->addItem(item))
+        {
+            emit sig_heroBagFull();
+            break;
+        }
+        mChest->removeItem(item);
+    }
+    close();
+}
+
+Win_Chest::~Win_Chest()
+{
+    delete ui;
+}
