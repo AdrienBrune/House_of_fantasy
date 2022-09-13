@@ -24,6 +24,7 @@ public:
 signals:
     void sig_closeWindow();
     void sig_playSound(int);
+    void sig_itemThrown(Item*);
 private slots:
     void equipItem(Item*);
     void unequipItem(Item*);

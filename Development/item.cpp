@@ -5,6 +5,8 @@
 #include <QRandomGenerator>
 #include <QDebug>
 
+quint32 Item::sNbInstances = 0;
+
 Item::Item(QString name, QPixmap image, int weight, int price):
     QObject (),
     QGraphicsPixmapItem (),
@@ -22,11 +24,12 @@ Item::Item(QString name, QPixmap image, int weight, int price):
     t_delayHover = new QTimer(this);
     t_delayHover->setSingleShot(true);
     connect(t_delayHover, SIGNAL(timeout()), this, SLOT(showItemInfo()));
+    //qDebug() << "[C] " << ++sNbInstances << " " << mName;
 }
 
 Item::~Item()
 {
-
+    //qDebug() << "[D] " << --sNbInstances << " " << mName;
 }
 
 void Item::showItemInfo()
@@ -168,7 +171,7 @@ void Item::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
 
 Item *Item::getInstance(quint32 identifier)
 {
-    qDebug() << "INSTANCE CREATION : (" << identifier << ")";
+    DEBUG("INSTANCE CREATION : (" + QString("%1").arg(identifier) + ")");
     switch(identifier)
     {
     case TOOL_COMPASS:
@@ -211,10 +214,10 @@ Item *Item::getInstance(quint32 identifier)
         return new Sword();
 
     case WEAPON_BOW:
-        return new Sword();
+        return new Bow();
 
     case WEAPON_STAFF:
-        return new Sword();
+        return new Staff();
 
     case CONSUMABLE_LIFEPOTION:
         return new PotionLife();
@@ -300,12 +303,20 @@ Item *Item::getInstance(quint32 identifier)
     case SCROLL_X:
         return new Scroll_X();
 
+    case EARTH_CRISTAL:
+        return new EarthCristal();
+
     default:
-        qDebug() << "INSTANCE CREATION : Not found";
+        DEBUG("INSTANCE CREATION : Not found id=" + QString("%1").arg(identifier));
         break;
     }
 
     return new BagCoin(0);
+}
+
+quint32 Item::getNbInstances()
+{
+    return sNbInstances;
 }
 
 

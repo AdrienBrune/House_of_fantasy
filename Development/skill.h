@@ -9,7 +9,7 @@ class Skill : public QObject
     Q_OBJECT
 public:
     Skill(uint8_t, uint32_t, QString, uint8_t, QString, bool, QPixmap, QPixmap);
-    ~Skill();
+    virtual ~Skill();
 
 signals:
     void sig_skillUnlock(Skill*);

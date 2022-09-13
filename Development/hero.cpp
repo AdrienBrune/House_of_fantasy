@@ -1,10 +1,14 @@
 #include "hero.h"
+#include "monster.h"
+
+bool gEnableMovementWithMouseClic = false;
 
 Hero::Hero():
     Character (),
     mIsInVillage(false),
     mFreeze(false),
-    mSkillPoints(0)
+    mSkillPoints(0),
+    mIsInMapEvent(false)
 {    
     setZValue(Z_HERO);
     mNextFrame = 0;
@@ -13,6 +17,124 @@ Hero::Hero():
     t_animation = new QTimer(this);
     connect(t_animation, SIGNAL(timeout()), this, SLOT(setNextFrame()));
     setTransformOriginPoint(boundingRect().center());
+
+    t_movement = new QTimer(this);
+    connect(t_movement, SIGNAL(timeout()), this, SLOT(nextMovement()));
+    t_movement->setInterval(100);
+}
+
+void Hero::nextMovement()
+{
+    int directionMask = mMoveHandler.movementMask, xMov = 0, yMov = 0;
+
+    if(!mMoveHandler.movementMask)
+        return;
+
+    if((mMoveHandler.movementMask & KEY_MASK_Z) && (mMoveHandler.movementMask & KEY_MASK_S))
+        directionMask &= (~(KEY_MASK_Z|KEY_MASK_S)); // Incompatible directions
+    if((mMoveHandler.movementMask & KEY_MASK_Q) && (mMoveHandler.movementMask & KEY_MASK_D))
+        directionMask &= (~(KEY_MASK_Q|KEY_MASK_D)); // Incompatible directions
+
+    if(directionMask)
+    {
+        if(directionMask & KEY_MASK_Z)
+        {
+            yMov = 100;
+            if(directionMask & KEY_MASK_Q)
+            {
+                mMoveHandler.angle = 320;
+            }
+            else if(directionMask & KEY_MASK_D)
+            {
+                mMoveHandler.angle = 45;
+            }
+            else
+            {
+                mMoveHandler.angle = 0;
+            }
+        }
+        if(directionMask & KEY_MASK_S)
+        {
+            yMov = -100;
+            if(directionMask & KEY_MASK_Q)
+            {
+                mMoveHandler.angle = 225;
+            }
+            else if(directionMask & KEY_MASK_D)
+            {
+                mMoveHandler.angle = 135;
+            }
+            else
+            {
+                mMoveHandler.angle = 180;
+            }
+        }
+        if(directionMask & KEY_MASK_Q)
+        {
+            xMov = -100;
+            if(directionMask & KEY_MASK_Z)
+            {
+                mMoveHandler.angle = 315;
+            }
+            else if(directionMask & KEY_MASK_S)
+            {
+                mMoveHandler.angle = 225;
+            }
+            else
+            {
+                mMoveHandler.angle = 270;
+            }
+        }
+        if(directionMask & KEY_MASK_D)
+        {
+            xMov = 100;
+            if(directionMask & KEY_MASK_Z)
+            {
+                mMoveHandler.angle = 45;
+            }
+            else if(directionMask & KEY_MASK_S)
+            {
+                mMoveHandler.angle = 135;
+            }
+            else
+            {
+                mMoveHandler.angle = 90;
+            }
+        }
+
+        mMoveHandler.destPos = QPointF(pos().x()+xMov,pos().y()+yMov);
+        mMoveHandler.lastPos = pos();
+    }
+
+
+    if(mMoveHandler.angle > 180 && mMoveHandler.angle < 320)
+    {
+        setTransform(QTransform(-1, 0, 0, 1, boundingRect().width(), 0));
+    }
+    else
+    {
+        setTransform(QTransform());
+    }
+
+    if(mMoveHandler.angle < 40){
+        mImageSelected = HERO_TOP;
+    }else if(mMoveHandler.angle < 70){
+        mImageSelected = HERO_RIGHT;
+    }else if(mMoveHandler.angle < 110){
+        mImageSelected = HERO_RIGHT;
+    }else if(mMoveHandler.angle < 140){
+        mImageSelected = HERO_RIGHT;
+    }else if(mMoveHandler.angle < 220){
+        mImageSelected = HERO_BOT;
+    }else if(mMoveHandler.angle < 250){
+        mImageSelected = HERO_LEFT;
+    }else if(mMoveHandler.angle < 290){
+        mImageSelected = HERO_LEFT;
+    }else if(mMoveHandler.angle < 320){
+        mImageSelected = HERO_LEFT;
+    }else{
+        mImageSelected = HERO_TOP;
+    }
 }
 
 void Hero::startMovingTo(int x, int y)
@@ -54,6 +176,7 @@ void Hero::stopMoving()
     mMoveHandler.destPos = QPointF(x(),y());
     mImageSelected = HERO_STAND;
     mNextFrame = 0;
+    update();
 }
 
 void Hero::interactWithPNG(bool toggle)
@@ -114,13 +237,16 @@ Hero *Hero::getInstance(Hero::HeroClasses hero)
 
 void Hero::move()
 {
+    bool mapEventFound = false;
     double dx = static_cast<double>(SPEED_HERO)*qSin(qDegreesToRadians(mMoveHandler.angle));
     double dy = -static_cast<double>(SPEED_HERO)*qCos(qDegreesToRadians(mMoveHandler.angle));
     setPos(x()+dx, y()+dy);
 
-    if( (abs(mMoveHandler.destPos.x() - x()) < 1)  || (abs(mMoveHandler.destPos.y() - y()) < 1) ){
-        stopMoving();
-    }
+    if(gEnableMovementWithMouseClic)
+        if( (abs(mMoveHandler.destPos.x() - x()) < 1)  || (abs(mMoveHandler.destPos.y() - y()) < 1) )
+        {
+            stopMoving(); // Not working with keys
+        }
 
     emit sig_heroMoved();
 
@@ -128,7 +254,8 @@ void Hero::move()
     for(QGraphicsItem * item : list)
     {
         MapItem * mapItem = dynamic_cast<MapItem*>(item);
-        if(mapItem){
+        if(mapItem)
+        {
             if(mapItem->isObstacle()){
                 setPos(mMoveHandler.lastPos);
                 stopMoving();
@@ -174,7 +301,64 @@ void Hero::move()
                 continue;
             }
         }
+        MapEvent* mapEvent = dynamic_cast<MapEvent*>(item);
+        if(mapEvent)
+        {
+            if(mapEvent->eventIsActive())
+                mapEventFound = true;
+            if(!mIsInMapEvent && mapEvent->eventIsActive())
+            {
+                Tool * tool = nullptr;
+
+                ChestEvent * chestEvent = dynamic_cast<ChestEvent*>(mapEvent);
+                if(chestEvent)
+                {
+                    tool = dynamic_cast<Tool*>(getBag()->getShovel());
+                }
+
+                OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
+                if(oreSpot)
+                {
+                    tool = dynamic_cast<Tool*>(getBag()->getPickaxe());
+                }
+
+                FishingEvent * fishes = dynamic_cast<FishingEvent*>(mapEvent);
+                if(fishes)
+                {
+                    tool = dynamic_cast<Tool*>(getBag()->getFishingrod());
+                }
+
+                if(tool)
+                    emit sig_enterMapEvent(tool);
+            }
+        }
+        Monster * monsterDead = dynamic_cast<Monster*>(item);
+        if(monsterDead)
+        {
+            if(monsterDead->isDead())
+                mapEventFound = true;
+            if(!mIsInMapEvent && monsterDead->isDead() && !monsterDead->isSkinned())
+            {
+                Tool * tool  = dynamic_cast<Tool*>(getBag()->getKnife());
+                if(tool)
+                    emit sig_enterMapEvent(tool);
+            }
+        }
     }
+
+    if(mapEventFound)
+    {
+        mIsInMapEvent = true;
+    }
+    else
+    {
+        if(mIsInMapEvent)
+        {
+            emit sig_leaveMapEvent();
+        }
+        mIsInMapEvent = false;
+    }
+
     mMoveHandler.lastPos = pos();
 }
 
@@ -212,7 +396,7 @@ Skill * Hero::getPassiveSkill(int index)
 {
     if(index >= PassiveSkill::NbSkills)
     {
-        qDebug() << "Skill asked doesn't exist";
+        DEBUG_ERR("Skill asked doesn't exist");
         return mSkillList[0];
     }
     return mSkillList[index];
@@ -222,7 +406,7 @@ Skill * Hero::getSpellSkill(int index)
 {
     if(index >= SpellSkill::NbSpells)
     {
-        qDebug() << "Skill asked doesn't exist";
+        DEBUG_ERR("Skill asked doesn't exist");
         return mSpellList[0];
     }
 
@@ -327,18 +511,16 @@ bool Hero::takeItem(Item * item)
 {
     BagCoin * coins = dynamic_cast<BagCoin*>(item);
     if(coins){
-        sig_playSound(SOUND_PICK_OBJECT);
+        emit sig_playSound(SOUND_PICK_OBJECT);
         addCoin(item->getPrice());
-        item->deleteLater();
-        item = nullptr;
-        return false;
+        return true;
     }else{
         if(!mBag->addItem(item))
         {
             emit sig_ThrowItem(item);
             return false;
         }else{
-            sig_playSound(SOUND_PICK_OBJECT);
+            emit sig_playSound(SOUND_PICK_OBJECT);
             return true;
         }
     }
@@ -484,7 +666,11 @@ void Hero::levelUpHero()
 
 Hero::~Hero()
 {
-
+    for(int i = 0; i < Hero::eNbHeroClasses; i++)
+    {
+        if(mHeroList[i].weapon)
+            delete mHeroList[i].weapon;
+    }
 }
 
 

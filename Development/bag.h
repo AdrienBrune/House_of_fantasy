@@ -27,6 +27,7 @@ public:
     bool itemIsInBag(Item*);
     void removeItem(Item*);
     Item * takeItem(Item*);
+    Item * getItem(quint32);
     QList<Item*> getItems();
     QList<Consumable*> getConsumables();
     QList<Weapon*> getWeapons();
@@ -39,6 +40,10 @@ public:
     Item * getShovel();
     Item * getPickaxe();
     Item * getFishingrod();
+    Item * getKnife();
+    int getQuantityOf(Item*);
+    int getQuantityOf(quint32);
+    Item * takeItemWithIdentifier(quint32);
 public:
     void serialize(QDataStream& stream)const
     {
@@ -49,7 +54,7 @@ public:
             stream << item->getIdentifier();
             item->serialize(stream);
         }
-        qDebug() << "SERIALIZED[in]  : Bag";
+        DEBUG("SERIALIZED[in]  : Bag");
     }
     void deserialize(QDataStream& stream)
     {
@@ -63,7 +68,7 @@ public:
             item->deserialize(stream);
             mItems.append(item);
         }
-        qDebug() << "SERIALIZED[out] : Bag";
+        DEBUG("SERIALIZED[out] : Bag");
     }
 private:
     Payload mPayload;

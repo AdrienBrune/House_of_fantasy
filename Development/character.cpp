@@ -73,10 +73,17 @@ void Character::setManaMax(int mana)
 void Character::setStamina(int stamina)
 {
     if(stamina < 0)
+    {
         mStamina.curStamina = 0;
+    }
     if(stamina > mStamina.maxStamina)
-        return;
-    mStamina.curStamina = stamina;
+    {
+        mStamina.curStamina = mStamina.maxStamina;
+    }
+    else
+    {
+        mStamina.curStamina = stamina;
+    }
 }
 
 void Character::setStaminaMax(int stamina)

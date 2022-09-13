@@ -7,7 +7,7 @@ class Consumable : public Item
 {
 public:
     Consumable(QString name, QPixmap image, int weight, int price, int capaciy);
-    ~Consumable();
+    virtual ~Consumable();
 public:
     int getCapacity();
     void setCapacity(int);
@@ -72,7 +72,7 @@ class Fish : public Consumable
 {
 public:
     Fish(QString name, QPixmap image, int weight, int price, int staminaToAdd);
-    ~Fish();
+    virtual ~Fish();
 };
 
 class RedFish : public Fish

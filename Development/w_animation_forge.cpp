@@ -27,7 +27,7 @@ void W_Animation_Forge::animate()
         mCurPixmap = 1;
         mAnimationStep += 960;
         mAnimationVar = 0;
-        sig_playSound(SOUND_FORGE);
+        emit sig_playSound(SOUND_FORGE);
    }
 
    if(mAnimationStep >= 5760){

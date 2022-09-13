@@ -23,7 +23,7 @@ public:
         bool event_goblinVillage;
     };
 public:
-    Map(QWidget * parent, QGraphicsView*, ItemGenerator*);
+    Map(QWidget * parent, QGraphicsView*);
     ~Map();
 signals:
     void sig_loadingGameUpdate(quint8);
@@ -57,6 +57,7 @@ private slots:
     void tryToOpenChest(ChestEvent*);
     void tryToStartPNGInteraction(QGraphicsItem*);
     void deleteMovableMapItem(MapItemMovable*);
+    void onLaoShanLungSummoned();
 public:
     QList<Monster*> getMonsters();
     QGraphicsScene * getScene();
@@ -67,11 +68,12 @@ public:
     void reGenerateMap();
     void generateRandomMap();
     void generateMonsters();
-    void generateCalamity();
     void removeMapElements();
     void removeMonsters();
     void heroThrowItemInMap(Item*);
     void freezeMap();
+    void putVillageInMap(Village * village = nullptr);
+    void generateLaoShanLung();
 private:
     void removeMapElement(MapItem*);
     bool checkCollisionBeetween(MapItem*, MapItem*);
@@ -88,7 +90,6 @@ private:
     void generateChestBurriedEvent();
     void generateOreSpots();
     void putItemsInMap();
-    void putVillageInMap();
     void putGoblinVillageInMap();
     void putLakesInMap();
     void initMonsterConnection(Monster*);
@@ -99,8 +100,6 @@ private:
     Hero * mHero;
     SpotEvent heroEventLocation;
     QTimer * t_collisionHandler;
-
-    ItemGenerator * mGameItems;
 
     QList<Bush*> mBushes;
     Village * mVillage;

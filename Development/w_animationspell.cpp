@@ -1,5 +1,5 @@
 #include "w_animationspell.h"
-#include "ui_w_spellanimation.h"
+#include "w_spellanimation.h"
 
 #include <QtDebug>
 

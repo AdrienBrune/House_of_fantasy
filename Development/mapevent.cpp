@@ -266,12 +266,12 @@ BushEventCoin::~BushEventCoin()
 
 
 
-BushEventEquipment::BushEventEquipment(ItemGenerator * gameItems):
+BushEventEquipment::BushEventEquipment():
     BushEvent ()
 {
     initGraphicStuff();
 
-    mItems.append(gameItems->generateEquipment());
+    mItems.append(gItemGenerator->generateEquipment());
 }
 
 void BushEventEquipment::initGraphicStuff()
@@ -302,11 +302,10 @@ BushEventEquipment::~BushEventEquipment()
 
 
 
-ChestEvent::ChestEvent(ItemGenerator * gameItems):
+ChestEvent::ChestEvent():
     MapEvent (),
     mRevealChest(0),
-    mHover(false),
-    mItemGenerator(gameItems)
+    mHover(false)
 {
     mMapItemName = "Chest event";
     mBoundingRect = QRect(0,0,100,100);
@@ -316,15 +315,15 @@ ChestEvent::ChestEvent(ItemGenerator * gameItems):
 
     while(QRandomGenerator::global()->bounded(3) == 0)
     {
-        mItems.append(gameItems->generateEquipment());
+        mItems.append(gItemGenerator->generateEquipment());
     }
     while(QRandomGenerator::global()->bounded(4) == 0)
     {
-        mItems.append(gameItems->generateRandomSword());
+        mItems.append(gItemGenerator->generateRandomSword());
     }
     while(QRandomGenerator::global()->bounded(2) == 0)
     {
-        mItems.append(gameItems->generateRandomConsumable());
+        mItems.append(gItemGenerator->generateRandomConsumable());
     }
     mItems.append(new BagCoin(QRandomGenerator::global()->bounded(4, 11)));
 }
@@ -363,20 +362,20 @@ bool ChestEvent::isOpen()
 
 void ChestEvent::addExtraItems()
 {
-    if(mItemGenerator == nullptr)
+    if(gItemGenerator == nullptr)
         return;
 
     if(QRandomGenerator::global()->bounded(3) == 0)
     {
-        mItems.append(mItemGenerator->generateEquipment());
+        mItems.append(gItemGenerator->generateEquipment());
     }
     if(QRandomGenerator::global()->bounded(4) == 0)
     {
-        mItems.append(mItemGenerator->generateRandomSword());
+        mItems.append(gItemGenerator->generateRandomSword());
     }
     if(QRandomGenerator::global()->bounded(2) == 0)
     {
-        mItems.append(mItemGenerator->generateRandomConsumable());
+        mItems.append(gItemGenerator->generateRandomConsumable());
     }
 }
 
@@ -460,8 +459,8 @@ ChestEvent::~ChestEvent()
 
 
 
-ChestBurried::ChestBurried(ItemGenerator * gameItems):
-    ChestEvent (gameItems)
+ChestBurried::ChestBurried():
+    ChestEvent ()
 {
     initGraphicStuff();
 }
@@ -478,18 +477,23 @@ ChestBurried::~ChestBurried()
 }
 
 
-GoblinChest::GoblinChest(ItemGenerator * gameItems):
-    ChestEvent (gameItems)
+GoblinChest::GoblinChest():
+    ChestEvent ()
 {
     initGraphicStuff();
     revealChest();
 
-    mItems.append(new Sword("Katana maléfique", QPixmap(":/equipment/sword_5.png"), 230, 8, 40, 62, "Arme mystérieuse de très bonne qualité, la lame semble irigée de sang ce qui lui confère une aura maléfique des plus pesante."));
     mItems.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
-    for(int n=0;n<QRandomGenerator::global()->bounded(6, 10);n++){
+    for(int n=0;n<QRandomGenerator::global()->bounded(1, 3);n++){
         mItems.append(new EmeraldOre);
     }
-    for(int n=0;n<QRandomGenerator::global()->bounded(8, 15);n++){
+    for(int n=0;n<QRandomGenerator::global()->bounded(1, 3);n++){
+        mItems.append(new SaphirOre);
+    }
+    for(int n=0;n<QRandomGenerator::global()->bounded(1, 3);n++){
+        mItems.append(new RubisOre);
+    }
+    for(int n=0;n<QRandomGenerator::global()->bounded(5, 8);n++){
         mItems.append(new IronOre);
     }
 }
@@ -637,9 +641,11 @@ EmeraldOreSpot::~EmeraldOreSpot()
 RubisOreSpot::RubisOreSpot():
     OreSpot ()
 {
+    OreSpot::initGraphicStuff();
+    
     mMapItemName = "rubis";
     mType = Ore::rubis;
-    initGraphicStuff();
+
     mItems.append(new RubisOre());
     for(int i=0;i<QRandomGenerator::global()->bounded(4);i++)
     {

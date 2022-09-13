@@ -34,7 +34,6 @@ SOURCES += \
         frag_interface_itemsorter.cpp \
         frag_interface_itemtrader.cpp \
         frag_interface_potionpreferencies.cpp \
-        frag_loot_displayer.cpp \
         frag_speel.cpp \
         frag_save.cpp \
         frag_stats_displayer.cpp \
@@ -58,9 +57,10 @@ SOURCES += \
         w_animation_forge.cpp \
         w_animation_night.cpp \
         w_animationspell.cpp \
-        w_dialogpannel.cpp \
         w_interface_herostats.cpp \
         w_itemdisplayer.cpp \
+        w_messagelogger.cpp \
+        w_quicktooldrawer.cpp \
         w_skill.cpp \
         w_spelllistselection.cpp \
         w_usetool.cpp \
@@ -87,7 +87,6 @@ HEADERS += \
         frag_interface_itemsorter.h \
         frag_interface_itemtrader.h \
         frag_interface_potionpreferencies.h \
-        frag_loot_displayer.h \
         frag_speel.h \
         frag_save.h \
         frag_stats_displayer.h \
@@ -100,6 +99,7 @@ HEADERS += \
         mapitem.h \
         material.h \
         monster.h \
+        qcustom_widget.h \
         skill.h \
         soundmanager.h \
         toolfunctions.h \
@@ -110,10 +110,12 @@ HEADERS += \
         w_animation_forge.h \
         w_animation_night.h \
         w_animationspell.h \
-        w_dialogpannel.h \
         w_interface_herostats.h \
         w_itemdisplayer.h \
+        w_messagelogger.h \
+        w_quicktooldrawer.h \
         w_skill.h \
+        w_spellanimation.h \
         w_spelllistselection.h \
         w_usetool.h \
         win_fight.h \
@@ -134,13 +136,13 @@ FORMS += \
         frag_interface_itemsorter.ui \
         frag_interface_itemtrader.ui \
         frag_interface_potionpreferencies.ui \
-        frag_loot_displayer.ui \
         frag_speel.ui \
         frag_stats_displayer.ui \
         frag_save.ui \
         helpdialog.ui \
     w_animationspell.ui \
         w_interface_herostats.ui \
+    w_messagelogger.ui \
         w_showinformation.ui \
         w_showmonsterdata.ui \
         w_showpotentialaction.ui \

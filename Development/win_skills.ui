@@ -65,22 +65,28 @@
     </widget>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="1,7">
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="1,8">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
         <number>0</number>
        </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
        <property name="topMargin">
-        <number>30</number>
+        <number>40</number>
        </property>
        <property name="rightMargin">
         <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>30</number>
+        <number>0</number>
        </property>
-       <item>
+       <item alignment="Qt::AlignBottom">
         <widget class="QLabel" name="skillPoints">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
@@ -91,15 +97,14 @@
          <property name="font">
           <font>
            <family>Papyrus</family>
-           <pointsize>36</pointsize>
+           <pointsize>42</pointsize>
           </font>
          </property>
          <property name="styleSheet">
           <string notr="true">QLabel{
-	color:#FFFFFF;
+	color:#3c3c3c;
 	padding-left:20px;
 	padding-right:20px;
-	background-color:#22FFFFFF;
 }</string>
          </property>
          <property name="text">
@@ -137,7 +142,7 @@
           <x>0</x>
           <y>0</y>
           <width>1016</width>
-          <height>915</height>
+          <height>924</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">

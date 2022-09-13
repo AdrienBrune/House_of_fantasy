@@ -7,6 +7,11 @@
 #include "bag.h"
 #include "skill.h"
 
+extern bool gEnableMovementWithMouseClic;
+
+enum{ KEY_MASK_Z = 0x1, KEY_MASK_S = 0x2, KEY_MASK_D = 0x4, KEY_MASK_Q = 0x8, KEY_MASK_NB = 0x16 };
+
+
 class Map;
 
 class Hero : public Character
@@ -40,10 +45,11 @@ public:
     };
 
     struct HeroMovementHandler{
-        qreal angle;
-        QPointF destPos;
-        QTimer * t_move;
-        QPointF lastPos;
+        qreal angle = 180;
+        QPointF destPos = QPointF();
+        QTimer * t_move = nullptr;
+        QPointF lastPos = QPointF();
+        int movementMask = 0;
     };
 
     struct Experience{
@@ -54,7 +60,7 @@ public:
 
 public:
     Hero();
-    ~Hero();
+    virtual ~Hero();
 signals:
     void sig_equipmentChanged();
     void sig_bagEvent();
@@ -68,6 +74,10 @@ signals:
     void sig_ThrowItem(Item*);
     void sig_dodge();
     void sig_playSound(int);
+    void sig_enterMapEvent(Tool * tool);
+    void sig_leaveMapEvent();
+public slots:
+    void nextMovement();
 private slots:
     void move();
 public:
@@ -139,10 +149,11 @@ protected:
     bool mFreeze;
     int mSkillPoints;
     quint8 mClass;
+    bool mIsInMapEvent;
     HeroCaracteristics mHeroList[Hero::eNbHeroClasses] = {
-        { "Maphistos", 200, 100, 200, 20, 5, new Weapon("baton", QPixmap(":/equipment/sword_stick.png"), 5, 8, 5, 1), {3, 4, 5, 3} },
-        { "Sophia", 140, 120, 300, 25, 5, new Weapon("bow", QPixmap(":/equipment/sword_stick.png"), 12, 8, 5, 1), {2, 4, 7, 2} },
-        { "Archangelie", 150, 250, 150, 30, 10, new Weapon("baton", QPixmap(":/equipment/sword_stick.png"), 5, 8, 5, 1), {2, 7, 2, 2} }
+        { "Maphistos", 200, 20, 160, 10, 5, new Staff("baton", QPixmap(":/equipment/sword_stick.png"), 5, 8, 5, 1, "Bâton en bois", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {3, 4, 5, 3} },
+        { "Sophia", 120, 120, 240, 10, 5, new Bow("bow", QPixmap(":/equipment/sword_stick.png"), 12, 8, 5, 1, "Arc de fortune", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {2, 4, 7, 2} },
+        { "Archangelie", 80, 250, 120, 10, 12, new Staff("baton", QPixmap(":/equipment/sword_stick.png"), 5, 8, 5, 1, "Bâton en boid", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {2, 7, 2, 2} }
     };
     PassiveSkill* mSkillList[PassiveSkill::NbSkills] = {
         new PassiveSkill( PassiveSkill::ForceOfNature, ABLE(eSwordman), "Force de la nature", 2, "Accorde un pourcentage de chance de frapper plus fort en combat", false, QPixmap(":/icons/skill/skill00.png"), QPixmap(":/icons/skill/skill01.png")) ,
@@ -169,6 +180,8 @@ protected:
         new SpellSkill( SpellSkill::Benediction, ABLE(eWizard), "Bénédiction", 5, "Sort permettant d’encaisser les trois prochaines attaques sans dégâts", false, QPixmap(":/icons/skill/spell60.png"), QPixmap(":/icons/skill/spell61.png"), 50, 3, "Tours d'invincibilité" ),
         new SpellSkill( SpellSkill::Confusion, ABLE(eWizard), "Confusion", 10, "Réduit drastiquement le taux d’attaque de l’ennemi", false, QPixmap(":/icons/skill/spell70.png"), QPixmap(":/icons/skill/spell71.png"), 60, 70, "Taux de réussite" )
     };
+public:
+    QTimer * t_movement;
 };
 
 
@@ -185,8 +198,8 @@ public:
 
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-public:
 
+public:
     void serialize(QDataStream& stream)const
     {
         stream << mClass
@@ -209,7 +222,7 @@ public:
         mBag->serialize(stream);
         mGear->serialize(stream);
 
-        qDebug() << "SERIALIZED[in]  : Swordman";
+        DEBUG("SERIALIZED[in]  : Swordman");
     }
     void deserialize(QDataStream& stream)
     {
@@ -241,7 +254,7 @@ public:
 
         setLocation(location);
 
-        qDebug() << "SERIALIZED[out] : Swordman";
+        DEBUG("SERIALIZED[out] : Swordman");
     }
 };
 
@@ -284,7 +297,7 @@ public:
         mBag->serialize(stream);
         mGear->serialize(stream);
 
-        qDebug() << "SERIALIZED[in]  : Archer";
+        DEBUG("SERIALIZED[in]  : Archer");
     }
     void deserialize(QDataStream& stream)
     {
@@ -316,7 +329,7 @@ public:
 
         setLocation(location);
 
-        qDebug() << "SERIALIZED[out] : Archer";
+        DEBUG("SERIALIZED[out] : Archer");
     }
 };
 
@@ -363,7 +376,7 @@ public:
         mBag->serialize(stream);
         mGear->serialize(stream);
 
-        qDebug() << "SERIALIZED[in]  : Wizard";
+        DEBUG("SERIALIZED[in]  : Wizard");
     }
     void deserialize(QDataStream& stream)
     {
@@ -395,7 +408,7 @@ public:
 
         setLocation(location);
 
-        qDebug() << "SERIALIZED[out] : Wizard";
+        DEBUG("SERIALIZED[out] : Wizard");
     }
 };
 

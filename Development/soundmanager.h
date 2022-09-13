@@ -7,6 +7,7 @@
 #include <QTimer>
 #include "constants.h"
 #include "monster.h"
+#include "equipment.h"
 
 class SoundManager : public QWidget
 {
@@ -25,6 +26,7 @@ private slots:
 public:
     void startMusicFight(Monster*);
     void endMusicFight();
+    void setHeroAttack(Weapon*);
 private:
     void playMusic(QMediaPlayer*);
 private:
@@ -96,6 +98,7 @@ private:
     QMediaPlayer * laoshanlungRoar;
     QMediaPlayer * laoshanlungDie;
     QMediaPlayer * spell;
+    QMediaPlayer * teleport;
 
     QTimer * t_delayVillage;
     QTimer * t_delayEvent;

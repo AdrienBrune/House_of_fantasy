@@ -10,7 +10,7 @@ class Equipment : public Item
 public:
     Equipment(QString name, QPixmap image, int weight, int price, uint32_t usable = 0xFFFFFFFF);
     Equipment();
-    ~Equipment();
+    virtual ~Equipment();
 public:
     const uint32_t & getUsable()const;
     void setUsable(uint32_t);
@@ -29,14 +29,28 @@ public:
         int quantities;
     };
 public:
-    EquipmentToForge(Equipment*, QList<Loot>);
-    ~EquipmentToForge();
+    EquipmentToForge(Equipment* equipment, QList<Loot> loots, int price = 20):mEquipment(equipment), mLoots(loots), mCraftingPrice(price){};
+    ~EquipmentToForge()
+    {
+        while(!mLoots.isEmpty())
+        {
+            if(mLoots.last().material)
+                delete mLoots.last().material;
+            mLoots.takeLast();
+        }
+        if(mEquipment)
+            delete mEquipment;
+        mEquipment = nullptr;
+    };
 public:
-    Equipment * getEquipment();
-    QList<Loot> getLootList();
+    Equipment *getEquipment(){ return mEquipment; };
+    Equipment *takeEquipment(){ Equipment * equipment = mEquipment; mEquipment = nullptr; return equipment; };
+    QList<EquipmentToForge::Loot> getLootList(){ return mLoots; };
+    int getCraftingPrice(){ return mCraftingPrice; };
 private:
     Equipment * mEquipment;
     QList<Loot> mLoots;
+    int mCraftingPrice;
 };
 
 
@@ -48,7 +62,7 @@ class Weapon : public Equipment
     Q_OBJECT
 public:
     Weapon(QString name, QPixmap image, int damage, int speed, int weight, int price, uint32_t usable = 0xFFFFFFFF);
-    ~Weapon();
+    virtual ~Weapon();
 public:
     int getDamage();
     int getSpeed();
@@ -63,13 +77,13 @@ public:
     {
         Item::serialize(stream);
         stream << mUsable << mDamage << mSpeed;
-        qDebug() << "SERIALIZED[in]  : Weapon";
+        DEBUG("SERIALIZED[in]  : Weapon");
     }
     void deserialize(QDataStream& stream)override
     {
         Item::deserialize(stream);
         stream >> mUsable >> mDamage >> mSpeed;
-        qDebug() << "SERIALIZED[out] : Weapon";
+        DEBUG("SERIALIZED[out] : Weapon");
     }
 private:
     int mDamage;
@@ -108,7 +122,7 @@ class ArmorPiece : public Equipment
     Q_OBJECT
 public:
     ArmorPiece(QString name, QPixmap image, int defense, qreal dodgingStats, int weight, int price, uint32_t usable = 0xFFFFFFFF);
-    ~ArmorPiece();
+    virtual ~ArmorPiece();
 public:
     int getDefense();
     qreal getDodgingStat();
@@ -124,13 +138,13 @@ public:
     {
         Item::serialize(stream);
         stream << mUsable << mDefense << mDodgingStat;
-        qDebug() << "SERIALIZED[in]  : Armor";
+        DEBUG("SERIALIZED[in]  : Armor");
     }
     void deserialize(QDataStream& stream)override
     {
         Item::deserialize(stream);
         stream >> mUsable >> mDefense >> mDodgingStat;
-        qDebug() << "SERIALIZED[out] : Armor";
+        DEBUG("SERIALIZED[out] : Armor");
     }
 private:
     int mDefense;
@@ -227,7 +241,7 @@ public:
             equipment->serialize(stream);
         }
 
-        qDebug() << "SERIALIZED[in]  : Gear";
+        DEBUG("SERIALIZED[in]  : Gear");
     }
     void deserialize(QDataStream& stream)
     {
@@ -242,9 +256,9 @@ public:
             if(item)
                 mEquipmentParts.append(item);
             else
-                qDebug() << "SERIALIZED[out] : Item is not an equipment";
+                DEBUG("SERIALIZED[out] : Item is not an equipment");
         }
-        qDebug() << "SERIALIZED[out] : Gear";
+        DEBUG("SERIALIZED[out] : Gear");
     }
 private:
     QList<Equipment*> mEquipmentParts;

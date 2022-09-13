@@ -30,7 +30,7 @@ private slots:
     void showItemHover(ItemQuickDisplayer*);
     void hideItemHover(ItemQuickDisplayer*);
     void useItem(Item*);
-    void on_buttonExit_clicked();
+    void onItemThrown(Item*);
 public:
     void diplayInventory();
     void closeInventory();

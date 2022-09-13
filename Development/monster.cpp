@@ -140,6 +140,11 @@ int Monster::getSoundIndexFor(int index)
     return mSounds[index];
 }
 
+QString Monster::getDescription()
+{
+    return mDescription;
+}
+
 Monster::ImageHandler Monster::getImageHandler()
 {
     return mPixmap;
@@ -148,6 +153,19 @@ Monster::ImageHandler Monster::getImageHandler()
 void Monster::setDamage(int damage)
 {
     mDamage = damage;
+}
+
+QList<Item *> Monster::skinMonster()
+{
+    QList<Item*> itemList;
+    while(!mItems.isEmpty())
+        itemList.append(mItems.takeLast());
+
+    setZValue(Z_MONSTER_BACKGROUND);
+    mAction = Action::skinned;
+    mCurrentPixmap = mPixmap.skinned;
+    mNumberFrame = Monster::getNumberFrame();
+    return itemList;
 }
 
 void Monster::addStatus(quint32 status)
@@ -528,7 +546,8 @@ int Monster::getNumberFrame()
 
 Monster::~Monster()
 {
-
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
 }
 
 
@@ -554,6 +573,7 @@ Wolf::Wolf(QGraphicsView * view):
     mThreatLevel = 2;
     mImage = QPixmap(":/monsters/wolf/wolf_logo.png");
     mSpeed = getSpeed();
+    mDescription = "Les loups sont des chasseurs agressifs chassant exclusivement en meute";
 
     mBoundingRect = QRect(0,0,100,100);
     mShape.addEllipse(25,0,boundingRect().width()-50, boundingRect().height());
@@ -583,20 +603,11 @@ Wolf::Wolf(QGraphicsView * view):
 
     mCurrentPixmap = mPixmap.stand;
 
-    mItems = generateRandomLoots();
+    Wolf::generateRandomLoots();
 
     mSize = boundingRect().height();
     setTransformOriginPoint(boundingRect().center());
     setAngle(90);
-}
-
-QList<Item *> Wolf::skinMonster()
-{
-    setZValue(Z_MONSTER_BACKGROUND);
-    mAction = Action::skinned;
-    mCurrentPixmap = mPixmap.skinned;
-    mNumberFrame = Monster::getNumberFrame();
-    return mItems;
 }
 
 void Wolf::addExtraLoots()
@@ -664,18 +675,19 @@ int Wolf::getBoostedSpeed()
     return SPEEDBOOST_WOLF;
 }
 
-QList<Item *> Wolf::generateRandomLoots()
+void Wolf::generateRandomLoots()
 {
-    QList<Item*> loots;
-    loots.append(new WolfMeat);
-    loots.append(new WolfFang);
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
+
+    mItems.append(new WolfMeat);
+    mItems.append(new WolfFang);
     if(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new WolfPelt);
+        mItems.append(new WolfPelt);
     }
     while(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new WolfFang);
+        mItems.append(new WolfFang);
     }
-    return loots;
 }
 
 Wolf::~Wolf()
@@ -691,6 +703,7 @@ WolfAlpha::WolfAlpha(QGraphicsView * view):
     mDamage = 18;
     mThreatLevel = 3;
     mImage = QPixmap(":/monsters/wolf/wolfAlpha_logo.png");
+    mDescription = "Les loups alpha sont des meneurs par nature, s'ils ont pu se hisser à la tête de leur meute, c'est bien par leur férocité sans égale";
 
     QPainterPath path;
     mBoundingRect = QRect(0,0,120,120);
@@ -707,9 +720,7 @@ WolfAlpha::WolfAlpha(QGraphicsView * view):
 
     mCurrentPixmap = mPixmap.stand;
 
-    while(!mItems.isEmpty())
-        delete mItems.takeLast();
-    generateRandomLoots();
+    WolfAlpha::generateRandomLoots();
 
     update();
 
@@ -728,18 +739,19 @@ int WolfAlpha::getBoostedSpeed()
     return SPEEDBOOST_WOLF+1;
 }
 
-QList<Item *> WolfAlpha::generateRandomLoots()
+void WolfAlpha::generateRandomLoots()
 {
-    QList<Item*> loots;
-    loots.append(new WolfMeat);
-    loots.append(new WolfFang);
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
+
+    mItems.append(new WolfMeat);
+    mItems.append(new WolfFang);
     if(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new WolfAlphaPelt);
+        mItems.append(new WolfAlphaPelt);
     }
     while(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new WolfFang);
+        mItems.append(new WolfFang);
     }
-    return loots;
 }
 
 
@@ -761,6 +773,7 @@ Goblin::Goblin(QGraphicsView * view):
     mAction = Action::stand;
     mThreatLevel = 1;
     mImage = QPixmap(":/monsters/goblin/goblin_logo.png");
+    mDescription = "Le gobelin est un être incompris et sournois qui cherchera à vous faire du mal par tous les moyens";
 
     mBoundingRect = QRect(0,0,60,60);
     mShape.addEllipse(0,0,boundingRect().width(), boundingRect().height());
@@ -790,20 +803,11 @@ Goblin::Goblin(QGraphicsView * view):
 
     mCurrentPixmap = mPixmap.stand;
 
-    mItems = generateRandomLoots();
+    Goblin::generateRandomLoots();
 
     mSize = boundingRect().height();
     setTransformOriginPoint(boundingRect().center());
     setAngle(90);
-}
-
-QList<Item *> Goblin::skinMonster()
-{
-    setZValue(Z_MONSTER_BACKGROUND);
-    mAction = Action::skinned;
-    mCurrentPixmap = mPixmap.skinned;
-    mNumberFrame = Monster::getNumberFrame();
-    return mItems;
 }
 
 void Goblin::addExtraLoots()
@@ -870,20 +874,21 @@ int Goblin::getBoostedSpeed()
     return SPEEDBOOST_GOBLIN;
 }
 
-QList<Item *> Goblin::generateRandomLoots()
+void Goblin::generateRandomLoots()
 {
-    QList<Item*> loots;
-    loots.append(new GoblinEar);
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
+
+    mItems.append(new GoblinEar);
     if(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new GoblinEar);
+        mItems.append(new GoblinEar);
     }
     if(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new GoblinBones);
+        mItems.append(new GoblinBones);
     }
     if(QRandomGenerator::global()->bounded(10) == 0){
-        loots.append(new Amulet("Amulette\nde shaman",QPixmap(":/equipment/amulet_7.png"),8,2,5,8,"Amulette mystérieuse confectionnée par un gobelin."));
+        mItems.append(new Amulet("Amulette\nde shaman",QPixmap(":/equipment/amulet_7.png"),8,2,5,8,"Amulette mystérieuse confectionnée par un gobelin."));
     }
-    return loots;
 }
 
 Goblin::~Goblin()
@@ -913,6 +918,7 @@ Bear::Bear(QGraphicsView * view):
     mThreatLevel = 3;
     mImage = QPixmap(":/monsters/bear/bear_logo.png");
     mSpeed = getSpeed();
+    mDescription = "L'ours est un prédator puissant est dangereux, il hiberne pendant la saison hivernale";
 
     mBoundingRect = QRect(0,0,200,200);
     mShape.addEllipse(40,0,boundingRect().width()-80, boundingRect().height());
@@ -942,20 +948,11 @@ Bear::Bear(QGraphicsView * view):
 
     mCurrentPixmap = mPixmap.stand;
 
-    mItems = generateRandomLoots();
+    Bear::generateRandomLoots();
 
     mSize = boundingRect().height();
     setTransformOriginPoint(boundingRect().center());
     setAngle(90);
-}
-
-QList<Item *> Bear::skinMonster()
-{
-    setZValue(Z_MONSTER_BACKGROUND);
-    mAction = Action::skinned;
-    mCurrentPixmap = mPixmap.skinned;
-    mNumberFrame = Monster::getNumberFrame();
-    return mItems;
 }
 
 void Bear::addExtraLoots()
@@ -1023,17 +1020,18 @@ int Bear::getBoostedSpeed()
     return SPEEDBOOST_BEAR;
 }
 
-QList<Item *> Bear::generateRandomLoots()
+void Bear::generateRandomLoots()
 {
-    QList<Item*> loots;
-    loots.append(new BearMeat);
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
+
+    mItems.append(new BearMeat);
     if(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new BearPelt);
+        mItems.append(new BearPelt);
     }
     while(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new BearClaw);
+        mItems.append(new BearClaw);
     }
-    return loots;
 }
 
 
@@ -1063,6 +1061,7 @@ Troll::Troll(QGraphicsView * view):
     mThreatLevel = 2;
     mImage = QPixmap(":/monsters/troll/troll_logo.png");
     mSpeed = getSpeed();
+    mDescription = "Le troll est avare et cherche à dérober les biens des humain, et ce par la force s'il le faut";
 
     mBoundingRect = QRect(0,0,100,100);
     mShape.addEllipse(0,0,boundingRect().width()-25, boundingRect().height());
@@ -1092,20 +1091,11 @@ Troll::Troll(QGraphicsView * view):
 
     mCurrentPixmap = mPixmap.stand;
 
-    mItems = generateRandomLoots();
+    Troll::generateRandomLoots();
 
     mSize = boundingRect().height();
     setTransformOriginPoint(boundingRect().center());
     setAngle(90);
-}
-
-QList<Item *> Troll::skinMonster()
-{
-    setZValue(Z_MONSTER_BACKGROUND);
-    mAction = Action::skinned;
-    mCurrentPixmap = mPixmap.skinned;
-    mNumberFrame = Monster::getNumberFrame();
-    return mItems;
 }
 
 void Troll::addExtraLoots()
@@ -1173,17 +1163,18 @@ int Troll::getBoostedSpeed()
     return SPEEDBOOST_TROLL;
 }
 
-QList<Item *> Troll::generateRandomLoots()
+void Troll::generateRandomLoots()
 {
-    QList<Item*> loots;
-    loots.append(new TrollMeat);
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
+
+    mItems.append(new TrollMeat);
     if(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new TrollSkull);
+        mItems.append(new TrollSkull);
     }
     if(QRandomGenerator::global()->bounded(6) == 0){
-        loots.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
+        mItems.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
     }
-    return loots;
 }
 
 
@@ -1216,6 +1207,7 @@ Oggre::Oggre(QGraphicsView * view):
     mThreatLevel = 4;
     mImage = QPixmap(":/monsters/oggre/oggre_logo.png");
     mSpeed = getSpeed();
+    mDescription = "L'ogre est massif et terriblement dangereux, il vaut mieux ne pas croiser son chemin si l'on y est pas préparé";
 
     mBoundingRect = QRect(0,0,350,350);
     mShape.addEllipse(QRect(100, 50, static_cast<int>(boundingRect().width()-200), static_cast<int>(boundingRect().height()-100)));
@@ -1245,20 +1237,11 @@ Oggre::Oggre(QGraphicsView * view):
 
     mCurrentPixmap = mPixmap.stand;
 
-    mItems = generateRandomLoots();
+    Oggre::generateRandomLoots();
 
     mSize = boundingRect().height();
     setTransformOriginPoint(boundingRect().center());
     setAngle(90);
-}
-
-QList<Item *> Oggre::skinMonster()
-{
-    setZValue(Z_MONSTER_BACKGROUND);
-    mAction = Action::skinned;
-    mCurrentPixmap = mPixmap.skinned;
-    mNumberFrame = Monster::getNumberFrame();
-    return mItems;
 }
 
 void Oggre::addExtraLoots()
@@ -1324,16 +1307,17 @@ int Oggre::getBoostedSpeed()
     return SPEEDBOOST_OGGRE;
 }
 
-QList<Item *> Oggre::generateRandomLoots()
+void Oggre::generateRandomLoots()
 {
-    QList<Item*> loots;
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
+
     if(QRandomGenerator::global()->bounded(2) == 0){
-        loots.append(new OggreSkull);
+        mItems.append(new OggreSkull);
     }
     if(QRandomGenerator::global()->bounded(3) == 0){
-        loots.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
+        mItems.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
     }
-    return loots;
 }
 
 
@@ -1363,6 +1347,7 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mThreatLevel = 10;
     mImage = QPixmap(":/monsters/laoshanlung/laoshanlung_logo.png");
     mSpeed = getSpeed();
+    mDescription = "Créature mythique, le Lao Shun Lung est un dragon de terre colossale qui écume les plaines depuis des centaines d'années";
 
     mBoundingRect = QRect(0,0,700,700);
     mShape.addEllipse(QRect(250, 100, static_cast<int>(boundingRect().width())-500, static_cast<int>(boundingRect().height())-200));
@@ -1392,20 +1377,11 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
 
     mCurrentPixmap = mPixmap.stand;
 
-    mItems = generateRandomLoots();
+    LaoShanLung::generateRandomLoots();
 
     mSize = boundingRect().height();
     setTransformOriginPoint(boundingRect().center());
     setAngle(90);
-}
-
-QList<Item *> LaoShanLung::skinMonster()
-{
-    setZValue(Z_MONSTER_BACKGROUND);
-    mAction = Action::skinned;
-    mCurrentPixmap = mPixmap.skinned;
-    mNumberFrame = Monster::getNumberFrame();
-    return mItems;
 }
 
 void LaoShanLung::addExtraLoots()
@@ -1471,11 +1447,12 @@ int LaoShanLung::getBoostedSpeed()
     return SPEEDBOOST_LAOSHANLUNG;
 }
 
-QList<Item *> LaoShanLung::generateRandomLoots()
+void LaoShanLung::generateRandomLoots()
 {
-    QList<Item*> loots;
-    loots.append(new LaoshanlungHeart);
-    return loots;
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
+
+    mItems.append(new LaoshanlungHeart);
 }
 
 LaoShanLung::~LaoShanLung()

@@ -53,7 +53,7 @@ public:
 
 public:
     Monster(QGraphicsView*);
-    ~Monster();
+    virtual ~Monster();
 signals:
     void sig_monsterEncountered(Monster*);
     void sig_showMonsterData(Monster*);
@@ -69,8 +69,10 @@ public:
     QPixmap getHeavyAttackAnimation();
     QPixmap getLightAttackAnimation();
     int getSoundIndexFor(int);
+    QString getDescription();
     ImageHandler getImageHandler();
     void setDamage(int);
+    QList<Item*> skinMonster();
     void addStatus(quint32);
     void removeStatus(quint32);
     void setAngle(qreal);
@@ -85,7 +87,6 @@ public:
     void enableMonsterAnimation(bool);
 public:
     virtual void nextAction(Hero*)=0;
-    virtual QList<Item*> skinMonster()=0;
     virtual void addExtraLoots()=0;
 protected:
     int getNumberFrame();
@@ -99,7 +100,7 @@ protected:
 private:
     virtual int getSpeed()=0;
     virtual int getBoostedSpeed()=0;
-    virtual QList<Item*> generateRandomLoots()=0;
+    virtual void generateRandomLoots()=0;
 protected:
     QGraphicsView * mView;
     bool mIsInView;
@@ -109,6 +110,7 @@ protected:
     quint32 mStatus;
     int mThreatLevel;
     int mExperience;
+    QString mDescription;
 
     int mSpeed;
     Action mAction;
@@ -129,13 +131,12 @@ public:
     Wolf(QGraphicsView*);
     ~Wolf();
 public:
-    QList<Item*> skinMonster();
     void addExtraLoots();
 private:
     void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
-    QList<Item*> generateRandomLoots();
+    void generateRandomLoots();
 };
 
 class WolfAlpha : public Wolf
@@ -146,7 +147,7 @@ public:
     ~WolfAlpha();
 private:
     int getBoostedSpeed();
-    QList<Item*> generateRandomLoots();
+    void generateRandomLoots();
 };
 
 class Goblin : public Monster
@@ -156,13 +157,12 @@ public:
     Goblin(QGraphicsView*);
     ~Goblin();
 public:
-    QList<Item*> skinMonster();
     void addExtraLoots();
 private:
     void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
-    QList<Item*> generateRandomLoots();
+    void generateRandomLoots();
 };
 
 
@@ -174,13 +174,12 @@ public:
     Bear(QGraphicsView*);
     ~Bear();
 public:
-    QList<Item*> skinMonster();
     void addExtraLoots();
 private:
     void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
-    QList<Item*> generateRandomLoots();
+    void generateRandomLoots();
 };
 
 
@@ -192,13 +191,12 @@ public:
     Troll(QGraphicsView*);
     ~Troll();
 public:
-    QList<Item*> skinMonster();
     void addExtraLoots();
 private:
     void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
-    QList<Item*> generateRandomLoots();
+    void generateRandomLoots();
 };
 
 
@@ -209,13 +207,12 @@ public:
     Oggre(QGraphicsView*);
     ~Oggre();
 public:
-    QList<Item*> skinMonster();
     void addExtraLoots();
 private:
     void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
-    QList<Item*> generateRandomLoots();
+    void generateRandomLoots();
 };
 
 
@@ -226,13 +223,12 @@ public:
     LaoShanLung(QGraphicsView*);
     ~LaoShanLung();
 public:
-    QList<Item*> skinMonster();
     void addExtraLoots();
 private:
     void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
-    QList<Item*> generateRandomLoots();
+    void generateRandomLoots();
 };
 
 

@@ -56,6 +56,17 @@ Item * Bag::takeItem(Item * item)
     return nullptr;
 }
 
+Item *Bag::getItem(quint32 identifier)
+{
+    for(int i=0;i<mItems.length();i++)
+    {
+        if(mItems[i]->getIdentifier() == identifier){
+            return mItems[i];
+        }
+    }
+    return nullptr;
+}
+
 QList<Item *> Bag::getItems()
 {
     return mItems;
@@ -193,7 +204,53 @@ Item *Bag::getFishingrod()
     return nullptr;
 }
 
-#include <QtDebug>
+Item *Bag::getKnife()
+{
+    for(Item * item : mItems)
+    {
+        Knife * knife = dynamic_cast<Knife*>(item);
+        if(knife){
+            return knife;
+        }
+    }
+    return nullptr;
+}
+
+int Bag::getQuantityOf(Item * itemToFind)
+{
+    int quantity = 0;
+    for(Item * item : mItems)
+    {
+        if(item->getIdentifier() == itemToFind->getIdentifier())
+            quantity++;
+    }
+    return quantity;
+}
+
+int Bag::getQuantityOf(quint32 identifier)
+{
+    int quantity = 0;
+    for(Item * item : mItems)
+    {
+        if(item->getIdentifier() == identifier)
+            quantity++;
+    }
+    return quantity;
+}
+
+Item * Bag::takeItemWithIdentifier(quint32 identifier)
+{
+    for(int i=0;i<mItems.length();i++)
+    {
+        if(mItems[i]->getIdentifier() == identifier){
+            mPayload.current -= mItems[i]->getWeight();
+            emit sig_bagEvent();
+            return mItems.takeAt(i);
+        }
+    }
+    return nullptr;
+}
+
 Bag::~Bag()
 {
     while(!mItems.isEmpty())

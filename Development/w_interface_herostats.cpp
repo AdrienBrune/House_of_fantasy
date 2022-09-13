@@ -57,6 +57,7 @@ void W_Interface_HeroStats::refreshManaDisplayed()
 
 void W_Interface_HeroStats::refreshExperienceDisplayed()
 {
+    ui->data_exp->setRange(0, mHero->getExperience().pointsToLevelUp);
     ui->data_exp_number->setValue(mHero->getExperience().level);
     ui->data_exp->setValue(mHero->getExperience().points);
 }

@@ -7,7 +7,7 @@ class Material : public Item
 {
 public:
     Material(QString name, QPixmap image, int weight, int price);
-    ~Material();
+    virtual ~Material();
 public:
     Feature getFirstCaracteristic();
     Feature getSecondCaracteristic();
@@ -50,12 +50,19 @@ public:
     ~RubisOre();
 };
 
+class EarthCristal : public Material
+{
+public:
+    EarthCristal();
+    ~EarthCristal();
+};
+
 class MonsterMaterial : public Material
 {
 
 public:
     MonsterMaterial(QString name, QPixmap image, int weight, int price);
-    ~MonsterMaterial();
+    virtual ~MonsterMaterial();
 };
 
 class WolfPelt : public MonsterMaterial

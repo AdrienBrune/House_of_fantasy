@@ -115,7 +115,7 @@ BlacksmithHouse::BlacksmithHouse():
 {
     initGraphicStuff();
     setZValue(Z_VILLAGE);
-    mInformation = "Forgeron\nLieux pour forger des équipements";
+    mInformation = "Forgeron\nLieu pour forger des armes et armmures";
 }
 
 BlacksmithHouse::~BlacksmithHouse()
@@ -154,29 +154,34 @@ void BlacksmithHouse::initGraphicStuff()
 
 
 Blacksmith::Blacksmith():
-    QObject ()
+    QObject (),
+    mEquipmentsToForge(nullptr)
 {
     mHouse = new BlacksmithHouse();
-    QList<EquipmentToForge::Loot> list_1, list_2, list_3;
-    list_1 << EquipmentToForge::Loot{new WolfFang(),10} << EquipmentToForge::Loot{new BearClaw(),5} << EquipmentToForge::Loot{new IronOre(),10};
-    list_2 << EquipmentToForge::Loot{new WolfFang(),4} << EquipmentToForge::Loot{new WolfPelt(),2} << EquipmentToForge::Loot{new BearClaw(),2} << EquipmentToForge::Loot{new BearPelt(),2} << EquipmentToForge::Loot{new IronOre(),5} << EquipmentToForge::Loot{new StoneOre(),5};
-    list_3 << EquipmentToForge::Loot{new WolfFang(),5} << EquipmentToForge::Loot{new WolfPelt(),2} << EquipmentToForge::Loot{new BearClaw(),5} << EquipmentToForge::Loot{new BearPelt(),2} << EquipmentToForge::Loot{new IronOre(),5} << EquipmentToForge::Loot{new StoneOre(),2};
-    mEquipmentsToForge << new EquipmentToForge(new Sword("Épée du nord", QPixmap(":/equipment/sword_18.png"), 360, 2, 15, 120, "Grande épée magnifique de très bonne facture forgée à partir de composants de loup et d'ours"), list_1)
-                        << new EquipmentToForge(new Breastplate("Tunique d'éclaireur\nnordique", QPixmap(":/equipment/breastplate_24.png"), 210, 4, 10, 45, "Équipement utilisé par les éclaireur des armées nordiques. Il offre une résistance au froid et une grande liberté de mouvement au détriment de la défense."), list_2)
-                        << new EquipmentToForge(new Pant("Tasette nordique", QPixmap(":/equipment/pant_8.png"), 110, 2, 10, 0, "Tasette utilisée par les guerriers nordiques. Offre une bonne résistance au froid en plus d'être résistante pour le combat."), list_3);
+
+    replenish();
+
+    t_resplenish = new QTimer(this);
+    connect(t_resplenish, SIGNAL(timeout()), this, SLOT(replenish()));
+    t_resplenish->start(5*60*1000);
 }
 
 Blacksmith::~Blacksmith()
 {
-    while(!mEquipmentsToForge.isEmpty())
-        delete mEquipmentsToForge.takeLast();
     if(mHouse)
         delete mHouse;
+    if(mEquipmentsToForge)
+        delete mEquipmentsToForge;
 }
 
 void Blacksmith::replenish()
 {
-    // TODO - add item to forge
+    if(mEquipmentsToForge)
+        delete mEquipmentsToForge;
+
+    mEquipmentsToForge = gItemGenerator->generateEquipmentToForge();
+
+    emit sig_replenish(this);
 }
 
 void Blacksmith::setPosition(QPointF position)
@@ -189,18 +194,16 @@ BlacksmithHouse *Blacksmith::getHouse()
     return mHouse;
 }
 
-QList<EquipmentToForge *> Blacksmith::getEquipmentsToForge()
+EquipmentToForge *Blacksmith::getEquipmentToCraft()
 {
     return mEquipmentsToForge;
 }
 
-void Blacksmith::buyEquipment(Hero * hero, EquipmentToForge * equipmentBought)
+int Blacksmith::getTimeBeforeResplenish()
 {
-    Sword * sword = dynamic_cast<Sword*>(equipmentBought->getEquipment());
-    if(sword){
-        hero->takeItem(new Sword(sword->getName(), sword->getImage(), sword->getDamage(), sword->getSpeed(), sword->getWeight(), sword->getPrice(), sword->getInformation()));
-    }
+    return t_resplenish->remainingTime()/1000;
 }
+
 
 
 
@@ -219,7 +222,7 @@ MerchantHouse::MerchantHouse():
 {
     initGraphicStuff();
     setZValue(Z_VILLAGE);
-    mInformation = "Marchant\nAchetez ou vendez des équipements";
+    mInformation = "Marchant\nAchetez ou vendez des objets ou des équipements";
 }
 
 MerchantHouse::~MerchantHouse()
@@ -261,9 +264,8 @@ void MerchantHouse::initGraphicStuff()
 }
 
 
-Merchant::Merchant(ItemGenerator * gameItems):
-    QObject (),
-    mGameItems(gameItems)
+Merchant::Merchant():
+    QObject ()
 {
     mHouse = new MerchantHouse();
 
@@ -271,7 +273,7 @@ Merchant::Merchant(ItemGenerator * gameItems):
 
     QTimer * timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(replenish()));
-    timer->start(480000);
+    timer->start(10*60*1000);
 }
 
 Merchant::~Merchant()
@@ -297,23 +299,23 @@ void Merchant::replenish()
     addItemInShop(new Pickaxe);
     addItemInShop(new FishingRod); 
     addItemInShop(new Knife);
-    addItemInShop(mGameItems->generateEquipment());
+    addItemInShop(gItemGenerator->generateEquipment());
 
     if(QRandomGenerator::global()->bounded(3) == 0)
     {
-        addItemInShop(mGameItems->generateRandomSword());
+        addItemInShop(gItemGenerator->generateRandomSword());
     }
     if(QRandomGenerator::global()->bounded(3) == 0)
     {
-        addItemInShop(mGameItems->generateRandomBow());
+        addItemInShop(gItemGenerator->generateRandomBow());
     }
     if(QRandomGenerator::global()->bounded(3) == 0)
     {
-        addItemInShop(mGameItems->generateRandomStaff());
+        addItemInShop(gItemGenerator->generateRandomStaff());
     }
     while(QRandomGenerator::global()->bounded(4) != 0)
     {
-        addItemInShop(mGameItems->generateEquipment());
+        addItemInShop(gItemGenerator->generateEquipment());
     }
 }
 
@@ -387,7 +389,7 @@ AlchemistHouse::AlchemistHouse():
 {
     initGraphicStuff();
     setZValue(Z_VILLAGE);
-    mInformation = "Alchimiste\nVous pouvez y acheter des potions";
+    mInformation = "Alchimiste\nLieu pour acheter des potions";
 }
 
 AlchemistHouse::~AlchemistHouse()
@@ -438,9 +440,8 @@ void AlchemistHouse::initGraphicStuff()
 }
 
 
-Alchemist::Alchemist(ItemGenerator * gameItems):
-    QObject (),
-    mGameItems(gameItems)
+Alchemist::Alchemist():
+    QObject ()
 {
     mHouse = new AlchemistHouse();
 
@@ -452,7 +453,7 @@ Alchemist::Alchemist(ItemGenerator * gameItems):
 
     QTimer * timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(replenish()));
-    timer->start(180000);
+    timer->start(3*60*1000);
 
     mPotionPreferencies.append(new PotionLife);
     mPotionPreferencies.append(new PotionMana);
@@ -471,7 +472,7 @@ Alchemist::~Alchemist()
 
 void Alchemist::replenish()
 {
-    if(mItemsToSell.length()>15)
+    if(mItemsToSell.length() > 15)
         delete mItemsToSell.takeFirst();
     emit sig_replenish(this);
 
@@ -481,7 +482,7 @@ void Alchemist::replenish()
         bool validateConsumable = false;
         while(!validateConsumable)
         {
-            item = mGameItems->generateRandomConsumable();
+            item = gItemGenerator->generateRandomConsumable();
             for(Consumable * preferencies : mPotionPreferencies)
             {
                 if(item->getName() == preferencies->getName()){
@@ -492,10 +493,10 @@ void Alchemist::replenish()
                 delete item;
         }
         if(item == nullptr)
-            qDebug() << "item in alchemist shop = nullptr";
+            DEBUG_ERR("item in alchemist shop = nullptr");
         addItemInShop(item);
     }else{
-        addItemInShop(mGameItems->generateRandomConsumable());
+        addItemInShop(gItemGenerator->generateRandomConsumable());
     }
 }
 
@@ -703,18 +704,199 @@ void Alchemist::buyItem(Hero * hero, Item * item)
 
 
 
+AltarBuilding::AltarBuilding(QList<Offering>* offers):
+    House (),
+    mAnimation(0),
+    mOffers(offers)
+{
+    initGraphicStuff();
+    setZValue(Z_VILLAGE+1);
+    mInformation = "Autel\nLa légende raconte qu'une puissante créature peut être invoquée grâce à des offrandes";
+
+    QTimer * timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(animate()));
+    timer->start(100);
+}
+
+AltarBuilding::~AltarBuilding()
+{
+
+}
+
+void AltarBuilding::animate()
+{
+    if(++mAnimation > 7)
+    {
+        mAnimation = 0;
+    }
+    update();
+}
+
+void AltarBuilding::initGraphicStuff()
+{
+    mImage = QPixmap(":/MapItems/altar.png");
+
+    mBounding = QRect(0,0,400,300);
+
+    mCollisionShape.addRect(QRect(0,0,400,190));
+
+    QGraphicsPixmapItem * tmp = new QGraphicsPixmapItem(this);
+    QPixmap tmpImg(":/MapItems/altar_bound.png");
+    tmpImg.scroll(0,0,0,0,boundingRect().width(), boundingRect().height());
+    tmp->setPixmap(tmpImg);
+    mShape = tmp->shape();
+    delete tmp;
+
+    update();
+}
+
+void AltarBuilding::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->drawPixmap(0, 0, mImage, 0, mAnimation*static_cast<int>(boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
+
+    if(mHover){
+        painter->setPen(QPen(QBrush(BORDERS_COLOR), 3));
+        painter->drawPath(mShape);
+    }
+
+    if(mOffers)
+    {
+        QRect offerAreas[] = {
+            QRect(113, 226, 50, 50),
+            QRect(187, 237, 50, 50),
+            QRect(254, 226, 50, 50)
+        };
+        for(int i = 0; i < mOffers->size(); i++)
+        {
+            if(mOffers->at(i).item)
+            {
+                painter->drawPixmap(offerAreas[i], QPixmap(mOffers->at(i).item->getImage()));
+            }
+        }
+    }
+
+    Q_UNUSED(widget)
+    Q_UNUSED(option)
+}
+
+Altar::Altar():
+    mOfferingPixmap(QPixmap(":/materials/earthCristal.png"))
+{
+    mBuilding = new AltarBuilding(&mOfferings);
+}
+
+Altar::~Altar()
+{
+    for(int i = 0; i < mOfferings.size(); i++)
+    {
+        if(mOfferings[i].item)
+            delete mOfferings[i].item;
+    }
+    if(mBuilding)
+        delete mBuilding;
+}
+
+void Altar::setPosition(QPointF position)
+{
+    mBuilding->setPos(position);
+}
+
+AltarBuilding *Altar::getBuilding()
+{
+    return mBuilding;
+}
+
+QList<Offering> Altar::getOfferings()
+{
+    return mOfferings;
+}
+
+QPixmap Altar::getOfferingPixmap()
+{
+    return mOfferingPixmap;
+}
+
+void Altar::setOffering(int idx, Item *item)
+{
+    if(idx >= mOfferings.size())
+        return;
+
+    mOfferings[idx].item = item;
+
+    for(Offering offer : mOfferings)
+    {
+        if(!offer.item)
+            return;
+    }
+
+    /* All the offerings have been put on the altar */
+    emit sig_LaoShanLungSummoned();
+}
+
+bool Altar::isLaoShanLungSummoned()
+{
+    for(Offering offer : mOfferings)
+    {
+        if(!offer.item)
+            return false;
+    }
+    return true;
+}
+
+
+
+
+
+
+
 
 MainHouse::MainHouse():
     House ()
 {
     setGraphicStuff();
     setZValue(Z_VILLAGE);
-    mInformation = "Maison\nVotre maison vous permet de passer la nuit";
+    mInformation = "Maison\nVous permet de passer la nuit";
 }
 
 MainHouse::~MainHouse()
 {
+    mImage = QPixmap(":/MapItems/house.png");
 
+    mBounding = QRect(0,0,400,400);
+
+    QPolygon polygon;
+    static const int points[] = {
+        115, 0,
+        145, 30,
+        200, 60,
+        255, 75,
+        350, 80,
+        335, 130,
+        370,145,
+        375, 180,
+        280, 235,
+        295, 245,
+        185, 320,
+        195, 340,
+        145, 340,
+        150, 320,
+        55, 250,
+        30, 265,
+        30, 215,
+        70, 205,
+        70, 180,
+        30, 150,
+        25, 125,
+        80, 70,
+        80, 20,
+    };
+    polygon.setPoints(23, points);
+    mCollisionShape.addPolygon(polygon);
+
+    House::setShape();
+
+    update();
 }
 
 
@@ -770,8 +952,7 @@ HeroChest::HeroChest():
 
 HeroChest::~HeroChest()
 {
-//    while(!mItems.isEmpty())
-//        delete mItems.takeLast();
+
 }
 
 bool HeroChest::itemIsInChest(Item * itemToCheck)
@@ -984,15 +1165,16 @@ void RampartTop::setPosition(QPointF position)
 
 
 
-Village::Village(ItemGenerator * gameItems):
+Village::Village():
     QGraphicsPixmapItem (),
     mImage(QPixmap(":/MapItems/village_ground.png"))
 {
     setZValue(0);
     mBlacksmith = new Blacksmith();
-    mMerchant = new Merchant(gameItems);
-    mAlchemist = new Alchemist(gameItems);
+    mMerchant = new Merchant();
+    mAlchemist = new Alchemist();
     mHouse = new HeroHouse();
+    mAltar = new Altar();
     mRampartTop = new RampartTop();
     mRampartBot = new RampartBot();
     connect(mBlacksmith, SIGNAL(sig_replenish(QObject*)), this, SIGNAL(sig_replenish(QObject*)));
@@ -1008,6 +1190,9 @@ Village::Village(ItemGenerator * gameItems):
     connect(mHouse->getHouse(), SIGNAL(sig_villageShowInfo(QGraphicsItem*)), this, SIGNAL(sig_villageShowInfo(QGraphicsItem*)));
     connect(mHouse->getChest(), SIGNAL(sig_villageInteraction(QGraphicsItem*)), this, SIGNAL(sig_villageInteraction(QGraphicsItem*)));
     connect(mHouse->getChest(), SIGNAL(sig_villageShowInfo(QGraphicsItem*)), this, SIGNAL(sig_villageShowInfo(QGraphicsItem*)));
+    connect(mAltar->getBuilding(), SIGNAL(sig_villageShowInfo(QGraphicsItem*)), this, SIGNAL(sig_villageShowInfo(QGraphicsItem*)));
+    connect(mAltar->getBuilding(), SIGNAL(sig_villageInteraction(QGraphicsItem*)), this, SIGNAL(sig_villageInteraction(QGraphicsItem*)));
+    connect(mAltar, SIGNAL(sig_LaoShanLungSummoned()), this, SIGNAL(sig_LaoShanLungSummoned()));
 }
 
 Village::~Village()
@@ -1024,6 +1209,8 @@ Village::~Village()
         delete mRampartTop;
     if(mRampartBot)
         delete mRampartBot;
+    if(mAltar)
+        delete mAltar;
 }
 
 void Village::addInScene(QGraphicsScene * scene)
@@ -1033,9 +1220,23 @@ void Village::addInScene(QGraphicsScene * scene)
     scene->addItem(mMerchant->mHouse);
     scene->addItem(mHouse->mHouse);
     scene->addItem(mHouse->mChest);
+    scene->addItem(mAltar->mBuilding);
     scene->addItem(mAlchemist->mHouse);
     scene->addItem(mRampartTop);
     scene->addItem(mRampartBot);
+}
+
+void Village::removeFromScene(QGraphicsScene * scene)
+{
+    scene->removeItem(this);
+    scene->removeItem(mBlacksmith->mHouse);
+    scene->removeItem(mMerchant->mHouse);
+    scene->removeItem(mHouse->mHouse);
+    scene->removeItem(mHouse->mChest);
+    scene->removeItem(mAltar->mBuilding);
+    scene->removeItem(mAlchemist->mHouse);
+    scene->removeItem(mRampartTop);
+    scene->removeItem(mRampartBot);
 }
 
 void Village::setPosition(QPointF position)
@@ -1048,6 +1249,7 @@ void Village::setPosition(QPointF position)
     mAlchemist->setPosition(QPointF(position.x()+1450, position.y()+450));
     mRampartTop->setPosition(QPointF(position.x(), position.y()));
     mRampartBot->setPosition(QPointF(position.x(), position.y()+748));
+    mAltar->setPosition(QPointF(position.x()+700, position.y()+1160));
 }
 
 QPointF Village::getPosition()
@@ -1075,6 +1277,11 @@ Alchemist * Village::getAlchemist()
     return mAlchemist;
 }
 
+Altar *Village::getAltar()
+{
+    return mAltar;
+}
+
 QPainterPath Village::shape() const
 {
     QPainterPath path;
@@ -1094,3 +1301,5 @@ void Village::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     Q_UNUSED(widget)
     Q_UNUSED(option)
 }
+
+

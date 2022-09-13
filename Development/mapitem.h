@@ -16,7 +16,7 @@ class MapItem : public QObject, public QGraphicsPixmapItem
     Q_OBJECT
 public:
     MapItem();
-    ~MapItem();
+    virtual ~MapItem();
 signals:
     void sig_playSound(int);
 public:
@@ -35,6 +35,8 @@ protected:
     int mImageEvent;
     QString mMapItemName;
     bool mObstacle;
+protected:
+    static quint32 sNbInstances;
 };
 
 class MapItemMovable : public MapItem
@@ -42,7 +44,7 @@ class MapItemMovable : public MapItem
     Q_OBJECT
 public:
     MapItemMovable();
-    ~MapItemMovable();
+    virtual ~MapItemMovable();
 signals:
     void sig_itemMoved(MapItem*);
     void sig_itemPositionFixed(MapItem*);

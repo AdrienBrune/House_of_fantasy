@@ -63,7 +63,10 @@ void Win_Gear::equipItem(Item * item)
 void Win_Gear::unequipItem(Item * item)
 {
     mHero->getGear()->removeEquipment(static_cast<Equipment*>(item));
-    mHero->getBag()->addItem(item);
+    if(!mHero->getBag()->addItem(item))
+    {
+        emit sig_itemThrown(item);
+    }
     emit sig_playSound(SOUND_EQUIP);
 }
 

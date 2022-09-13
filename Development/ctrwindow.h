@@ -18,7 +18,6 @@
 #include "mapevent.h"
 #include "map.h"
 #include "soundmanager.h"
-#include "w_dialogpannel.h"
 #include "w_interface_herostats.h"
 #include "w_animation_exploration.h"
 #include "equipment.h"
@@ -34,13 +33,8 @@
 #include "win_menu.h"
 #include "save.h"
 #include "win_loadinggamescreen.h"
-
-#define DEBUG_CLOSE_APP
-#ifdef DEBUG_CLOSE_APP
-    #define PRINT_DBG_CLOSE_APP(String) qDebug() << String
-#else
-    #define PRINT_DBG_CLOSE_APP(String)
-#endif
+#include "w_quicktooldrawer.h"
+#include "w_messagelogger.h"
 
 namespace Ui {
 class CTRWindow;
@@ -59,14 +53,12 @@ private slots:
     void generateNewGame();
     void GoToMonsterFight(Monster*);
     void scrollSceneView();
-    void removeCurrentPanel();
     void displayMonsterData(Monster*);
     void displayCalamitySpawned();
     void fightResult(Character*);
     void explorationCompleted();
     void on_Inventory_clicked();
     void hideInventary();
-    void indicateBagFull();
     void on_Gear_clicked();
     void hideInventaryGear();
     void hideFightWindow();
@@ -85,9 +77,11 @@ private slots:
     void onPeriodicalEvents();
     void onQuitGame();
     void on_buttonSaveGame_clicked();
-
+    void showQuickToolDrawer(Tool*);
+    void hideQuickToolDrawer();
+    void onCloseMessageLogger();
 public:
-    void displayPanel(W_DialogPannel*);
+    void ShowPopUpInfo(LogMessage*);
     void displayInterfaceTrading(Win_Interface_Trading*);
     void setButtonsEnable(bool);
 protected :
@@ -101,7 +95,6 @@ private:
     Map * mMap;
     Hero * mHero;
     SoundManager * mSoundManager;
-    ItemGenerator * mGameItems;
     bool heroIsSearching;
     QTimer * t_unfreezeMap;
     QTimer * t_PeriodicalEvents;
@@ -111,7 +104,6 @@ private:
     Win_Menu * w_menu;
     Win_LoadingGameScreen * w_loadingScreen;
     W_Interface_HeroStats * w_heroStats;
-    W_DialogPannel * w_panel;
     W_Animation_exploration * w_explorationLoading;
     Win_Inventory * w_inventory;
     Win_Gear * w_gear;
@@ -119,6 +111,8 @@ private:
     Win_Interface_Trading * w_trading;
     Win_Skills * w_skill;
     W_UseTool * w_tool;
+    W_QuickToolDrawer * w_quickItemDrawer;
+    W_MessageLogger * w_messageLogger;
     QThread mLoadingThread;
 public:
     Ui::CTRWindow *ui;

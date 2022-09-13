@@ -15,6 +15,7 @@ Win_Inventory::Win_Inventory(QWidget *parent, Hero * hero) :
 
     mItemsContainer = new Frag_Interface_ItemSorter(this);
     connect(mItemsContainer, SIGNAL(sig_itemThrown(Item*)), this, SIGNAL(sig_itemThrown(Item*)));
+    connect(mItemsContainer, SIGNAL(sig_itemThrown(Item*)), this, SLOT(onItemThrown(Item*)));
     connect(mItemsContainer, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(showItem(ItemQuickDisplayer*)));
     connect(mItemsContainer, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SLOT(showItemHover(ItemQuickDisplayer*)));
     connect(mItemsContainer, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SLOT(hideItemHover(ItemQuickDisplayer*)));
@@ -180,15 +181,26 @@ void Win_Inventory::useItem(Item * item)
     Scroll * scroll = dynamic_cast<Scroll*>(item);
     if(scroll)
     {
+        mItemsContainer->removeQuickItemDisplayer(item);
         emit sig_useScroll(scroll);
         closeInventory();
         return;
     }
 }
 
-void Win_Inventory::on_buttonExit_clicked()
+void Win_Inventory::onItemThrown(Item *)
 {
-    closeInventory();
+    mItemsContainer->unselectItems();
+    mItemSelected = 0;
+
+    if(mItemToDisplay != nullptr)
+    {
+        delete mItemToDisplay;
+        mItemToDisplay = nullptr;
+    }
+    ui->item_info->setStyleSheet("QLabel{}");
+    ui->item_info->setText("");
+    mShowItemDescription = 0;
 }
 
 void Win_Inventory::diplayInventory()

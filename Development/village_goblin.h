@@ -60,8 +60,10 @@ class Village_Goblin : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
 public:
-    Village_Goblin(ItemGenerator*);
+    Village_Goblin();
     ~Village_Goblin();
+signals:
+    void sig_clicToOpenChest(ChestEvent*);
 public:
     void addInScene(QGraphicsScene*);
     void setPosition(QPointF);
@@ -73,7 +75,6 @@ public:
 private:
     QPixmap mImage;
     QPointF mPosition;
-    ItemGenerator * mGameItems;
 
     int mRoadsWeight;
     QList<Hut*> mHuts;
@@ -85,7 +86,7 @@ private:
 class Village_Goblin_Area : public QGraphicsItem
 {
 public:
-    Village_Goblin_Area(ItemGenerator*);
+    Village_Goblin_Area();
     ~Village_Goblin_Area();
 public:
     Village_Goblin * getVillage();

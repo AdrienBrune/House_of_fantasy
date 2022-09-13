@@ -1,12 +1,23 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+//#define ENABLE_DEBUG
+#ifdef ENABLE_DEBUG
+#define DEBUG(str)      qDebug() << str
+#define DEBUG_ERR(str)  qDebug() << str
+#else
+#define DEBUG(str)
+#define DEBUG_ERR(str)  qDebug() << str
+#endif
+
 #define LOADING_MAX_STEPS   27
 #define UPDATE_STEP(step)   (((++step)*100.0)/LOADING_MAX_STEPS)
 
 #define FILE_SAVE   "saves"
 
-#define PERIODICAL_EVENTS   10000
+//#define ENABLE_MOVEMENT_BY_MOUSE_CLIC
+
+#define PERIODICAL_EVENTS   1000
 
 // Speed definitions
 #define SPEED_HERO          3
@@ -43,7 +54,7 @@
 #define MAP_WIDTH   15000
 #define MAP_HEIGHT  15000
 
-#define HERO_DEFENSE_MAX    1000
+#define HERO_DEFENSE_MAX    1500
 #define HERO_RAW_DAMAGE     5
 
 #define NUM_WOLFPACK        8
@@ -84,7 +95,7 @@
 #define RES_PLANK       6
 #define RES_STONE       9
 #define RES_LAKE        1
-#define RES_ORE_SPOT    5
+#define RES_ORE_SPOT    4
 
 #define Z_GROUND        1
 #define Z_GROUND_FOREGROUND 2
@@ -165,6 +176,11 @@
 #define SOUND_SPELL_1                       54
 #define SOUND_SPELL_2                       55
 #define SOUND_SPELL_3                       56
+#define SOUND_SPELL_4                       57
+#define SOUND_SPELL_5                       58
+#define SOUND_SPELL_6                       59
+#define SOUND_SPELL_7                       60
+#define SOUND_TELEPORT                      61
 
 #define MUSICEVENT_START_DAY    0
 #define MUSICEVENT_CLOSE_FIGHT  1
@@ -246,6 +262,7 @@
 #define ORE_SAPHIR                      (ORE_IRON+1)
 #define ORE_EMERALD                     (ORE_SAPHIR+1)
 #define ORE_RUBIS                       (ORE_EMERALD+1)
+#define EARTH_CRISTAL                   (ORE_RUBIS+1)
 
 #define MONSTERMATERIAL_WOLF_PELT       IDENT_ITEM_OFFSET_MONSTERMATERIALS
 #define MONSTERMATERIAL_WOLF_FANG       (MONSTERMATERIAL_WOLF_PELT+1)

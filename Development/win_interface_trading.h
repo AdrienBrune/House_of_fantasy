@@ -2,6 +2,7 @@
 #define W_INTERFACETRADING_H
 
 #include <QWidget>
+#include <QLabel>
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
 #include <QComboBox>
@@ -9,9 +10,7 @@
 #include "w_itemdisplayer.h"
 #include "frag_interface_itemtrader.h"
 #include "village.h"
-#include "frag_loot_displayer.h"
 #include "w_animation_forge.h"
-#include "w_dialogpannel.h"
 #include "w_itemdisplayer.h"
 #include "frag_interface_potionpreferencies.h"
 
@@ -27,7 +26,7 @@ class Win_Interface_Trading : public QWidget
     Q_OBJECT
 public:
     explicit Win_Interface_Trading(QWidget *parent = nullptr, Hero * hero = nullptr);
-    ~Win_Interface_Trading();
+    virtual ~Win_Interface_Trading();
 signals:
     void sig_heroBagFull();
     void sig_playSound(int);
@@ -39,6 +38,44 @@ protected:
 };
 
 
+class QPushButton_Offering : public QPushButton
+{
+    Q_OBJECT
+public:
+    explicit QPushButton_Offering(QWidget *parent = nullptr, Item * offering = nullptr, int id = 0):QPushButton(parent),mOffering(offering), mId(id)
+    {
+        setStyleSheet("QPushButton_Offering{color:white;background-color:rgba(250,250,250,20);}"
+                      "QPushButton_Offering::hover{color:white;background-color:rgba(250,250,250,30);}");
+        setText("Déposer");
+        setFont(QFont("Sitka Small", 12));
+        connect(this, SIGNAL(clicked()), this, SLOT(onClicked()));
+    }
+    ~QPushButton_Offering(){}
+signals:
+    void sig_offer(Item*, int);
+private slots:
+    void onClicked(){ emit sig_offer(mOffering, mId); deleteLater(); }
+private:
+    Item * mOffering;
+    int mId;
+};
+
+class Win_Altar : public Win_Interface_Trading
+{
+    Q_OBJECT
+public:
+    explicit Win_Altar(QWidget *parent = nullptr, Hero * hero = nullptr, Altar * altar = nullptr);
+    ~Win_Altar();
+private slots:
+    void onGiveOffering(Item*, int);
+protected:
+    void paintEvent(QPaintEvent*);
+private:
+    Altar * mAltar;
+    QList<QRect> mAreasOffering;
+};
+
+
 class Win_Chest : public Win_Interface_Trading
 {
     Q_OBJECT
@@ -46,7 +83,7 @@ class Win_Chest : public Win_Interface_Trading
 public:
     explicit Win_Chest(QWidget *parent = nullptr, Hero * hero = nullptr, ChestEvent * chest = nullptr);
     ~Win_Chest();
-public:
+public slots:
     void closeChest();
 private:
     void initInterface();
@@ -63,30 +100,26 @@ class Win_BlackSmith : public Win_Interface_Trading
 public:
     explicit Win_BlackSmith(QWidget *parent = nullptr, Hero * hero = nullptr, Blacksmith * blacksmith = nullptr);
     ~Win_BlackSmith();
+signals:
+    void sig_playSound(int);
+    void sig_itemThrown(Item*);
 private slots:
     void on_button_validate_clicked();
-    void showItem(ItemQuickDisplayer*);
-    void displayItemForged();
-    void displayBagFull();
-    void removeCurrentPanel();
-    void endRedBorders();
+    void showItem();
+    void hideItem();
+    void paymentHoverIn();
+    void paymentHoverOut();
+    void updateWindow();
     void closeWindow();
-private:
-    void initInterface();
-    void addItemToForge(Item*);
-    bool materialListsMatch();
-    void removeMaterialsNeeded();
 protected:
     void paintEvent(QPaintEvent *);
 private:
-    QGraphicsScene * mScene;
-    W_ItemDisplayer * itemToDisplay;
-    QList<ItemQuickDisplayer*> mEquipmentsToForge;
-    QList<Frag_loot_displayer*> lootsDisplayed;
-    EquipmentToForge * mEquipmentToForgeSelected;
     Blacksmith * mBlacksmith;
-    QTimer * t_redBorders;
-    W_ShowInformation * w_panel;
+    Item * mItemSold;
+    W_ItemDisplayer * mItemDisplayer;
+    bool mHoverPayment;
+    bool mHoverUnknownItem;
+    QTimer * t_chronoResplenish;
 private:
     Ui::Win_Blacksmith *ui;
 };
@@ -167,5 +200,6 @@ private:
 private:
     Ui::Win_chest *ui;
 };
+
 
 #endif // W_INTERFACETRADING_H

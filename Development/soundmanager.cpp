@@ -63,7 +63,7 @@ SoundManager::SoundManager(QWidget * parent):
     closeChest->setVolume(10);
 
     heroAttack = new QMediaPlayer(this);
-    heroAttack->setMedia(QUrl("qrc:/audio/sounds/sound_hero_attack.wav"));
+    heroAttack->setMedia(QUrl("qrc:/audio/sounds/sound_hero_attack_generic.wav"));
     heroAttack->setVolume(20);
 
     rockMoved = new QMediaPlayer(this);
@@ -272,6 +272,10 @@ SoundManager::SoundManager(QWidget * parent):
 
     spell = new QMediaPlayer(this);
     spell->setVolume(15);
+
+    teleport = new QMediaPlayer(this);
+    teleport->setMedia(QUrl("qrc:/audio/sounds/sound_teleport.wav"));
+    teleport->setVolume(25);
 
     playMusic(music_world);
 }
@@ -503,8 +507,16 @@ void SoundManager::playSound(int sound)
     case SOUND_SPELL_1:
     case SOUND_SPELL_2:
     case SOUND_SPELL_3:
+    case SOUND_SPELL_4:
+    case SOUND_SPELL_5:
+    case SOUND_SPELL_6:
+    case SOUND_SPELL_7:
         spell->setMedia(QUrl(QString("qrc:/audio/sounds/sound_spell_%1.wav").arg(sound-SOUND_SPELL_0)));
         spell->play();
+        break;
+
+    case SOUND_TELEPORT:
+        teleport->play();
         break;
     }
 }
@@ -586,6 +598,19 @@ void SoundManager::endMusicFight()
     }
     music_fight->setPosition(0);
     playMusic(music_world);
+}
+
+void SoundManager::setHeroAttack(Weapon * weapon)
+{
+    Bow * bow = dynamic_cast<Bow*>(weapon);
+    if(bow)
+    {
+        heroAttack->setMedia(QUrl("qrc:/audio/sounds/sound_hero_attack_bow.wav"));
+    }
+    else
+    {
+        heroAttack->setMedia(QUrl("qrc:/audio/sounds/sound_hero_attack_generic.wav"));
+    }
 }
 
 void SoundManager::playMusic(QMediaPlayer * media)

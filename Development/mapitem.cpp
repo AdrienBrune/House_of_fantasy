@@ -1,5 +1,7 @@
 #include "mapitem.h"
 
+quint32 MapItem::sNbInstances = 0;
+
 MapItem::MapItem():
     QObject (),
     QGraphicsPixmapItem(),
@@ -10,13 +12,12 @@ MapItem::MapItem():
     mMapItemName(""),
     mObstacle(false)
 {
-
+    //qDebug() << "[C] " << ++sNbInstances << " " << mMapItemName;
 }
 
-#include <QtDebug>
 MapItem::~MapItem()
 {
-
+    //qDebug() << "[D] " << --sNbInstances << " " << mMapItemName;
 }
 
 QPixmap MapItem::getImage()

@@ -792,32 +792,57 @@ QProgressBar::chunk {
          </property>
          <property name="styleSheet">
           <string notr="true">QGraphicsView{
-	background-color:white;
+		background-color:rgba(250,250,250,5);
+    	border: none;
+    	margin: 0px 0px 0px 0px;
 }
-
-QGraphicsView QScrollBar:horizontal {     
-    border: 1px solid #FFFFFF;
-    background:#494949;
-	height:10px;    
-    margin: 0px 0px 0px 0px;
+QGraphicsView QScrollBar::horizontal {
+        background: none;
+        height: 12px;
+		border-radius:2px;
 }
-
 QGraphicsView QScrollBar::groove {
-    background: grey;
-    border-radius: 5px;
+        background: none;
 }
-
+QGraphicsView QScrollBar::left-arrow{
+	background: none;
+}
+QGraphicsView QScrollBar::right-arrow{
+	background: none;
+}
+QGraphicsView QScrollBar::sub-line:horizontal{
+	background: none;
+}
+QGraphicsView QScrollBar::add-line:horizontal{
+	background: none;
+}
+QScrollBar::sub-page:horizontal {
+	background: none;
+}
 QGraphicsView QScrollBar::handle {
-    border: 1px solid #FFFFFF;
-    background:#494949;
-    border-radius: 5px;
-}</string>
+        background: rgba(250,250,250,15);
+		border-radius:5px;
+		max-width:10px;
+}
+/*
+QGraphicsView QScrollBar::add-line:horizontal {
+       background: white;
+        width: 0px;
+        subcontrol-position: left;
+        subcontrol-origin: margin;
+}
+QGraphicsView QScrollBar::sub-line:horizontal {
+        background: white;
+        width: 0 px;
+        subcontrol-position: right;
+       subcontrol-origin: margin;
+}*/</string>
          </property>
          <property name="verticalScrollBarPolicy">
           <enum>Qt::ScrollBarAlwaysOff</enum>
          </property>
          <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarAsNeeded</enum>
+          <enum>Qt::ScrollBarAlwaysOn</enum>
          </property>
         </widget>
        </item>

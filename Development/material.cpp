@@ -36,7 +36,12 @@ Item::Feature Material::getFourthCaracteristic()
 MonsterMaterial::MonsterMaterial(QString name, QPixmap image, int weight, int price):
     Material (name, image, weight, price)
 {
+    //qDebug() << "[C] " << ++sNbInstances << " " << mName;
+}
 
+MonsterMaterial::~MonsterMaterial()
+{
+    //qDebug() << "[D] " << --sNbInstances << " " << mName;
 }
 
 StoneOre::StoneOre():
@@ -106,11 +111,6 @@ RubisOre::~RubisOre()
 
 
 
-
-MonsterMaterial::~MonsterMaterial()
-{
-
-}
 
 WolfPelt::WolfPelt():
     MonsterMaterial ("Fourure de loup", QPixmap(":/monsters/wolf/wolf_pelt.png"), 5, 20)
@@ -256,7 +256,7 @@ OggreSkull::~OggreSkull()
 }
 
 WolfAlphaPelt::WolfAlphaPelt():
-    MonsterMaterial ("Fourrure\nde loup Alpha", QPixmap(":/monsters/wolf/wolfAlpha_pelt.png"), 5, 40)
+    MonsterMaterial("Fourrure\nde loup Alpha", QPixmap(":/monsters/wolf/wolfAlpha_pelt.png"), 5, 40)
 {
     mIdentifier = MONSTERMATERIAL_WOLFALPHA_PELT;
     setInformation("Fourrure de loup alpha. C'est une ressource très recherchée par les marchants.");
@@ -269,7 +269,7 @@ WolfAlphaPelt::~WolfAlphaPelt()
 }
 
 LaoshanlungHeart::LaoshanlungHeart():
-    MonsterMaterial ("Coeur de\nLao Shan Lung", QPixmap(":/monsters/laoshanlung/laoshanlung_heart.png"), 20, 500)
+    MonsterMaterial("Coeur de\nLao Shan Lung", QPixmap(":/monsters/laoshanlung/laoshanlung_heart.png"), 20, 500)
 {
     mIdentifier = MONSTERMATERIAL_LAOSHANLUNG_HEART;
     setInformation("Coeur de Lao Shan Lung. Composant d'une valeur inestimable.");
@@ -277,6 +277,19 @@ LaoshanlungHeart::LaoshanlungHeart():
 }
 
 LaoshanlungHeart::~LaoshanlungHeart()
+{
+
+}
+
+EarthCristal::EarthCristal():
+    Material("Cristal de terre", QPixmap(":/materials/earthCristal.png"), 20, 80)
+{
+    mIdentifier = EARTH_CRISTAL;
+    setInformation("Pierre rare contenant une puissante énergie terrestre");
+    Item::setShape();
+}
+
+EarthCristal::~EarthCristal()
 {
 
 }

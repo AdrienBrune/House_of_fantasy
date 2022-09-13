@@ -1,8 +1,7 @@
 #include "village_goblin.h"
 
-Village_Goblin::Village_Goblin(ItemGenerator * gameItems):
+Village_Goblin::Village_Goblin():
     mImage(QPixmap(":/MapItems/village_goblin_ground.png")),
-    mGameItems(gameItems),
     mRoadsWeight(200)
 {
     mTownHall = new TownHall();
@@ -14,7 +13,8 @@ Village_Goblin::Village_Goblin(ItemGenerator * gameItems):
     {
         mHuts.append(new Hut());
     }
-    mChest = new GoblinChest(mGameItems);
+    mChest = new GoblinChest();
+    connect(mChest, SIGNAL(sig_clicToOpenChest(ChestEvent*)), this, SIGNAL(sig_clicToOpenChest(ChestEvent*)));
 }
 
 Village_Goblin::~Village_Goblin()
@@ -383,10 +383,10 @@ void WatchTower::setTexture()
 
 
 
-Village_Goblin_Area::Village_Goblin_Area(ItemGenerator * gameItems):
+Village_Goblin_Area::Village_Goblin_Area():
     QGraphicsItem ()
 {
-    mVillage = new Village_Goblin(gameItems);
+    mVillage = new Village_Goblin();
 }
 
 Village_Goblin_Area::~Village_Goblin_Area()

@@ -28,27 +28,7 @@ void Equipment::setUsable(uint32_t usable)
     mUsable = usable;
 }
 
-EquipmentToForge::EquipmentToForge(Equipment* equipment, QList<Loot> loots):
-    mEquipment(equipment),
-    mLoots(loots)
-{
 
-}
-
-EquipmentToForge::~EquipmentToForge()
-{
-
-}
-
-Equipment *EquipmentToForge::getEquipment()
-{
-    return mEquipment;
-}
-
-QList<EquipmentToForge::Loot> EquipmentToForge::getLootList()
-{
-    return mLoots;
-}
 
 
 Weapon::Weapon(QString name, QPixmap image, int damage, int speed, int weight, int price, uint32_t usable):
@@ -567,3 +547,4 @@ Gear::~Gear()
     while(!mEquipmentParts.isEmpty())
         delete mEquipmentParts.takeLast();
 }
+

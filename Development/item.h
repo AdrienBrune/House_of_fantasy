@@ -21,7 +21,7 @@ public:
 
 public:
     Item(QString name,QPixmap image, int weight, int price);
-    ~Item();
+    virtual ~Item();
 signals:
     void sig_itemStatsChanged();
     void sig_itemClicked(Item*);
@@ -76,6 +76,7 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *);
 public:
     static Item * getInstance(quint32);
+    static quint32 getNbInstances();
 protected:
     quint32 mIdentifier;
     QString mName;
@@ -86,6 +87,17 @@ protected:
     int mHover;
     QPainterPath mShape;
     QTimer * t_delayHover;
+protected:
+    static quint32 sNbInstances;
+};
+
+inline QDebug operator<< (QDebug flux, Item &item) {
+    flux << "ITEM :\n";
+    flux << "  Identifier(" << item.getIdentifier() << ")\n";
+    flux << "  Name      (" << item.getName() << ")\n";
+    flux << "  Info      (" << item.getInformation() << ")\n";
+    flux << "  Prix      (" << item.getPrice() << ")\n";
+    return flux;
 };
 
 class BagCoin : public Item
@@ -129,7 +141,7 @@ class Tool : public Item
 {
 public:
     Tool(QString name, QPixmap image, int weight, int price);
-    ~Tool();
+    virtual ~Tool();
 public:
     bool use();
 public:

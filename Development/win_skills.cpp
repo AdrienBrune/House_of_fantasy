@@ -12,7 +12,7 @@ Win_Skills::Win_Skills(QWidget * parent, Hero * hero) :
 
     ui->scrollAreaWidgetContents->setAutoFillBackground(false);
     ui->scrollArea->setAutoFillBackground(false);
-    ui->scrollArea->setStyleSheet("QScrollArea{background-color:transparent;border:2px solid white;}");
+    ui->scrollArea->setStyleSheet("QScrollArea{background-color:transparent;/*border-top:1px solid white;*/}");
 
     connect(ui->buttonExit, SIGNAL(clicked()), this, SLOT(closeWindow()));
 
@@ -133,7 +133,6 @@ void Win_Skills::onResumeSkillAsked(W_Skill * skill)
 
 void Win_Skills::skillUnlockAnimation(Skill * skill)
 {
-    qDebug() << "TODO : Animation : " << skill->getName();
     update();
 }
 
@@ -187,10 +186,15 @@ void Win_Skills::paintEvent(QPaintEvent*)
 
     painter.setOpacity(0.9);
 
-    painter.setBrush(QBrush("#393939"));
     painter.drawPixmap(QRect(ui->buttonExit->width()/2, 0, width()-ui->buttonExit->width()/2, height()), QPixmap(":/graphicItems/background_window_2.png"));
-    painter.setBrush(QBrush("#ECECEC"));
-    painter.drawRect(QRect(ui->buttonExit->width()/2, 0, ui->buttonExit->width()/4, height()));
+    //painter.setPen(QPen(Qt::white, 1));
+    //painter.drawLine(QLine(ui->buttonExit->width()/2, 0, ui->buttonExit->width()/2, height()));
+
+    /* Icon top left */
+    painter.setOpacity(1);
+    painter.setBrush(QBrush("#FFFFFF"));
+    painter.drawRect(QRect(ui->skillPoints->x(), ui->skillPoints->y(), ui->skillPoints->rect().width(), ui->skillPoints->rect().height()));
+    //painter.drawPixmap(QRect(ui->skillPoints->x() - ui->skillPoints->height()/2, ui->skillPoints->y(), ui->skillPoints->height(), ui->skillPoints->height()), QPixmap(":/graphicItems/icon_skill.png"));
 
     /* Button drawing */
     painter.setOpacity(1);

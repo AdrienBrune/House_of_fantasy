@@ -14,26 +14,31 @@
      Hero * getHero();
      HeroChest * getHeroChest();
      const QString & getName()const;
+     Village * getVillage();
 
      void setHero(Hero*);
      void setChest(HeroChest*);
      void setName(QString);
+     void setVillage(Village*);
  public:
      void serialize(QDataStream& stream)const
      {
-         qDebug() << "SERIALIZATION[in]  : Start";
+         DEBUG("SERIALIZATION[in]  : Start");
 
          stream << mName;
          mChest->serialize(stream);
          mHero->serialize(stream);
+         mVillage->serialize(stream);
 
-         qDebug() << "SERIALIZED[in]  : Save";
+         DEBUG("SERIALIZED[in]  : Save");
      }
      void deserialize(QDataStream& stream)
      {
-         qDebug() << "SERIALIZATION[out] : Start";
+         DEBUG("SERIALIZATION[out] : Start");
 
          stream >> mName;
+         if(mChest)
+             delete mChest;
          mChest = new HeroChest();
          mChest->deserialize(stream);
 
@@ -42,7 +47,12 @@
          mHero = Hero::getInstance(static_cast<Hero::HeroClasses>(heroClass));
          mHero->deserialize(stream);
 
-         qDebug() << "SERIALIZED[out] : Save";
+         if(mVillage)
+             delete mVillage;
+         mVillage = new Village();
+         mVillage->deserialize(stream);
+
+         DEBUG("SERIALIZED[out] : Save");
      }
      friend QDataStream& operator<<(QDataStream& stream, const Save& object)
      {
@@ -58,6 +68,7 @@
      Hero * mHero;
      HeroChest * mChest;
      QString mName;
+     Village * mVillage;
  };
 
  #endif // SAVE_H

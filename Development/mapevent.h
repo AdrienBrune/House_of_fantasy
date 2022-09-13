@@ -17,7 +17,7 @@ class MapEvent : public MapItem
     Q_OBJECT
 public:
     MapEvent();
-    ~MapEvent();
+    virtual ~MapEvent();
 public:
     QList<Item*> getItems();
     QList<Item*> takeItems();
@@ -61,7 +61,7 @@ class BushEvent : public MapEvent
     Q_OBJECT
 public:
     BushEvent();
-    ~BushEvent();
+    virtual ~BushEvent();
 public slots:
     void animate();
 public:
@@ -93,7 +93,7 @@ class BushEventEquipment : public BushEvent
 {
     Q_OBJECT
 public:
-    BushEventEquipment(ItemGenerator*);
+    BushEventEquipment();
     ~BushEventEquipment();
 public:
     bool isObstacle();
@@ -111,11 +111,12 @@ protected:
         iron,
         saphir,
         emerald,
-        rubis
+        rubis,
+        oreNb
     };
 public:
     OreSpot();
-    ~OreSpot();
+    virtual ~OreSpot();
 public:
     void itemsTook();
     bool isObstacle();
@@ -165,8 +166,8 @@ class ChestEvent : public MapEvent
 {
     Q_OBJECT
 public:
-    ChestEvent(ItemGenerator*);
-    ~ChestEvent();
+    ChestEvent();
+    virtual ~ChestEvent();
 signals:
     void sig_clicToOpenChest(ChestEvent*);
 public:
@@ -191,14 +192,13 @@ protected:
     bool mIsOpen;
     int mRevealChest;
     bool mHover;
-    ItemGenerator * mItemGenerator;
 };
 
 class ChestBurried : public ChestEvent
 {
     Q_OBJECT
 public:
-    ChestBurried(ItemGenerator*);
+    ChestBurried();
     ~ChestBurried();
 private:
     void initGraphicStuff();
@@ -208,7 +208,7 @@ class GoblinChest : public ChestEvent
 {
     Q_OBJECT
 public:
-    GoblinChest(ItemGenerator*);
+    GoblinChest();
     ~GoblinChest();
 private:
     void initGraphicStuff();

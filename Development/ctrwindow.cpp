@@ -2,6 +2,7 @@
 #include "ui_ctrwindow.h"
 #include "win_loadinggamescreen.h"
 #include <QDir>
+#include <QCursor>
 
 quint8 loadingStep = 0;
 extern Hero * gSelectedHero;
@@ -11,7 +12,6 @@ CTRWindow::CTRWindow(QWidget *parent) :
     mMap(nullptr),
     mHero(nullptr),
     mSoundManager(nullptr),
-    mGameItems(nullptr),
     heroIsSearching(false),
     t_unfreezeMap(nullptr),
     t_PeriodicalEvents(nullptr),
@@ -19,7 +19,6 @@ CTRWindow::CTRWindow(QWidget *parent) :
     mLoadingAvancement(0),
     w_menu(nullptr),
     w_heroStats(nullptr),
-    w_panel(nullptr),
     w_explorationLoading(nullptr),
     w_inventory(nullptr),
     w_gear(nullptr),
@@ -27,10 +26,14 @@ CTRWindow::CTRWindow(QWidget *parent) :
     w_trading(nullptr),
     w_skill(nullptr),
     w_tool(nullptr),
+    w_quickItemDrawer(nullptr),
+    w_messageLogger(nullptr),
     ui(new Ui::CTRWindow)
 {
     ui->setupUi(this);
     setButtonsEnable(true);
+
+    gItemGenerator = new ItemGenerator();
 
     QDir directory(QDir::currentPath()+"/"+FILE_SAVE);
     if(!directory.exists())
@@ -46,17 +49,22 @@ CTRWindow::CTRWindow(QWidget *parent) :
     w_loadingScreen->hide();
 
     hide();
+
+    QCursor cursor(QPixmap(":/graphicItems/cursor.png"), 16, 16);
+    setCursor(cursor);
+    w_menu->setCursor(cursor);
+    w_loadingScreen->setCursor(cursor);
 }
 
 CTRWindow::~CTRWindow()
 {
+    if(gItemGenerator)
+        delete gItemGenerator;
     if(mLoadingThread.isRunning())
     {
         mLoadingThread.quit();
         mLoadingThread.wait();
     }
-    if(mGameItems)
-        delete mGameItems;
     if(mMap)
         delete mMap;
     if(w_menu)
@@ -90,12 +98,11 @@ void CTRWindow::onStartGame(Save * save)
 void CTRWindow::generateNewGame()
 {
     // GAME ITEMS
-    mGameItems = new ItemGenerator();
-    qDebug() << "GENERATED : ItemGenerator";
+    DEBUG("GENERATED : ItemGenerator");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     // MAP CREATION
-    mMap = new Map(this, ui->graphicsView, mGameItems);
+    mMap = new Map(this, ui->graphicsView);
     t_unfreezeMap = new QTimer(this);
     t_unfreezeMap->setSingleShot(true);
     connect(mMap, SIGNAL(sig_monsterEncountered(Monster*)), this, SLOT(GoToMonsterFight(Monster*)));
@@ -111,7 +118,10 @@ void CTRWindow::generateNewGame()
     ui->graphicsView->setRenderHint(QPainter::Antialiasing);
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    qDebug() << "GENERATED : Map";
+    mMap->putVillageInMap(mCurrentSave->getVillage());
+    if(mMap->getVillage()->getAltar()->isLaoShanLungSummoned())
+        mMap->generateLaoShanLung();
+    DEBUG("GENERATED : Map");
 
     // SOUND EFFECTS
     mSoundManager = new SoundManager(this);
@@ -120,7 +130,7 @@ void CTRWindow::generateNewGame()
     connect(mMap, SIGNAL(sig_heroLeftVillage()), mSoundManager, SLOT(heroLeftVillage()));
     connect(mMap, SIGNAL(sig_heroEnterEvent(int)), mSoundManager, SLOT(startMusicEvent(int)));
     connect(mMap, SIGNAL(sig_heroLeaveEvent(int)), mSoundManager, SLOT(endMusicEvent(int)));
-    qDebug() << "GENERATED : SoundManager";
+    DEBUG("GENERATED : SoundManager");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     // HERO CREATION
@@ -129,19 +139,16 @@ void CTRWindow::generateNewGame()
     mHero->setPos(mHero->getLocation() != QPointF(0,0) ? mHero->getLocation() : QPointF(mMap->getVillage()->pos().x()+500, mMap->getVillage()->pos().y()+800));
     connect(mHero, SIGNAL(sig_bagFull()), this, SLOT(showBagFull()));
     connect(mHero, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
-    qDebug() << "GENERATED : Hero";
+    connect(mHero, SIGNAL(sig_enterMapEvent(Tool*)), this, SLOT(showQuickToolDrawer(Tool*)));
+    connect(mHero, SIGNAL(sig_leaveMapEvent()), this, SLOT(hideQuickToolDrawer()));
+    DEBUG("GENERATED : Hero");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
-
-    for(Monster * m : mMap->getMonsters())
-    {
-        connect(m, SIGNAL(sig_showMonsterData(Monster*)), this, SLOT(displayMonsterData(Monster*)));
-    }
 
     // HERO INTERFACE
     w_heroStats = new W_Interface_HeroStats(this, mHero);
     w_heroStats->setGeometry(50,50,w_heroStats->width(), w_heroStats->height());
     w_heroStats->show();
-    qDebug() << "GENERATED : Hero interface";
+    DEBUG("GENERATED : Hero interface");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     ui->graphicsView->installEventFilter(this);
@@ -178,22 +185,17 @@ void CTRWindow::closeGame()
     if(mMap)
         delete mMap;
     mMap = nullptr;
-    qDebug() << "DELETED : Map";
-
-    if(mGameItems)
-        delete mGameItems;
-    mGameItems = nullptr;
-    qDebug() << "DELETED : Game items";
+    DEBUG("DELETED : Map");
 
     if(mSoundManager)
         delete mSoundManager;
     mSoundManager = nullptr;
-    qDebug() << "DELETED : Sound manager";
+    DEBUG("DELETED : Sound manager");
 
     if(w_heroStats)
         delete w_heroStats;
     w_heroStats = nullptr;
-    qDebug() << "DELETED : Hero stats";
+    DEBUG("DELETED : Hero stats");
 
     if(t_unfreezeMap)
         delete t_unfreezeMap;
@@ -201,7 +203,7 @@ void CTRWindow::closeGame()
         delete t_PeriodicalEvents;
     t_unfreezeMap = nullptr;
     t_PeriodicalEvents = nullptr;
-    qDebug() << "DELETED : Timers";
+    DEBUG("DELETED : Timers");
 }
 
 void CTRWindow::scrollSceneView()
@@ -209,20 +211,27 @@ void CTRWindow::scrollSceneView()
     ui->graphicsView->centerOn(mHero);
 }
 
-void CTRWindow::removeCurrentPanel()
+void CTRWindow::onCloseMessageLogger()
 {
-    if(w_panel != nullptr)
-        delete w_panel;
-    w_panel = nullptr;
+    if(w_messageLogger)
+        delete w_messageLogger;
+    w_messageLogger = nullptr;
 }
 
-void CTRWindow::displayPanel(W_DialogPannel * pannel)
+void CTRWindow::ShowPopUpInfo(LogMessage * message)
 {
-    removeCurrentPanel();
-    connect(pannel, SIGNAL(sig_removeWidget()), this, SLOT(removeCurrentPanel()));
-    w_panel = pannel;
-    pannel->setGeometry(ui->Inventory->x()-pannel->width()-30,height()-pannel->height()-30,pannel->width(),pannel->height());
-    pannel->showWidget();
+    if(!message)
+        return;
+
+    if(!w_messageLogger)
+    {
+        w_messageLogger = new W_MessageLogger(this);
+        w_messageLogger->setGeometry(ui->Inventory->x()-width()/4-30, 0, width()/4, height()-20);
+        connect(w_messageLogger, SIGNAL(sig_closeWindow()), this, SLOT(onCloseMessageLogger()));
+        w_messageLogger->show();
+    }
+
+    w_messageLogger->log(message);
 }
 
 void CTRWindow::displayInterfaceTrading(Win_Interface_Trading * interface)
@@ -236,26 +245,41 @@ void CTRWindow::displayInterfaceTrading(Win_Interface_Trading * interface)
 
 void CTRWindow::displayMonsterData(Monster * monster)
 {
-    removeCurrentPanel();
-    displayPanel( new W_ShowMonsterData(this, monster));
+    ShowPopUpInfo(ML_SHOW_MONSTER(monster));
 }
 
 void CTRWindow::displayCalamitySpawned()
 {
-    removeCurrentPanel();
-    displayPanel(new W_ShowCalamitySpawned(this));
+    ShowPopUpInfo(ML_SHOW_CALAMITY());
 }
 
 void CTRWindow::GoToMonsterFight(Monster * monster)
 {
-    if(!w_fight){
+    if(!w_fight)
+    {
         mHero->freeze(true);
-        hideInventaryGear();
-        hideInventary();
+
+        // Close all interfaces
+        if(w_trading != nullptr)
+        {
+            Win_Chest * chest = dynamic_cast<Win_Chest*>(w_trading);
+            if(chest)
+                chest->closeChest();
+            Win_HeroChest * heroChest = dynamic_cast<Win_HeroChest*>(w_trading);
+            if(heroChest)
+                heroChest->closeChest();
+        }
         if(w_trading){
             delete w_trading;
             w_trading = nullptr;
         }
+        hideInventaryGear();
+        hideInventary();
+        hideSkillWindow();
+        if(w_messageLogger)
+            w_messageLogger->setVisible(false);
+
+        mSoundManager->setHeroAttack(mHero->getGear()->getWeapon());
         mSoundManager->startMusicFight(monster);
         w_fight = new Win_Fight(this, mHero, monster);
         connect(w_fight, SIGNAL(sig_closeWindow()), this, SLOT(hideFightWindow()));
@@ -274,7 +298,7 @@ void CTRWindow::fightResult(Character* entityKilled)
     {
         Hero * hero = dynamic_cast<Hero*>(entityKilled);
         if(hero){
-            qDebug() << "Le Hero a été tué - GAME OVER";
+            DEBUG("Le Hero a été tué - GAME OVER");
         }
         Monster* monster = dynamic_cast<Monster*>(entityKilled);
         if(monster){
@@ -283,7 +307,7 @@ void CTRWindow::fightResult(Character* entityKilled)
             mMap->unfreezeMap();
             if(mHero->addExperience(monster->getExperience()))
             {
-                displayPanel(new W_ShowLevelUp(this, mHero->getExperience().level));
+                ShowPopUpInfo(ML_SHOW_LEVEL_UP(mHero));
             }
             if(mHero->getLife().curLife < 30)
                 mSoundManager->startMusicEvent(MUSICEVENT_CLOSE_FIGHT);
@@ -292,6 +316,8 @@ void CTRWindow::fightResult(Character* entityKilled)
     {
         t_unfreezeMap->start(2000);
     }
+    if(w_messageLogger)
+            w_messageLogger->setVisible(true);
 }
 
 bool CTRWindow::eventFilter(QObject *target, QEvent *event)
@@ -301,11 +327,19 @@ bool CTRWindow::eventFilter(QObject *target, QEvent *event)
         event->ignore();
         return true;
     }
+    if(event->type() == QEvent::GraphicsSceneWheel)
+    {
+        QMainWindow::eventFilter(target, event);
+        event->accept();
+        return true;
+    }
+
+#ifdef ENABLE_MOVEMENT_BY_MOUSE_CLIC
     if(mMap)
     {
         if(target == mMap->getScene())
         {
-            if (event->type() == QEvent::GraphicsSceneMousePress)
+            if(event->type() == QEvent::GraphicsSceneMousePress)
             {
                 const QGraphicsSceneMouseEvent* const me = static_cast<const QGraphicsSceneMouseEvent*>(event);
                 if(me->button() == Qt::RightButton)
@@ -313,12 +347,14 @@ bool CTRWindow::eventFilter(QObject *target, QEvent *event)
                     if(heroIsSearching || mHero->isFreeze())
                         return QMainWindow::eventFilter(target, event);
 
-
                     const QPointF position(me->scenePos().x()-mHero->boundingRect().width()/2, me->scenePos().y()-mHero->boundingRect().height()/2);
                     if(mHero->contains(QPointF(position.x()+mHero->x(), position.y()-mHero->y())))
                     {
                         return QMainWindow::eventFilter(target, event);
                     }
+
+                    gEnableMovementWithMouseClic = true;
+
                     qreal dy = position.y()-mHero->y(),
                         dx = position.x()-mHero->x();
                     qreal angle = qRadiansToDegrees(qAtan(dy/dx));
@@ -341,6 +377,7 @@ bool CTRWindow::eventFilter(QObject *target, QEvent *event)
             }
         }
     }
+#endif
     return QMainWindow::eventFilter(target, event);
 }
 
@@ -352,13 +389,54 @@ void CTRWindow::keyPressEvent(QKeyEvent *event)
             delete w_explorationLoading;
         w_explorationLoading = new W_Animation_exploration(this);
         connect(w_explorationLoading, SIGNAL(sig_explorationCompleted()), this, SLOT(explorationCompleted()));
-        w_explorationLoading->setGeometry(20, ui->graphicsView->y()+ui->graphicsView->height()-20-260, 260,260);
+        w_explorationLoading->setGeometry(ui->graphicsView->x()+ui->graphicsView->width()/4, ui->graphicsView->y()+ui->graphicsView->height()-80, ui->graphicsView->width()/2, 50);
+        //w_explorationLoading->setGeometry(20, ui->graphicsView->y()+ui->graphicsView->height()-20-260, 260,260); // Old animation
         w_explorationLoading->show();
         mHero->stopMoving();
         heroIsSearching = true;
 
         event->accept();
-    }else{
+    }
+    else if(event->key() == Qt::Key::Key_Z || event->key() == Qt::Key::Key_S || event->key() == Qt::Key::Key_Q || event->key() == Qt::Key::Key_D)
+    {
+        gEnableMovementWithMouseClic = false;
+
+        if(event->isAutoRepeat())
+        {
+            event->ignore();
+            return;
+        }
+        
+        switch(event->key())
+        {
+        case Qt::Key::Key_Z:
+            mHero->mMoveHandler.movementMask |= KEY_MASK_Z;
+            break;
+
+        case Qt::Key::Key_S:
+            mHero->mMoveHandler.movementMask |= KEY_MASK_S;
+            break;
+
+        case Qt::Key::Key_Q:
+            mHero->mMoveHandler.movementMask |= KEY_MASK_Q;
+            break;
+
+        case Qt::Key::Key_D:
+            mHero->mMoveHandler.movementMask |= KEY_MASK_D;
+            break;
+        }
+
+        if(mHero->mMoveHandler.movementMask)
+        {
+            mHero->mMoveHandler.t_move->start(TIMER_MOVE);
+            mHero->t_movement->start();
+            mHero->nextMovement();
+        }
+
+        event->accept();
+    }
+    else
+    {
         event->ignore();
     }
 }
@@ -396,8 +474,51 @@ void CTRWindow::keyReleaseEvent(QKeyEvent *event)
         {
             hideInventaryGear();
         }
+        if(w_skill != nullptr)
+        {
+            hideSkillWindow();
+        }
 
-    }else{
+        event->accept();
+    }
+    else if(event->key() == Qt::Key::Key_Z || event->key() == Qt::Key::Key_S || event->key() == Qt::Key::Key_Q || event->key() == Qt::Key::Key_D)
+    {
+        gEnableMovementWithMouseClic = false;
+
+        if(event->isAutoRepeat())
+        {
+            event->ignore();
+            return;
+        }
+
+        switch(event->key())
+        {
+        case Qt::Key::Key_Z:
+            mHero->mMoveHandler.movementMask &= (~KEY_MASK_Z);
+            break;
+
+        case Qt::Key::Key_S:
+            mHero->mMoveHandler.movementMask &= (~KEY_MASK_S);
+            break;
+
+        case Qt::Key::Key_Q:
+            mHero->mMoveHandler.movementMask &= (~KEY_MASK_Q);
+            break;
+
+        case Qt::Key::Key_D:
+            mHero->mMoveHandler.movementMask &= (~KEY_MASK_D);
+            break;
+        }
+
+        if(!mHero->mMoveHandler.movementMask)
+        {
+            mHero->stopMoving();
+        }
+
+        event->accept();
+    }
+    else
+    {
         event->ignore();
     }
 }
@@ -421,8 +542,7 @@ void CTRWindow::explorationCompleted()
                 if(bushEventCoin)
                 {
                     BagCoin * coins = static_cast<BagCoin*>(bushEventCoin->takeItems().first());
-                    W_ShowItemTook * panel = new W_ShowItemTook(this, coins);
-                    displayPanel(panel);
+                    ShowPopUpInfo(ML_SHOW_BAG_COIN(coins->getPrice()));
                     mHero->takeItem(coins);
                     return;
                 }
@@ -440,11 +560,12 @@ void CTRWindow::explorationCompleted()
 
                         }else
                         {
-                            W_ShowEquipmentTook * panel = new W_ShowEquipmentTook(this, itemTook);
-                            displayPanel(panel);
+
+                            ShowPopUpInfo(ML_SHOW_ITEM_TOOK(itemTook));
                             return;
                         }
-                    }else
+                    }
+                    else
                     {
                         if(!mHero->takeItem(itemTook))
                         {
@@ -453,8 +574,7 @@ void CTRWindow::explorationCompleted()
 
                         }else
                         {
-                            W_ShowEquipmentTook * panel = new W_ShowEquipmentTook(this, itemTook);
-                            displayPanel(panel);
+                            ShowPopUpInfo(ML_SHOW_ITEM_TOOK(itemTook));
                             return;
                         }
                     }
@@ -463,51 +583,31 @@ void CTRWindow::explorationCompleted()
                 ChestEvent * chestEvent = dynamic_cast<ChestEvent*>(mapEvent);
                 if(chestEvent)
                 {
-                    if(chestEvent->isRevealed())
+                    ChestBurried * chestBurried = dynamic_cast<ChestBurried*>(chestEvent);
+                    if(chestBurried)
                     {
-                        if(!chestEvent->isOpen())
+                        if(w_tool != nullptr)
                         {
-                            mSoundManager->playSound(SOUND_OPENCHEST);
-                            Win_Chest * interfaceChest = new Win_Chest(this, mHero, chestEvent);
-                            connect(interfaceChest, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
-                            interfaceChest->setGeometry(0,0,interfaceChest->width(), interfaceChest->height());
-                            interfaceChest->show();
-                        }
-                    }else
-                    {
-                        ChestBurried * chestBurried = dynamic_cast<ChestBurried*>(chestEvent);
-                        if(chestBurried)
-                        {
-                            if(w_tool != nullptr)
+                            if(w_tool->getTool()->getIdentifier() == TOOL_SHOVEL)
                             {
-                                if(w_tool->getTool()->getIdentifier() == TOOL_SHOVEL)
+                                chestEvent->revealChest();
+                                ShowPopUpInfo(ML_SHOW_CHEST_DUG_UP());
+
+                                if(mHero->getSkillList()[PassiveSkill::LuckFactor]->isUnlock())
                                 {
-                                    chestEvent->revealChest();
-                                    displayPanel(new W_ShowChestFound(this));
+                                    chestEvent->addExtraItems();
+                                }
 
-                                    if(mHero->getSkillList()[PassiveSkill::LuckFactor]->isUnlock())
-                                    {
-                                        chestEvent->addExtraItems();
-                                    }
-
-                                }else
-                                    displayPanel(new W_ShowChestBurried(this));
                             }else
-                                displayPanel(new W_ShowChestBurried(this));
+                                ShowPopUpInfo(ML_SHOW_CHEST_BURRIED());
                         }else
-                        {
-                            chestEvent->revealChest();
-                            displayPanel(new W_ShowChestFound(this));
-                        }
+                            ShowPopUpInfo(ML_SHOW_CHEST_BURRIED());
                     }
                     return;
                 }
                 OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
                 if(oreSpot)
                 {
-                    if(oreSpot->getItems().isEmpty())
-                        continue;
-
                     if(w_tool != nullptr)
                     {
                         if(w_tool->getTool()->getIdentifier() == TOOL_PICKAXE)
@@ -533,27 +633,24 @@ void CTRWindow::explorationCompleted()
                                             break;
                                     }
                                     mHero->takeItem(gem);
-                                    displayPanel(new W_ShowOreTook(this, gem));
+                                    ShowPopUpInfo(ML_SHOW_ORE_TOOK(gem));
                                     continue;
                                 }
                             }
                             Item * ore = oreSpot->getItems().first();
                             if(mHero->takeItem(oreSpot->takeItem(ore)))
-                                displayPanel(new W_ShowOreTook(this, ore));
+                                ShowPopUpInfo(ML_SHOW_ORE_TOOK(ore));
 
                         }else
-                            displayPanel(new W_ShowOreSpot(this, oreSpot));
+                            ShowPopUpInfo(ML_SHOW_ORE_SPOT(oreSpot));
                     }else
-                        displayPanel(new W_ShowOreSpot(this, oreSpot));
+                        ShowPopUpInfo(ML_SHOW_ORE_SPOT(oreSpot));
 
                     continue;
                 }
                 FishingEvent * fishes = dynamic_cast<FishingEvent*>(mapEvent);
-                if(fishes){
-
-                    if(fishes->getItems().isEmpty())
-                        continue;
-
+                if(fishes)
+                {
                     if(w_tool != nullptr)
                     {
                         if(w_tool->getTool()->getIdentifier() == TOOL_FISHINGROD)
@@ -580,20 +677,34 @@ void CTRWindow::explorationCompleted()
                                             break;
                                     }
                                     mHero->takeItem(fish);
-                                    displayPanel(new W_ShowFishTook(this, dynamic_cast<Fish*>(fish)));
+                                    ShowPopUpInfo(ML_SHOW_FISH_TOOK(fish));
                                     continue;
                                 }
                             }
 
                             Item * fish = fishes->getItems().first();
                             if(mHero->takeItem(fishes->takeItem(fish)))
-                                displayPanel(new W_ShowFishTook(this, dynamic_cast<Fish*>(fish)));
-                            else
-                                displayPanel(new W_ShowFishSpot(this));
-                        }
+                                ShowPopUpInfo(ML_SHOW_FISH_TOOK(fish));
+                        }else
+                            ShowPopUpInfo(ML_SHOW_FISH_SPOT());
                     }else
-                        displayPanel(new W_ShowFishSpot(this));
+                        ShowPopUpInfo(ML_SHOW_FISH_SPOT());
 
+                    continue;
+                }
+            }
+            else
+            {
+                OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
+                if(oreSpot)
+                {
+                    ShowPopUpInfo(ML_SHOW_NO_MORE_TO_HARVEST());
+                    continue;
+                }
+                FishingEvent * fishes = dynamic_cast<FishingEvent*>(mapEvent);
+                if(fishes)
+                {
+                    ShowPopUpInfo(ML_SHOW_NO_MORE_TO_HARVEST());
                     continue;
                 }
             }
@@ -601,6 +712,11 @@ void CTRWindow::explorationCompleted()
         Monster * monsterDead = dynamic_cast<Monster*>(item);
         if(monsterDead)
         {
+            if(monsterDead->isDead() && monsterDead->isSkinned())
+            {
+                ShowPopUpInfo(ML_SHOW_MONSTER_SKINNED());
+            }
+
             if(w_tool != nullptr)
             {
                 if(monsterDead->isDead() && !monsterDead->isSkinned() && w_tool->getTool()->getIdentifier() == TOOL_KNIFE)
@@ -610,20 +726,21 @@ void CTRWindow::explorationCompleted()
                         monsterDead->addExtraLoots();
                     }
                     QList<Item*> loots = monsterDead->skinMonster();
+                    ShowPopUpInfo(ML_SHOW_LOOT_NUMBER(loots.size()));
                     for(Item * loot : loots)
                     {
                         mMap->heroThrowItemInMap(loot);
                     }
                     return;
                 }
-                else
-                    displayPanel(new W_ShowCarcass(this, monsterDead));
+                else if(monsterDead->isDead())
+                    ShowPopUpInfo(ML_SHOW_CARCASS());
 
                 continue;
             }
 
             if(w_tool == nullptr && monsterDead->isDead() && !monsterDead->isSkinned())
-                displayPanel(new W_ShowCarcass(this, monsterDead));
+                ShowPopUpInfo(ML_SHOW_CARCASS());
 
             continue;
         }
@@ -656,6 +773,7 @@ void CTRWindow::on_Gear_clicked()
     w_gear = new Win_Gear(this, mHero);
     connect(w_gear, SIGNAL(sig_closeWindow()), this, SLOT(hideInventaryGear()));
     connect(w_gear, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
+    connect(w_gear, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
     w_gear->setGeometry(width()-w_gear->width(), 0, w_gear->width(), w_gear->height());
     w_gear->diplayWindow();
 }
@@ -685,7 +803,23 @@ void CTRWindow::hideSkillWindow()
 
 void CTRWindow::showReplenish(QObject * shop)
 {
-    displayPanel(new W_ShowReplenish(this, shop));
+    Blacksmith * blacksmith = dynamic_cast<Blacksmith*>(shop);
+    if(blacksmith)
+    {
+        ShowPopUpInfo(LM_SHOW_BLACKSMITH_RESPLENISH());
+    }
+
+    Merchant * merchant = dynamic_cast<Merchant*>(shop);
+    if(merchant)
+    {
+        ShowPopUpInfo(LM_SHOW_MERCHANT_RESPLENISH());
+    }
+
+    Alchemist * alchemist = dynamic_cast<Alchemist*>(shop);
+    if(alchemist)
+    {
+        ShowPopUpInfo(LM_SHOW_ALCHEMIST_RESPLENISH());
+    }
 }
 
 void CTRWindow::useTool(Tool * tool)
@@ -699,18 +833,14 @@ void CTRWindow::useTool(Tool * tool)
     w_tool->setGeometry(ui->Inventory->x()-w_tool->width()-30,30,w_tool->width(),w_tool->height());
     w_tool->displayTool();
 }
-// Téléportation
+
 void CTRWindow::useScroll(Scroll* scroll)
 {
-    Scroll_X * scroll_X = dynamic_cast<Scroll_X*>(scroll);
-    if(scroll_X)
-    {
-        mHero->setPos(mMap->getVillage()->getHeroHouse()->getHouse()->x(), mMap->getVillage()->getHeroHouse()->getHouse()->y()+350);
-        ui->graphicsView->centerOn(mHero);
-        // TODO : add sound
+    mHero->setPos(mMap->getVillage()->getHeroHouse()->getHouse()->x(), mMap->getVillage()->getHeroHouse()->getHouse()->y()+350);
+    ui->graphicsView->centerOn(mHero);
+    mSoundManager->playSound(SOUND_TELEPORT);
 
-        QTimer::singleShot(1000, this, [&]{mHero->useScroll(scroll);});
-    }
+    mHero->useScroll(scroll);
 }
 
 void CTRWindow::unuseTool()
@@ -718,11 +848,6 @@ void CTRWindow::unuseTool()
     if(w_tool != nullptr)
         delete w_tool;
     w_tool = nullptr;
-}
-
-void CTRWindow::indicateBagFull()
-{
-    displayPanel(new W_ShowBagFull(this));
 }
 
 void CTRWindow::setButtonsEnable(bool toggle)
@@ -741,17 +866,27 @@ void CTRWindow::on_buttonHelp_clicked()
 
 void CTRWindow::showBagFull()
 {
-    displayPanel(new W_ShowBagFull(this));
+    ShowPopUpInfo(SHOW_BAG_FULL(mHero->getBag()));
 }
 
 void CTRWindow::showItemOnGround(Item * item)
 {
-    displayPanel(new W_ShowItemOnGround(this, item));
+    ShowPopUpInfo(ML_SHOW_ITEM_ON_GROUND(item));
 }
 
 void CTRWindow::showItemPicked(Item * item)
 {
-    displayPanel(new W_ShowItemTook(this, item));
+    BagCoin * coins = dynamic_cast<BagCoin*>(item);
+    if(coins)
+    {
+        ShowPopUpInfo(ML_SHOW_BAG_COIN(coins->getPrice()));
+        item->deleteLater();
+        item = nullptr;
+    }
+    else
+    {
+        ShowPopUpInfo(ML_SHOW_ITEM_TOOK(item));
+    }
 }
 
 void CTRWindow::openInterface(QGraphicsItem * item)
@@ -762,7 +897,10 @@ void CTRWindow::openInterface(QGraphicsItem * item)
     }
     BlacksmithHouse * blacksmith = dynamic_cast<BlacksmithHouse*>(item);
     if(blacksmith){
-        displayInterfaceTrading(new Win_BlackSmith(this, mHero, mMap->getVillage()->getBlacksmith()));
+        Win_BlackSmith * interface = new Win_BlackSmith(this, mHero, mMap->getVillage()->getBlacksmith());
+        connect(interface, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
+        connect(interface, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
+        displayInterfaceTrading(interface);
         return;
     }
     MerchantHouse * merchant = dynamic_cast<MerchantHouse*>(item);
@@ -791,12 +929,20 @@ void CTRWindow::openInterface(QGraphicsItem * item)
         w_trading = w_chest;
         return;
     }
+    AltarBuilding * altar = dynamic_cast<AltarBuilding*>(item);
+    if(altar)
+    {
+        displayInterfaceTrading(new Win_Altar(this, mHero, mMap->getVillage()->getAltar()));
+        return;
+    }
 }
 
 void CTRWindow::showPNJinfo(QGraphicsItem * interaction)
 {
-
-    displayPanel(new W_ShowVilageInfo(this, interaction));
+    House * house = dynamic_cast<House*>(interaction);
+    if(house){
+        ShowPopUpInfo(ML_SHOW_PNG_INFO(house));
+    }
 }
 
 void CTRWindow::paintEvent(QPaintEvent *)
@@ -817,13 +963,24 @@ void CTRWindow::on_Skills_clicked()
 
 void CTRWindow::onPeriodicalEvents()
 {
-    if(mHero->getSkillList()[PassiveSkill::LifeCollector]->isUnlock())
+    static quint8 tenSeconds = 1;
+
+    if(mHero->getStamina().curStamina < mHero->getStamina().maxStamina)
     {
-        mHero->setLife(mHero->getLife().curLife+1);
+        mHero->setStamina(mHero->getStamina().curStamina + 10);
     }
-    if(mHero->getSkillList()[PassiveSkill::ManaCollector]->isUnlock())
+    
+    if(tenSeconds >= 10)
     {
-        mHero->setMana(mHero->getMana().curMana+1);
+        if(mHero->getSkillList()[PassiveSkill::LifeCollector]->isUnlock())
+        {
+            mHero->setLife(mHero->getLife().curLife+1);
+        }
+        if(mHero->getSkillList()[PassiveSkill::ManaCollector]->isUnlock())
+        {
+            mHero->setMana(mHero->getMana().curMana+1);
+        }
+        tenSeconds = 1;
     }
 }
 
@@ -845,8 +1002,9 @@ void CTRWindow::on_buttonSaveGame_clicked()
     }
     mCurrentSave->setChest(chest);
 
-    /* Avoid Hero instance destruction */
+    /* Avoid instances destruction with scene destruction */
     mMap->getScene()->removeItem(mHero);
+    mMap->getVillage()->removeFromScene(mMap->getScene());
 
     /* Save current game */
     QFile file(QString(QDir::currentPath()+"/"+FILE_SAVE+"/%1").arg(mCurrentSave->getName()));
@@ -862,3 +1020,28 @@ void CTRWindow::on_buttonSaveGame_clicked()
 
     hide();
 }
+
+void CTRWindow::showQuickToolDrawer(Tool * tool)
+{
+    if(w_quickItemDrawer)
+        delete w_quickItemDrawer;
+
+    if(tool)
+    {
+        w_quickItemDrawer = new W_QuickToolDrawer(this, tool);
+        w_quickItemDrawer->setGeometry(ui->Inventory->x()-w_quickItemDrawer->width()-30, 300, w_quickItemDrawer->width(), w_quickItemDrawer->height());
+        w_quickItemDrawer->show();
+        connect(w_quickItemDrawer, SIGNAL(sig_useTool(Tool*)), this, SLOT(useTool(Tool*)));
+    }
+}
+
+void CTRWindow::hideQuickToolDrawer()
+{
+    if(w_quickItemDrawer)
+    {
+        delete w_quickItemDrawer;
+        w_quickItemDrawer = nullptr;
+    }
+}
+
+

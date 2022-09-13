@@ -1,11 +1,18 @@
 #include "itemgenerator.h"
 #include <QDebug>
 #include <QRandomGenerator>
+#include "equipment.h"
+
+ItemGenerator * gItemGenerator = nullptr;
+
+//#define DEBUG_BLACKSMITH
 
 // MAX = 250 350 150 100 / 50 100
 
 #define DMG_MAX 200.0
 #define DMG(Pourcentage)    (int)((Pourcentage*DMG_MAX)/100.0)
+
+#define RARENESS_LV_ACCEPTED(item, maskRareness)    !((((item->getPrice() <= 5) << RARENESS_MSK_LV_1) | ((item->getPrice() > 5 && item->getPrice() < 20) << RARENESS_MSK_LV_2) | ((item->getPrice() >= 20) << RARENESS_MSK_LV_3)) & maskRareness)
 
 ItemGenerator::ItemGenerator()
 {
@@ -166,81 +173,142 @@ ItemGenerator::ItemGenerator()
             << new Amulet("Amulette", QPixmap(":/equipment/amulet_11.png"), 10, 0, 10, 1, "Amulette basique.");
 }
 
-Sword * ItemGenerator::generateRandomSword()
+Sword * ItemGenerator::generateRandomSword(int rarenessMask)
 {
-    if(!mSwords.size())
-        return nullptr;
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
 
-    int r = QRandomGenerator::global()->bounded(mSwords.length());
-    Sword * sword = new Sword(mSwords[r]->getName(), mSwords[r]->getImage(), mSwords[r]->getDamage(), mSwords[r]->getSpeed(), mSwords[r]->getWeight(), mSwords[r]->getPrice(), mSwords[r]->getInformation(), mSwords[r]->getUsable());
+    Sword * sword = nullptr;
+    do{
+        int r = QRandomGenerator::global()->bounded(mSwords.length());
+        sword = new Sword(mSwords[r]->getName(), mSwords[r]->getImage(), mSwords[r]->getDamage(), mSwords[r]->getSpeed(), mSwords[r]->getWeight(), mSwords[r]->getPrice(), mSwords[r]->getInformation(), mSwords[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(sword, rarenessMask));
     return sword;
 }
 
-Bow * ItemGenerator::generateRandomBow()
+Bow * ItemGenerator::generateRandomBow(int rarenessMask)
 {
-    if(!mBows.size())
-        return nullptr;
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
 
-    int r = QRandomGenerator::global()->bounded(mBows.length());
-    Bow * bow = new Bow(mBows[r]->getName(), mBows[r]->getImage(), mBows[r]->getDamage(), mBows[r]->getSpeed(), mBows[r]->getWeight(), mBows[r]->getPrice(), mBows[r]->getInformation(), mBows[r]->getUsable());
+    Bow * bow = nullptr;
+    do{
+        if(bow)
+            delete bow;
+        int r = QRandomGenerator::global()->bounded(mBows.length());
+        bow = new Bow(mBows[r]->getName(), mBows[r]->getImage(), mBows[r]->getDamage(), mBows[r]->getSpeed(), mBows[r]->getWeight(), mBows[r]->getPrice(), mBows[r]->getInformation(), mBows[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(bow, rarenessMask));
     return bow;
 }
 
-Staff * ItemGenerator::generateRandomStaff()
+Staff * ItemGenerator::generateRandomStaff(int rarenessMask)
 {
-    if(!mStaffs.size())
-        return nullptr;
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
 
-    int r = QRandomGenerator::global()->bounded(mStaffs.length());
-    Staff * staff = new Staff(mStaffs[r]->getName(), mStaffs[r]->getImage(), mStaffs[r]->getDamage(), mStaffs[r]->getSpeed(), mStaffs[r]->getWeight(), mStaffs[r]->getPrice(), mStaffs[r]->getInformation(), mStaffs[r]->getUsable());
+    Staff * staff = nullptr;
+    do{
+        if(staff)
+            delete staff;
+        int r = QRandomGenerator::global()->bounded(mStaffs.length());
+        staff = new Staff(mStaffs[r]->getName(), mStaffs[r]->getImage(), mStaffs[r]->getDamage(), mStaffs[r]->getSpeed(), mStaffs[r]->getWeight(), mStaffs[r]->getPrice(), mStaffs[r]->getInformation(), mStaffs[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(staff, rarenessMask));
     return staff;
 }
 
-Helmet *ItemGenerator::generateRandomHelmet()
+Helmet *ItemGenerator::generateRandomHelmet(int rarenessMask)
 {
-    int r = QRandomGenerator::global()->bounded(mHelmets.length());
-    Helmet * helmet = new Helmet(mHelmets[r]->getName(), mHelmets[r]->getImage(), mHelmets[r]->getDefense(), mHelmets[r]->getDodgingStat(), mHelmets[r]->getWeight(), mHelmets[r]->getPrice(), mHelmets[r]->getInformation(), mHelmets[r]->getUsable());
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
+
+    Helmet * helmet = nullptr;
+    do{
+        if(helmet)
+            delete helmet;
+        int r = QRandomGenerator::global()->bounded(mHelmets.length());
+        helmet = new Helmet(mHelmets[r]->getName(), mHelmets[r]->getImage(), mHelmets[r]->getDefense(), mHelmets[r]->getDodgingStat(), mHelmets[r]->getWeight(), mHelmets[r]->getPrice(), mHelmets[r]->getInformation(), mHelmets[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(helmet, rarenessMask));
     return helmet;
 }
 
-Breastplate *ItemGenerator::generateRandomBreastplate()
+Breastplate *ItemGenerator::generateRandomBreastplate(int rarenessMask)
 {
-    int r = QRandomGenerator::global()->bounded(mBreastplates.length());
-    Breastplate * breastplate = new Breastplate(mBreastplates[r]->getName(), mBreastplates[r]->getImage(), mBreastplates[r]->getDefense(), mBreastplates[r]->getDodgingStat(), mBreastplates[r]->getWeight(), mBreastplates[r]->getPrice(), mBreastplates[r]->getInformation(), mBreastplates[r]->getUsable());
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
+
+    Breastplate * breastplate = nullptr;
+    do{
+        if(breastplate)
+            delete breastplate;
+        int r = QRandomGenerator::global()->bounded(mBreastplates.length());
+        breastplate = new Breastplate(mBreastplates[r]->getName(), mBreastplates[r]->getImage(), mBreastplates[r]->getDefense(), mBreastplates[r]->getDodgingStat(), mBreastplates[r]->getWeight(), mBreastplates[r]->getPrice(), mBreastplates[r]->getInformation(), mBreastplates[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(breastplate, rarenessMask));
     return breastplate;
 }
 
-Gloves *ItemGenerator::generateRandomGloves()
+Gloves *ItemGenerator::generateRandomGloves(int rarenessMask)
 {
-    int r = QRandomGenerator::global()->bounded(mGloves.length());
-    Gloves * gloves = new Gloves(mGloves[r]->getName(), mGloves[r]->getImage(), mGloves[r]->getDefense(), mGloves[r]->getDodgingStat(), mGloves[r]->getWeight(), mGloves[r]->getPrice(), mGloves[r]->getInformation(), mGloves[r]->getUsable());
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
+
+    Gloves * gloves = nullptr;
+    do{
+        if(gloves)
+            delete gloves;
+        int r = QRandomGenerator::global()->bounded(mGloves.length());
+        gloves = new Gloves(mGloves[r]->getName(), mGloves[r]->getImage(), mGloves[r]->getDefense(), mGloves[r]->getDodgingStat(), mGloves[r]->getWeight(), mGloves[r]->getPrice(), mGloves[r]->getInformation(), mGloves[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(gloves, rarenessMask));
     return gloves;
 }
 
-Pant *ItemGenerator::generateRandomPant()
+Pant *ItemGenerator::generateRandomPant(int rarenessMask)
 {
-    int r = QRandomGenerator::global()->bounded(mPants.length());
-    Pant * pant = new Pant(mPants[r]->getName(), mPants[r]->getImage(), mPants[r]->getDefense(), mPants[r]->getDodgingStat(), mPants[r]->getWeight(), mPants[r]->getPrice(), mPants[r]->getInformation(), mPants[r]->getUsable());
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
+
+    Pant * pant = nullptr;
+    do{
+        if(pant)
+            delete pant;
+        int r = QRandomGenerator::global()->bounded(mPants.length());
+        pant = new Pant(mPants[r]->getName(), mPants[r]->getImage(), mPants[r]->getDefense(), mPants[r]->getDodgingStat(), mPants[r]->getWeight(), mPants[r]->getPrice(), mPants[r]->getInformation(), mPants[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(pant, rarenessMask));
     return pant;
 }
 
-Footwears *ItemGenerator::generateRandomFootwears()
+Footwears *ItemGenerator::generateRandomFootwears(int rarenessMask)
 {
-    int r = QRandomGenerator::global()->bounded(mFootwears.length());
-    Footwears * footwear = new Footwears(mFootwears[r]->getName(), mFootwears[r]->getImage(), mFootwears[r]->getDefense(), mFootwears[r]->getDodgingStat(), mFootwears[r]->getWeight(), mFootwears[r]->getPrice(), mFootwears[r]->getInformation(), mFootwears[r]->getUsable());
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
+
+    Footwears * footwear = nullptr;
+    do{
+        if(footwear)
+            delete footwear;
+        int r = QRandomGenerator::global()->bounded(mFootwears.length());
+        footwear = new Footwears(mFootwears[r]->getName(), mFootwears[r]->getImage(), mFootwears[r]->getDefense(), mFootwears[r]->getDodgingStat(), mFootwears[r]->getWeight(), mFootwears[r]->getPrice(), mFootwears[r]->getInformation(), mFootwears[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(footwear, rarenessMask));
     return footwear;
 }
 
-Amulet *ItemGenerator::generateRandomAmulet()
+Amulet *ItemGenerator::generateRandomAmulet(int rarenessMask)
 {
-    int r = QRandomGenerator::global()->bounded(mAmulets.length());
-    Amulet * amulet = new Amulet(mAmulets[r]->getName(), mAmulets[r]->getImage(), mAmulets[r]->getDefense(), mAmulets[r]->getDodgingStat(), mAmulets[r]->getWeight(), mAmulets[r]->getPrice(), mAmulets[r]->getInformation(), mAmulets[r]->getUsable());
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
+
+    Amulet * amulet = nullptr;
+    do{
+        if(amulet)
+            delete amulet;
+        int r = QRandomGenerator::global()->bounded(mAmulets.length());
+        amulet = new Amulet(mAmulets[r]->getName(), mAmulets[r]->getImage(), mAmulets[r]->getDefense(), mAmulets[r]->getDodgingStat(), mAmulets[r]->getWeight(), mAmulets[r]->getPrice(), mAmulets[r]->getInformation(), mAmulets[r]->getUsable());
+    }while(RARENESS_LV_ACCEPTED(amulet, rarenessMask));
     return amulet;
 }
 
 Consumable *ItemGenerator::generateRandomConsumable()
 {
-    switch(QRandomGenerator::global()->bounded(4))
+    switch(QRandomGenerator::global()->bounded(5))
     {
     case 0 :
         return new PotionLife;
@@ -253,37 +321,155 @@ Consumable *ItemGenerator::generateRandomConsumable()
     case 4 :
         return new PotionKnowledge;
     }
+    DEBUG_ERR("erreur generation random consumable");
     return nullptr;
 }
 
-Item *ItemGenerator::generateEquipment()
+Item *ItemGenerator::generateEquipment(int rarenessMask)
 {
-    switch(QRandomGenerator::global()->bounded(7))
+    if(!(rarenessMask & (RARENESS_LV_NB-1)))
+        rarenessMask = RARENESS_LV_NB-1;
+
+    switch(QRandomGenerator::global()->bounded(9))
     {
     case 0 :
-        return generateRandomSword();
+        return generateRandomSword(rarenessMask);
     case 1 :
-        return generateRandomHelmet();
+        return generateRandomHelmet(rarenessMask);
     case 2 :
-        return generateRandomBreastplate();
+        return generateRandomBreastplate(rarenessMask);
     case 3 :
-        return generateRandomGloves();
+        return generateRandomGloves(rarenessMask);
     case 4 :
-        return generateRandomPant();
+        return generateRandomPant(rarenessMask);
     case 5 :
-        return generateRandomFootwears();
+        return generateRandomFootwears(rarenessMask);
     case 6 :
-        return generateRandomAmulet();
+        return generateRandomAmulet(rarenessMask);
+    case 7:
+        return generateRandomBow(rarenessMask);
+    case 8:
+        return generateRandomStaff(rarenessMask);
     }
-    qDebug() << "erreur generation random item";
+    DEBUG_ERR("erreur generation random item");
     return nullptr;
 
+}
+
+#ifdef DEBUG_BLACKSMITH
+#define ADD_ITEM_IN_LOOTS(loots, loot, newItem)     do{ \
+                                                        newItem = true; \
+                                                        loot.material = generateRandomMaterial(); loot.quantities = 1; \
+                                                        for(EquipmentToForge::Loot item : qAsConst(loots)){ \
+                                                            if(item.material->getIdentifier() == loot.material->getIdentifier()){ \
+                                                                newItem = false; \
+                                                                delete loot.material; loot.material = nullptr; \
+                                                                break; \
+                                                            } \
+                                                        } \
+                                                    }while(!newItem); \
+                                                    loots << loot;
+
+#else
+#define ADD_ITEM_IN_LOOTS(loots, loot, newItem)     do{ \
+                                                        newItem = true; \
+                                                        loot.material = generateRandomMaterial(); loot.quantities = QRandomGenerator::global()->bounded(2)+1; \
+                                                        for(EquipmentToForge::Loot item : qAsConst(loots)){ \
+                                                            if(item.material->getIdentifier() == loot.material->getIdentifier()){ \
+                                                                newItem = false; \
+                                                                delete loot.material; loot.material = nullptr; \
+                                                                break; \
+                                                            } \
+                                                        } \
+                                                    }while(!newItem); \
+                                                    loots << loot;
+#endif
+
+EquipmentToForge *ItemGenerator::generateEquipmentToForge()
+{
+    QList<EquipmentToForge::Loot> loots;
+    EquipmentToForge::Loot loot = {nullptr, 0};
+    bool newItem;
+
+#ifdef DEBUG_BLACKSMITH
+    ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+#else
+    switch(QRandomGenerator::global()->bounded(4))
+    {
+        case 0:
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            break;
+
+        case 1:
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            break;
+
+        case 2:
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            break;
+
+        case 3:
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            ADD_ITEM_IN_LOOTS(loots, loot, newItem);
+            break;
+    }
+#endif
+
+    return new EquipmentToForge(static_cast<Equipment*>(generateEquipment(RARENESS_LV_3)), loots, 50 - 5*loots.size());
+}
+
+Material * ItemGenerator::generateRandomMaterial()
+{
+#ifdef DEBUG_BLACKSMITH
+    return new WolfFang;
+#else
+    switch(QRandomGenerator::global()->bounded(13))
+    {
+        case 0 :
+            return new StoneOre;
+        case 1 :
+            return new IronOre;
+        case 2 :
+            return new SaphirOre;
+        case 3 :
+            return new EmeraldOre;
+        case 4 :
+            return new RubisOre;
+        case 5 :
+            return new WolfPelt;
+        case 6 :
+            return new WolfAlphaPelt;
+        case 7 :
+            return new WolfFang;
+        case 8 :
+            return new GoblinBones;
+        case 9 :
+            return new BearPelt;
+        case 10 :
+            return new BearClaw;
+        case 11 :
+            return new TrollSkull;
+        case 12 :
+            return new OggreSkull;
+    }
+    DEBUG_ERR("erreur generation random material");
+    return nullptr;
+#endif
 }
 
 ItemGenerator::~ItemGenerator()
 {
     while(!mSwords.isEmpty())
         delete mSwords.takeLast();
+    while(!mBows.isEmpty())
+        delete mBows.takeLast();
+    while(!mStaffs.isEmpty())
+        delete mStaffs.takeLast();
     while(!mHelmets.isEmpty())
         delete mHelmets.takeLast();
     while(!mBreastplates.isEmpty())

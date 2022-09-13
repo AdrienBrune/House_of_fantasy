@@ -3,7 +3,6 @@
 
 #include "frag_speel.h"
 
-
 Win_Fight::Win_Fight(QWidget *parent, Hero * hero, Monster * monster) :
     QWidget(parent),
     mHero(hero),
@@ -117,7 +116,6 @@ void Win_Fight::initInterface()
     ui->layout_monsterLife->addWidget(mLifeMonster);
     ui->layout_heroLife->addWidget(mLifeHero);
     ui->layout_heroMana->addWidget(mManaHero);
-    mHero->setStamina(mHero->getStamina().maxStamina);
     ui->data_playerStamina->setMaximum(mHero->getStamina().maxStamina);
     ui->data_playerStamina->setValue(mHero->getStamina().curStamina);
 
@@ -136,7 +134,7 @@ void Win_Fight::initInterface()
     connect(t_monsterStaminaRecovery, SIGNAL(timeout()), this, SLOT(monsterStaminaRecovery()));
 
     mScenePotion = new QGraphicsScene(this);
-    ui->graphicsView->setStyleSheet("background-color:rgba(0,0,0,0);");
+    //ui->graphicsView->setStyleSheet(STYLE_SHEET_GRAPHICSVIEW(0));
     ui->graphicsView->setScene(mScenePotion);
 
     addConsumablesOnScreen();
@@ -153,6 +151,8 @@ void Win_Fight::initInterface()
     connect(w_spellList, SIGNAL(sig_spellClicked(Skill*)), this, SLOT(onUseSpell(Skill*)));
     w_spellList->setGeometry(ui->button_useSpell->x() - w_spellList->width(), ui->button_useSpell->y(), w_spellList->width(), w_spellList->height());
     w_spellList->hide();
+
+    t_heroStaminaRecovery->start(static_cast<int>(300.0*(static_cast<qreal>(abs(mHero->getAttackSpeed()-11.0))/5.0)));
 }
 
 void Win_Fight::loadFightAnimationsPixmap()
@@ -291,14 +291,14 @@ void Win_Fight::enableItemsUtilisation(bool toggle)
 {
     if(toggle)
     {
-        ui->graphicsView->setStyleSheet("background-color:rgba(250,250,250,100);");
+        //ui->graphicsView->setStyleSheet(STYLE_SHEET_GRAPHICSVIEW(1));
         for(ItemQuickDisplayer * w_item : mConsumables)
         {
             connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(useConsumable(ItemQuickDisplayer*)));
         }
     }else
     {
-        ui->graphicsView->setStyleSheet("background-color:rgba(0,0,0,0);");
+        //ui->graphicsView->setStyleSheet(STYLE_SHEET_GRAPHICSVIEW(0));
         for(ItemQuickDisplayer * w_item : mConsumables)
         {
             disconnect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(useConsumable(ItemQuickDisplayer*)));
@@ -339,9 +339,14 @@ void Win_Fight::checkFightIssue()
     }
 }
 
+#define ACTION_COST_HEAVY_ATTACK    ((mHero->getStamina().maxStamina > 400) ? 400 : mHero->getStamina().maxStamina)
+#define ACTION_COST_LIGHT_ATTACK    100
+#define ACTION_COST_USE_ITEM        80
+#define ACTION_COST_FLEE            ((mHero->getStamina().maxStamina > 200) ? 200 : mHero->getStamina().maxStamina)
+
 void Win_Fight::onButtonHeavyAttackClicked()
 {
-    if(!heroUseStamina(140))
+    if(!heroUseStamina(ACTION_COST_HEAVY_ATTACK))
         return;
 
     enableButtons(false);
@@ -351,13 +356,13 @@ void Win_Fight::onButtonHeavyAttackClicked()
 
     if(mHero->getSkillList()[PassiveSkill::ForceOfNature]->isUnlock())
     {
-        // 30% chance +10% dmg
+        // 30% chance +20% dmg
         if(QRandomGenerator::global()->bounded(100) < 30)
-            foreOfNatureCoef = 1.1;
+            foreOfNatureCoef = 1.2;
     }
 
     emit sig_playSound(SOUND_HERO_ATTACK);
-    mMonster->setLife(mMonster->getLife().curLife-static_cast<int>(mHero->calculateDamage()*1.5*foreOfNatureCoef));
+    mMonster->setLife(mMonster->getLife().curLife-static_cast<int>(mHero->calculateDamage()*foreOfNatureCoef*(ACTION_COST_HEAVY_ATTACK/100.0)));
     ui->image_fight->setPixmap(mMonster->getFightImage(1));
     t_restoreMonsterImage->start(600);
 
@@ -368,7 +373,7 @@ void Win_Fight::onButtonUseObjectClicked()
 {
     if(mConsumables.isEmpty())
         return;
-    if(!heroUseStamina(150))
+    if(!heroUseStamina(ACTION_COST_USE_ITEM))
         return;
 
     enableButtons(false);
@@ -381,7 +386,7 @@ void Win_Fight::onButtonUseObjectClicked()
 
 void Win_Fight::onButtonLightAttackClicked()
 {
-    if(!heroUseStamina(110))
+    if(!heroUseStamina(ACTION_COST_LIGHT_ATTACK))
         return;
 
     enableButtons(false);
@@ -397,7 +402,7 @@ void Win_Fight::onButtonLightAttackClicked()
 
 void Win_Fight::onButtonFleeClicked()
 {
-    if(!heroUseStamina(150))
+    if(!heroUseStamina(ACTION_COST_FLEE))
         return;
 
     enableButtons(false);
@@ -470,10 +475,10 @@ void Win_Fight::paintEvent(QPaintEvent *)
         int heightReach = static_cast<int>(ui->data_playerStamina->y()+ui->data_playerStamina->height() - static_cast<float>(stamina/mHero->getStamina().maxStamina * ui->data_playerStamina->height()));
         painter.drawLine(ui->data_playerStamina->x()-10, heightReach, ui->data_playerStamina->x()+ui->data_playerStamina->width()+10, heightReach);
     }
-    painter.drawText(QPoint(ui->button_useObject->x()+ui->button_useObject->width()+5, ui->button_useObject->y()+ui->button_useObject->height()/2+2), "150");
-    painter.drawText(QPoint(ui->button_heavyAttack->x()+ui->button_heavyAttack->width()/2-10, ui->button_heavyAttack->y()+ui->button_heavyAttack->height()+15), "140");
-    painter.drawText(QPoint(ui->button_lightAttack->x()-18, ui->button_lightAttack->y()+ui->button_lightAttack->height()/2+2), "110");
-    painter.drawText(QPoint(ui->button_flee->x()+ui->button_flee->width()/2-10, ui->button_flee->y()-5), "200");
+    painter.drawText(QPoint(ui->button_useObject->x()+ui->button_useObject->width()+5, ui->button_useObject->y()+ui->button_useObject->height()/2+2), QString("%1").arg(ACTION_COST_USE_ITEM));
+    painter.drawText(QPoint(ui->button_heavyAttack->x()+ui->button_heavyAttack->width()/2-10, ui->button_heavyAttack->y()+ui->button_heavyAttack->height()+15), QString("%1").arg(ACTION_COST_HEAVY_ATTACK));
+    painter.drawText(QPoint(ui->button_lightAttack->x()-18, ui->button_lightAttack->y()+ui->button_lightAttack->height()/2+2), QString("%1").arg(ACTION_COST_LIGHT_ATTACK));
+    painter.drawText(QPoint(ui->button_flee->x()+ui->button_flee->width()/2-10, ui->button_flee->y()-5), QString("%1").arg(ACTION_COST_FLEE));
 
     QFont font;
     font.setPixelSize(20);
@@ -554,7 +559,7 @@ void Win_Fight::onFightEvent()
     /* Poisoned monster */
     if(mMonster->isStatus(Monster::poisoned))
     {
-        mMonster->setLife(mMonster->getLife().curLife - mMonster->getLife().maxLife*0.05);
+        mMonster->setLife(mMonster->getLife().curLife - mMonster->getLife().maxLife*0.08);
         if(!QRandomGenerator::global()->bounded(10))
         {
             mMonster->removeStatus(Monster::poisoned);

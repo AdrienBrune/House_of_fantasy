@@ -323,7 +323,7 @@ QPushButton *W_ItemDisplayer::getUseButton()
 
 void W_ItemDisplayer::hideUseButton()
 {
-    if(mButtonUse!=nullptr)
+    if(mButtonUse != nullptr)
         mButtonUse->hide();
 }
 

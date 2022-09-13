@@ -82,6 +82,7 @@ void Win_HeroSelection::on_buttonContinue_clicked()
     save->setHero(hero);
     save->setChest(new HeroChest);
     save->setName(ui->saveName->text());
+    save->setVillage(new Village);
     emit sig_HeroSelected(save);
     close();
 }
