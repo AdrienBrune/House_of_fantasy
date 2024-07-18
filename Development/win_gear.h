@@ -44,8 +44,6 @@ public:
     void closeWindow();
 protected:
     void paintEvent(QPaintEvent *event);
-private slots:
-    void on_buttonExit_clicked();
 
 private:
     Frag_Interface_Gear * mItemEquipment;

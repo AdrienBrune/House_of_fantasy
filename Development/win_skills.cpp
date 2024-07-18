@@ -14,8 +14,6 @@ Win_Skills::Win_Skills(QWidget * parent, Hero * hero) :
     ui->scrollArea->setAutoFillBackground(false);
     ui->scrollArea->setStyleSheet("QScrollArea{background-color:transparent;/*border-top:1px solid white;*/}");
 
-    connect(ui->buttonExit, SIGNAL(clicked()), this, SLOT(closeWindow()));
-
 #define MARGIN  15
 #define SPACE   10
 #define COLUMN  4
@@ -127,8 +125,22 @@ void Win_Skills::onResumeSkillAsked(W_Skill * skill)
     }
 
     mPopUpSkill = new Win_SkillInfo(this->parentWidget(), mHero, skill->getSkillAttached());
-    mPopUpSkill->setGeometry((x()-mPopUpSkill->width())/2 + 10, this->parentWidget()->height() - mPopUpSkill->height() - 30, mPopUpSkill->width(), mPopUpSkill->height());
+    mPopUpSkill->setGeometry(this->parentWidget()->x() + (this->parentWidget()->width() - mPopUpSkill->width())/2,
+                             this->parentWidget()->y() + this->parentWidget()->height() - mPopUpSkill->height() - 50,
+                             mPopUpSkill->width(),
+                             mPopUpSkill->height());
+    connect(mPopUpSkill, SIGNAL(sig_close()), this, SLOT(onSkillInfoClosed()));
     mPopUpSkill->show();
+}
+
+void Win_Skills::onSkillInfoClosed()
+{
+    update();
+    if(mPopUpSkill)
+    {
+        delete mPopUpSkill;
+        mPopUpSkill = nullptr;
+    }
 }
 
 void Win_Skills::skillUnlockAnimation(Skill * skill)
@@ -186,7 +198,7 @@ void Win_Skills::paintEvent(QPaintEvent*)
 
     painter.setOpacity(0.9);
 
-    painter.drawPixmap(QRect(ui->buttonExit->width()/2, 0, width()-ui->buttonExit->width()/2, height()), QPixmap(":/graphicItems/background_window_2.png"));
+    painter.drawPixmap(QRect(0, 0, width(), height()), QPixmap(":/graphicItems/background_window_2.png"));
     //painter.setPen(QPen(Qt::white, 1));
     //painter.drawLine(QLine(ui->buttonExit->width()/2, 0, ui->buttonExit->width()/2, height()));
 
@@ -195,31 +207,6 @@ void Win_Skills::paintEvent(QPaintEvent*)
     painter.setBrush(QBrush("#FFFFFF"));
     painter.drawRect(QRect(ui->skillPoints->x(), ui->skillPoints->y(), ui->skillPoints->rect().width(), ui->skillPoints->rect().height()));
     //painter.drawPixmap(QRect(ui->skillPoints->x() - ui->skillPoints->height()/2, ui->skillPoints->y(), ui->skillPoints->height(), ui->skillPoints->height()), QPixmap(":/graphicItems/icon_skill.png"));
-
-    /* Button drawing */
-    painter.setOpacity(1);
-    painter.setPen(QPen());
-    QPolygon shape, shape2;
-    static const int points[12] = {
-        ui->buttonExit->x(), ui->buttonExit->y(),
-        ui->buttonExit->x()+ui->buttonExit->width(), ui->buttonExit->y()+ui->buttonExit->height()/2,
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height(),
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height()*3/4,
-        ui->buttonExit->x()+ui->buttonExit->width()/2, ui->buttonExit->y()+ui->buttonExit->height()/2,
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height()/4,
-    };
-    shape.setPoints(6, points);
-    painter.setBrush(QBrush("#FFFFFF"));
-    painter.drawPolygon(shape);
-
-    static const int points2[6] = {
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height()/4,
-        ui->buttonExit->x()+ui->buttonExit->width()/2, ui->buttonExit->y()+ui->buttonExit->height()/2,
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height()*3/4
-    };
-    shape2.setPoints(3, points2);
-    painter.setBrush(QBrush("#252525"));
-    painter.drawPolygon(shape2);
 }
 
 void Win_Skills::on_buttonUpLife_clicked()

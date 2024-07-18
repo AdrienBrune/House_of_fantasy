@@ -63,7 +63,9 @@ Win_SkillInfo::~Win_SkillInfo()
 void Win_SkillInfo::on_buttonUnlock_clicked()
 {
     if(mHero->learnSkill(mSkill))
-        close();
+    {
+        emit sig_close();
+    }
     else
     {
         ui->buttonUnlock->setStyleSheet("QPushButton{background-color:#2c2c2c;color:#CC2233;border:1px solid #CC2233;border-radius:5px;}");
@@ -73,7 +75,7 @@ void Win_SkillInfo::on_buttonUnlock_clicked()
 
 void Win_SkillInfo::on_buttonBack_clicked()
 {
-    close();
+    emit sig_close();
 }
 
 void Win_SkillInfo::paintEvent(QPaintEvent*)
@@ -84,12 +86,12 @@ void Win_SkillInfo::paintEvent(QPaintEvent*)
     painter.setBrush(QBrush("#2c2c2c"));
     painter.drawRoundedRect(QRect(width()/50,width()/50,width() - width()/50,height() - width()/50), 10, 10);
 
-    if(!mHero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
-    {
-        SpellSkill * spell = dynamic_cast<SpellSkill*>(mSkill);
-        if(spell)
-        {
+//    if(!mHero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
+//    {
+//        SpellSkill * spell = dynamic_cast<SpellSkill*>(mSkill);
+//        if(spell)
+//        {
 
-        }
-    }
+//        }
+//    }
 }

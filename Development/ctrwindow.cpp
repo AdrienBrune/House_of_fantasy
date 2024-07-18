@@ -749,7 +749,16 @@ void CTRWindow::explorationCompleted()
 
 void CTRWindow::on_Inventory_clicked()
 {
-    setButtonsEnable(false);
+    if(w_inventory)
+    {
+        hideInventary();
+        return;
+    }
+
+    hideInventary();
+    hideInventaryGear();
+    hideSkillWindow();
+
     w_inventory = new Win_Inventory(this, mHero);
     connect(w_inventory, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
     connect(w_inventory, SIGNAL(sig_closeWindow()), this, SLOT(hideInventary()));
@@ -769,12 +778,21 @@ void CTRWindow::hideInventary()
 
 void CTRWindow::on_Gear_clicked()
 {
-    setButtonsEnable(false);
+    if(w_gear)
+    {
+        hideInventaryGear();
+        return;
+    }
+
+    hideInventary();
+    hideInventaryGear();
+    hideSkillWindow();
+
     w_gear = new Win_Gear(this, mHero);
     connect(w_gear, SIGNAL(sig_closeWindow()), this, SLOT(hideInventaryGear()));
     connect(w_gear, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
     connect(w_gear, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
-    w_gear->setGeometry(width()-w_gear->width(), 0, w_gear->width(), w_gear->height());
+    w_gear->setGeometry(width()-w_gear->width()-100, 0, w_gear->width()-100, w_gear->height());
     w_gear->diplayWindow();
 }
 
@@ -953,11 +971,20 @@ void CTRWindow::paintEvent(QPaintEvent *)
 
 void CTRWindow::on_Skills_clicked()
 {
-    setButtonsEnable(false);
+    if(w_skill)
+    {
+        hideSkillWindow();
+        return;
+    }
+
+    hideInventary();
+    hideInventaryGear();
+    hideSkillWindow();
+
     w_skill = new Win_Skills(this, mHero);
     connect(w_skill, SIGNAL(sig_closeWindow()), this, SLOT(hideSkillWindow()));
     //connect(w_skill, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
-    w_skill->setGeometry(width() - w_skill->width(), 0, w_skill->width(), w_skill->height());
+    w_skill->setGeometry((width() - w_skill->width())/2, 0, w_skill->width(), w_skill->height());
     w_skill->diplayWindow();
 }
 

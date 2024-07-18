@@ -27,6 +27,7 @@ signals:
 private slots:
     void heroStatChanged();
     void onResumeSkillAsked(W_Skill*);
+    void onSkillInfoClosed();
     void skillUnlockAnimation(Skill*);
     void closeWindow();
     void on_buttonUpLife_clicked();

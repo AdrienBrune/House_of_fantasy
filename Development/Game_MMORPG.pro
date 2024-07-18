@@ -140,9 +140,9 @@ FORMS += \
         frag_stats_displayer.ui \
         frag_save.ui \
         helpdialog.ui \
-    w_animationspell.ui \
+        w_animationspell.ui \
         w_interface_herostats.ui \
-    w_messagelogger.ui \
+        w_messagelogger.ui \
         w_showinformation.ui \
         w_showmonsterdata.ui \
         w_showpotentialaction.ui \
@@ -153,10 +153,10 @@ FORMS += \
         win_chest.ui \
         win_fight.ui \
         win_gear.ui \
-    win_heroselection.ui \
+        win_heroselection.ui \
         win_inventory.ui \
-    win_loadinggamescreen.ui \
-    win_loadsave.ui \
+        win_loadinggamescreen.ui \
+        win_loadsave.ui \
         win_merchant.ui \
         win_skillinfo.ui \
         win_skills.ui \

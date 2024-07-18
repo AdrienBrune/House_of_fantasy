@@ -18,7 +18,7 @@
     <number>0</number>
    </property>
    <property name="leftMargin">
-    <number>20</number>
+    <number>0</number>
    </property>
    <property name="topMargin">
     <number>0</number>
@@ -29,41 +29,6 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item>
-    <widget class="QPushButton" name="buttonExit">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>60</width>
-       <height>100</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>60</width>
-       <height>100</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QPushButton{
-/*
-	background-color:#ECECEC;
-	border-radius:30px;
-	border-image:url(:/icons/button/arrow_right.png);
-*/
-	background-color:rgba(0,0,0,0);
-}</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout" stretch="1,8">
      <property name="spacing">
@@ -96,7 +61,7 @@
          </property>
          <property name="font">
           <font>
-           <family>Papyrus</family>
+           <family>Matura MT Script Capitals</family>
            <pointsize>42</pointsize>
           </font>
          </property>
@@ -141,8 +106,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>1016</width>
-          <height>924</height>
+          <width>1096</width>
+          <height>942</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
@@ -793,7 +758,7 @@ QPushButton:disabled{
              </property>
              <property name="font">
               <font>
-               <family>Papyrus</family>
+               <family>Matura MT Script Capitals</family>
                <pointsize>36</pointsize>
               </font>
              </property>
@@ -851,7 +816,7 @@ QPushButton:disabled{
              </property>
              <property name="font">
               <font>
-               <family>Papyrus</family>
+               <family>Matura MT Script Capitals</family>
                <pointsize>36</pointsize>
               </font>
              </property>
@@ -902,7 +867,7 @@ QPushButton:disabled{
              </property>
              <property name="font">
               <font>
-               <family>Papyrus</family>
+               <family>Matura MT Script Capitals</family>
                <pointsize>36</pointsize>
               </font>
              </property>

@@ -243,41 +243,12 @@ void Win_Gear::paintEvent(QPaintEvent *)
     uint16_t sizeTitle = ui->title->height();
     painter.drawPixmap(QRect(ui->title->x()-sizeTitle*0.5, ui->title->y()-sizeTitle*0.5, sizeTitle*2, sizeTitle*2),QPixmap(":/graphicItems/plastron.png"));
 
-    /* Button drawing */
-    painter.setPen(QPen());
-    QPolygon shape, shape2;
-    static const int points[12] = {
-        ui->buttonExit->x(), ui->buttonExit->y(),
-        ui->buttonExit->x()+ui->buttonExit->width(), ui->buttonExit->y()+ui->buttonExit->height()/2,
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height(),
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height()*3/4,
-        ui->buttonExit->x()+ui->buttonExit->width()/2, ui->buttonExit->y()+ui->buttonExit->height()/2,
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height()/4,
-    };
-    shape.setPoints(6, points);
-    painter.setBrush(QBrush("#FFFFFF"));
-    painter.drawPolygon(shape);
-
-    static const int points2[6] = {
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height()/4,
-        ui->buttonExit->x()+ui->buttonExit->width()/2, ui->buttonExit->y()+ui->buttonExit->height()/2,
-        ui->buttonExit->x(), ui->buttonExit->y()+ui->buttonExit->height()*3/4
-    };
-    shape2.setPoints(3, points2);
-    painter.setBrush(QBrush("#252525"));
-    painter.drawPolygon(shape2);
-
     if(mItemToDisplay)
     {
         painter.drawPixmap(QRect(ui->item_info->x(), ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/background_itemInfo_left.png"));
         painter.drawPixmap(QRect(ui->item_info->x()+100, ui->item_info->y(), ui->item_info->width()-200, 200), QPixmap(":/graphicItems/background_itemInfo_middle.png"));
         painter.drawPixmap(QRect(ui->item_info->x()+ui->item_info->width()-100, ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/background_itemInfo_right.png"));
     }
-}
-
-void Win_Gear::on_buttonExit_clicked()
-{
-    closeWindow();
 }
 
 Win_Gear::~Win_Gear()

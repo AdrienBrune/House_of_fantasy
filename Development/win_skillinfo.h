@@ -18,6 +18,9 @@ public:
     explicit Win_SkillInfo(QWidget *parent = nullptr, Hero* hero = nullptr, Skill* skill = nullptr);
     ~Win_SkillInfo();
 
+signals:
+    void sig_close();
+
 private slots:
     void on_buttonUnlock_clicked();
     void on_buttonBack_clicked();
