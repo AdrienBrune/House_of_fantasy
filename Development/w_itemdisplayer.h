@@ -17,6 +17,7 @@ public:
     ~ItemQuickDisplayer();
 signals:
     void sig_itemClicked(ItemQuickDisplayer*);
+    void sig_itemDoubleClicked(ItemQuickDisplayer*);
     void sig_itemMoved(ItemQuickDisplayer*);
     void sig_itemHoverIn(ItemQuickDisplayer*);
     void sig_itemHoverOut(ItemQuickDisplayer*);
@@ -44,6 +45,7 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *);
 private:
     Item * mItem;
     QPointF mPosition;

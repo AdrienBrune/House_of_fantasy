@@ -8,7 +8,6 @@ Frag_Interface_ItemSorter::Frag_Interface_ItemSorter(QWidget *parent):
     ui->setupUi(this);
 
     mScene = new QGraphicsScene(this);
-    //mScene->setBackgroundBrush(QPixmap(":/graphicItems/sorter_interface.png"));
     mScene->setSceneRect(QRect(0,0,1000,120));
     ui->graphicsView->setScene(mScene);
     ui->graphicsView->centerOn(0,0);
@@ -34,6 +33,7 @@ void Frag_Interface_ItemSorter::addItem(Item * item)
     connect(w_item, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
     connect(w_item, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     connect(w_item, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMoved(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemDoubleClicked(ItemQuickDisplayer*)), this, SIGNAL(sig_itemDoubleClicked(ItemQuickDisplayer*)));
 
     while(!w_item->collidingItems().isEmpty())
     {

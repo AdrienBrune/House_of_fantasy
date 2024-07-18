@@ -17,6 +17,7 @@ CTRWindow::CTRWindow(QWidget *parent) :
     t_PeriodicalEvents(nullptr),
     mCurrentSave(nullptr),
     mLoadingAvancement(0),
+    mHeroMovementAllowed(true),
     w_menu(nullptr),
     w_heroStats(nullptr),
     w_explorationLoading(nullptr),
@@ -28,6 +29,7 @@ CTRWindow::CTRWindow(QWidget *parent) :
     w_tool(nullptr),
     w_quickItemDrawer(nullptr),
     w_messageLogger(nullptr),
+    w_night(nullptr),
     ui(new Ui::CTRWindow)
 {
     ui->setupUi(this);
@@ -145,8 +147,8 @@ void CTRWindow::generateNewGame()
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     // HERO INTERFACE
-    w_heroStats = new W_Interface_HeroStats(this, mHero);
-    w_heroStats->setGeometry(50,50,w_heroStats->width(), w_heroStats->height());
+    w_heroStats = new W_HeroStats(this, mHero);
+    w_heroStats->setGeometry(0,0,500,300);
     w_heroStats->show();
     DEBUG("GENERATED : Hero interface");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
@@ -236,7 +238,8 @@ void CTRWindow::ShowPopUpInfo(LogMessage * message)
 
 void CTRWindow::displayInterfaceTrading(Win_Interface_Trading * interface)
 {
-    if(!w_trading)
+    mHero->freeze(true);
+    if(w_trading)
         delete w_trading;
     w_trading = interface;
     connect(interface, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
@@ -383,21 +386,20 @@ bool CTRWindow::eventFilter(QObject *target, QEvent *event)
 
 void CTRWindow::keyPressEvent(QKeyEvent *event)
 {
-    if( (event->key() == Qt::Key::Key_F) && !event->isAutoRepeat())
+    if( (event->key() == Qt::Key::Key_F) && !event->isAutoRepeat() && !mHero->isFreeze())
     {
         if(w_explorationLoading != nullptr)
             delete w_explorationLoading;
         w_explorationLoading = new W_Animation_exploration(this);
         connect(w_explorationLoading, SIGNAL(sig_explorationCompleted()), this, SLOT(explorationCompleted()));
         w_explorationLoading->setGeometry(ui->graphicsView->x()+ui->graphicsView->width()/4, ui->graphicsView->y()+ui->graphicsView->height()-80, ui->graphicsView->width()/2, 50);
-        //w_explorationLoading->setGeometry(20, ui->graphicsView->y()+ui->graphicsView->height()-20-260, 260,260); // Old animation
         w_explorationLoading->show();
         mHero->stopMoving();
         heroIsSearching = true;
 
         event->accept();
     }
-    else if(event->key() == Qt::Key::Key_Z || event->key() == Qt::Key::Key_S || event->key() == Qt::Key::Key_Q || event->key() == Qt::Key::Key_D)
+    else if((event->key() == Qt::Key::Key_Z || event->key() == Qt::Key::Key_S || event->key() == Qt::Key::Key_Q || event->key() == Qt::Key::Key_D) && !mHero->isFreeze())
     {
         gEnableMovementWithMouseClic = false;
 
@@ -465,6 +467,7 @@ void CTRWindow::keyReleaseEvent(QKeyEvent *event)
 
             delete w_trading;
             w_trading = nullptr;
+            mHero->freeze(false);
         }
         if(w_inventory != nullptr)
         {
@@ -715,34 +718,40 @@ void CTRWindow::explorationCompleted()
             if(monsterDead->isDead() && monsterDead->isSkinned())
             {
                 ShowPopUpInfo(ML_SHOW_MONSTER_SKINNED());
+                continue;
             }
 
             if(w_tool != nullptr)
             {
-                if(monsterDead->isDead() && !monsterDead->isSkinned() && w_tool->getTool()->getIdentifier() == TOOL_KNIFE)
+                if(monsterDead->isDead() && !monsterDead->isSkinned())
                 {
-                    if(mHero->getSkillList()[PassiveSkill::SkinningExpert]->isUnlock())
+                    if(w_tool->getTool()->getIdentifier() == TOOL_KNIFE)
                     {
-                        monsterDead->addExtraLoots();
+                        if(mHero->getSkillList()[PassiveSkill::SkinningExpert]->isUnlock())
+                        {
+                            monsterDead->addExtraLoots();
+                        }
+                        QList<Item*> loots = monsterDead->skinMonster();
+                        ShowPopUpInfo(ML_SHOW_LOOT_NUMBER(loots.size()));
+                        for(Item * loot : loots)
+                        {
+                            mMap->heroThrowItemInMap(loot);
+                        }
+                        return;
                     }
-                    QList<Item*> loots = monsterDead->skinMonster();
-                    ShowPopUpInfo(ML_SHOW_LOOT_NUMBER(loots.size()));
-                    for(Item * loot : loots)
+                    else
                     {
-                        mMap->heroThrowItemInMap(loot);
+                        ShowPopUpInfo(ML_SHOW_CARCASS());
+                        continue;
                     }
-                    return;
                 }
-                else if(monsterDead->isDead())
-                    ShowPopUpInfo(ML_SHOW_CARCASS());
-
-                continue;
             }
 
             if(w_tool == nullptr && monsterDead->isDead() && !monsterDead->isSkinned())
+            {
                 ShowPopUpInfo(ML_SHOW_CARCASS());
-
-            continue;
+                continue;
+            }
         }
     }
 }
@@ -933,13 +942,23 @@ void CTRWindow::openInterface(QGraphicsItem * item)
     }
     MainHouse * heroHouse = dynamic_cast<MainHouse*>(item);
     if(heroHouse){
-        W_Animation_Night * w_night = new W_Animation_Night(this, mMap);
+        mHero->freeze(true);
+        if(w_night)
+            delete w_night;
+        w_night = new W_Animation_Night(this);
         w_night->setGeometry(0,0,width(),height());
         connect(w_night, SIGNAL(sig_playMusic(int)), mSoundManager, SLOT(startMusicEvent(int)));
+        connect(mMap, SIGNAL(sig_loadingGameUpdate(quint8)), w_night, SLOT(onUpdateSleep(quint8)));
+        connect(mMap, SIGNAL(sig_generationMapComplete()), w_night, SLOT(onStartNewDay()));
+        loadingStep = 0;
+        QApplication::processEvents();
+        mMap->reGenerateMap();
+        mHero->freeze(false);
         return;
     }
     HeroChest * heroChest = dynamic_cast<HeroChest*>(item);
     if(heroChest){
+        mHero->freeze(true);
         Win_HeroChest * w_chest = new Win_HeroChest(this, mHero, heroChest);
         connect(w_chest, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
         w_chest->setGeometry((width()-w_chest->width())/2, (height()-w_chest->height())/2, w_chest->width(), w_chest->height());

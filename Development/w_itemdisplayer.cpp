@@ -193,6 +193,12 @@ void ItemQuickDisplayer::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
     QGraphicsItem::hoverLeaveEvent(event);
 }
 
+void ItemQuickDisplayer::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * event)
+{
+    QGraphicsItem::mouseDoubleClickEvent(event);
+    emit sig_itemDoubleClicked(this);
+}
+
 ItemQuickDisplayer::~ItemQuickDisplayer()
 {
 

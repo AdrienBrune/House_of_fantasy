@@ -16,6 +16,7 @@ Item::Item(QString name, QPixmap image, int weight, int price):
     mWeight(weight),    
     mPrice(price),
     mInformation(QString()),
+    mIsUsable(false),
     mHover(false),
     mShape(QPainterPath())
 {
@@ -105,6 +106,11 @@ void Item::setHover(bool toggle)
 {
     mHover = toggle;
     update();
+}
+
+bool Item::isUsable()
+{
+    return mIsUsable;
 }
 
 QPainterPath Item::shape() const
@@ -325,7 +331,7 @@ quint32 Item::getNbInstances()
 Scroll::Scroll(QString name, QPixmap image, int weight, int price):
     Item(name, image, weight, price)
 {
-
+    mIsUsable = true;
 }
 
 Item::Feature Scroll::getFirstCaracteristic()
@@ -374,6 +380,7 @@ Tool::Tool(QString name, QPixmap image, int weight, int price):
     Item(name, image, weight, price)
 {
     mDurability = QRandomGenerator::global()->bounded(3, 5);
+    mIsUsable = true;
 }
 
 bool Tool::use()

@@ -68,8 +68,8 @@ void Win_SkillInfo::on_buttonUnlock_clicked()
     }
     else
     {
-        ui->buttonUnlock->setStyleSheet("QPushButton{background-color:#2c2c2c;color:#CC2233;border:1px solid #CC2233;border-radius:5px;}");
-        QTimer::singleShot(1000, this, [&]{ui->buttonUnlock->setStyleSheet("QPushButton{background-color:#2c2c2c;color:#FFFFFF;border:1px solid #4c4c4c;border-radius:5px;}");});
+        ui->buttonUnlock->setStyleSheet("QPushButton{ background-color:rgba(250, 250, 250, 100); color:#CC2233; border:1px solid #CC2233; border-radius:5px; }");
+        QTimer::singleShot(1000, this, [&]{ui->buttonUnlock->setStyleSheet("QPushButton{ background-color:rgba(250, 250, 250, 100); color:#3c3c3c; } QPushButton::hover{ background-color:rgba(250, 250, 250, 180); color:#3c3c3c; }");});
     }
 }
 

@@ -758,7 +758,7 @@ void Map::generateLaoShanLung()
     do
     {
         locationValid = true;
-        monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
+        monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH-1000), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT-1000));
         QList<QGraphicsItem*> list = mScene->collidingItems(monster);
         for(QGraphicsItem * item : list)
         {
@@ -771,6 +771,7 @@ void Map::generateLaoShanLung()
         }
 
     }while(!locationValid);
+    QPointF p = monster->pos();
 }
 
 void Map::generatePlanks()

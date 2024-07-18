@@ -8,9 +8,10 @@
 #include "w_itemdisplayer.h"
 
 Win_Interface_Trading::Win_Interface_Trading(QWidget *parent, Hero * hero) :
-    QWidget(parent)
+    QWidget(parent),
+    mHero(hero)
 {
-    mHero = hero;
+
 }
 
 Win_Interface_Trading::~Win_Interface_Trading()
@@ -380,6 +381,7 @@ void Win_BlackSmith::updateWindow()
 
 void Win_BlackSmith::closeWindow()
 {
+    mHero->freeze(false);
     close();
 }
 
@@ -476,31 +478,6 @@ void Win_Merchant::paintEvent(QPaintEvent *)
                      QPointF(ui->titreCoins->x()+(ui->image_coin->x()-ui->titreCoins->x())/2, ui->data_coin_virtual->y()+ui->data_coin_virtual->height()+offset));
     painter.drawLine(QPointF(ui->titreCoins->x()+(ui->image_coin->x()-ui->titreCoins->x())/2, ui->data_coin_virtual->y()+ui->data_coin_virtual->height()+offset),
                      QPointF(ui->titreCoins->x()+(ui->image_coin->x()-ui->titreCoins->x())/2, ui->titreCoins->y()+ui->titreCoins->height()+10));
-
-
-//    painter.setBrush(QBrush("#DDDDDD"));
-//    painter.setPen(QPen(QBrush("#111111"), 4, Qt::SolidLine, Qt::RoundCap, Qt::BevelJoin));
-//    const QPointF polygon[6] = {
-//        QPointF(0,0),
-//        QPointF(50,50),
-//        QPointF(width()-50,50),
-//        QPointF(width()-50,height()-100),
-//        QPointF(width(),height()-50),
-//        QPointF(width(),0)
-//    };
-//    painter.drawPolygon(polygon, 6);
-
-//    painter.setBrush(QBrush("#CCCCCC"));
-//    painter.setPen(QPen(QBrush("#111111"), 4, Qt::SolidLine, Qt::RoundCap, Qt::BevelJoin));
-//    const QPointF polygon2[6] = {
-//        QPointF(25,30),
-//        QPointF(50,50),
-//        QPointF(width()-50,50),
-//        QPointF(width()-50,height()-100),
-//        QPointF(width()-30,height()-70),
-//        QPointF(width()-30,30)
-//    };
-//    painter.drawPolygon(polygon2, 6);
 }
 
 void Win_Merchant::on_button_validate_clicked()
@@ -527,7 +504,7 @@ void Win_Merchant::on_button_validate_clicked()
         ui->data_coin->setValue(mHero->getCoin());
         if(interactionOccured)
             emit sig_playSound(SOUND_BUY);
-        close();
+        closeWindow();
     }else{
         ui->data_coin->setStyleSheet("QSpinBox{color:#A61919;border: no border;background-color:rgba(0,0,0,0);}");
         t_redBorders->start(500);
@@ -560,6 +537,7 @@ void Win_Merchant::endRedBorders()
 
 void Win_Merchant::closeWindow()
 {
+    mHero->freeze(false);
     close();
 }
 
@@ -655,30 +633,6 @@ void Win_Alchemist::paintEvent(QPaintEvent *)
     painter.setOpacity(1);
     painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/background_window_1.png"));
 
-//    painter.setBrush(QBrush("#DDDDDD"));
-//    painter.setPen(QPen(QBrush("#111111"), 4, Qt::SolidLine, Qt::RoundCap, Qt::BevelJoin));
-//    const QPointF polygon[6] = {
-//        QPointF(0,0),
-//        QPointF(50,50),
-//        QPointF(width()-50,50),
-//        QPointF(width()-50,height()-100),
-//        QPointF(width(),height()-50),
-//        QPointF(width(),0)
-//    };
-//    painter.drawPolygon(polygon, 6);
-
-//    painter.setBrush(QBrush("#CCCCCC"));
-//    painter.setPen(QPen(QBrush("#111111"), 4, Qt::SolidLine, Qt::RoundCap, Qt::BevelJoin));
-//    const QPointF polygon2[6] = {
-//        QPointF(25,30),
-//        QPointF(50,50),
-//        QPointF(width()-50,50),
-//        QPointF(width()-50,height()-100),
-//        QPointF(width()-30,height()-70),
-//        QPointF(width()-30,30)
-//    };
-//    painter.drawPolygon(polygon2, 6);
-
     painter.setPen(QPen(QBrush("#FFF894"),5));
     int offset = 20;
     painter.drawLine(QPointF(ui->titreCoins->x()+ui->titreCoins->width()+20, ui->titreCoins->y()+ui->titreCoins->height()/2),
@@ -707,7 +661,7 @@ void Win_Alchemist::on_button_validate_clicked()
         ui->data_coin->setValue(mHero->getCoin());
         if(interactionOccured)
             emit sig_playSound(SOUND_BUY);
-        close();
+        closeWindow();
     }else{
         ui->data_coin->setStyleSheet("QSpinBox{padding:2px;border:3px solid #A61919;border-radius:20px;background-color: qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #696969, stop: 1 #3A3A3A);color:#A61919;}");
         t_redBorders->start(500);
@@ -745,6 +699,7 @@ void Win_Alchemist::potionPreferenciesChanged()
 
 void Win_Alchemist::closeWindow()
 {
+    mHero->freeze(false);
     close();
 }
 
@@ -850,13 +805,7 @@ void Win_Altar::onGiveOffering(Item * item, int id)
     mAltar->setOffering(id, mHero->getBag()->takeItem(item));
     update();
 
-//    for(Offering offer : mAltar->getOfferings())
-//    {
-//        if(!offer.item)
-//            return;
-//    }
-
-    close();
+    closeWindow();
 }
 
 void Win_Altar::paintEvent(QPaintEvent*)
@@ -888,4 +837,10 @@ void Win_Altar::paintEvent(QPaintEvent*)
         mAltar->getOfferings().at(i).item ? painter.setOpacity(1) : painter.setOpacity(0.4);
         painter.drawPixmap(mAreasOffering.at(i), mAltar->getOfferingPixmap());
     }
+}
+
+void Win_Altar::closeWindow()
+{
+    mHero->freeze(false);
+    close();
 }

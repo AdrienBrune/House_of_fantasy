@@ -151,9 +151,9 @@ protected:
     quint8 mClass;
     bool mIsInMapEvent;
     HeroCaracteristics mHeroList[Hero::eNbHeroClasses] = {
-        { "Maphistos", 200, 20, 160, 10, 5, new Staff("baton", QPixmap(":/equipment/sword_stick.png"), 5, 8, 5, 1, "Bâton en bois", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {3, 4, 5, 3} },
-        { "Sophia", 120, 120, 240, 10, 5, new Bow("bow", QPixmap(":/equipment/sword_stick.png"), 12, 8, 5, 1, "Arc de fortune", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {2, 4, 7, 2} },
-        { "Archangelie", 80, 250, 120, 10, 12, new Staff("baton", QPixmap(":/equipment/sword_stick.png"), 5, 8, 5, 1, "Bâton en boid", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {2, 7, 2, 2} }
+        { "Maphistos", 200, 20, 160, 10, 5, new Staff("baton", QPixmap(":/equipment/sword_stick.png"), 5, 8, 5, 1, "Bâton en bois", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {6, 1, 4, 8} },
+        { "Sophia", 120, 120, 240, 10, 5, new Bow("bow", QPixmap(":/equipment/sword_stick.png"), 12, 8, 5, 1, "Arc de fortune", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {3, 3, 7, 3} },
+        { "Archangelie", 80, 250, 120, 10, 12, new Staff("baton", QPixmap(":/equipment/sword_stick.png"), 5, 8, 5, 1, "Bâton en boid", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {2, 8, 3, 5} }
     };
     PassiveSkill* mSkillList[PassiveSkill::NbSkills] = {
         new PassiveSkill( PassiveSkill::ForceOfNature, ABLE(eSwordman), "Force de la nature", 2, "Accorde un pourcentage de chance de frapper plus fort en combat", false, QPixmap(":/icons/skill/skill00.png"), QPixmap(":/icons/skill/skill01.png")) ,
@@ -175,9 +175,9 @@ protected:
         new SpellSkill( SpellSkill::HealingHalo, ABLE(eArcher)|ABLE(eWizard), "Halo de guérison", 4, "Vous soigne légèrement de vos blessures", false, QPixmap(":/icons/skill/spell10.png"), QPixmap(":/icons/skill/spell11.png"), 30, 30, "Soin" ),
         new SpellSkill( SpellSkill::Smoke, ABLE(eArcher)|ABLE(eWizard), "Nuage de fumée", 4, "Permet de fuir un combat", false, QPixmap(":/icons/skill/spell20.png"), QPixmap(":/icons/skill/spell21.png"), 5, 100, "Taux de réussite" ),
         new SpellSkill( SpellSkill::PrimitiveShield, ABLE(eWizard), "Bouclier primitif", 4, "Augmente votre résistance pour le combat en cours", false, QPixmap(":/icons/skill/spell30.png"), QPixmap(":/icons/skill/spell31.png"), 20, 10, "Résistance(%)" ),
-        new SpellSkill( SpellSkill::DeathTouch, ABLE(eWizard), "Touché de la mort", 8, "Sort mortel pour l’ennemi mais avec peu de chance de réussite", false, QPixmap(":/icons/skill/spell40.png"), QPixmap(":/icons/skill/spell41.png"), 60, 25, "Taux de réussite" ),
-        new SpellSkill( SpellSkill::Poisoning, ABLE(eWizard), "Empoisonnement", 7, "Sort d’empoisonnement qui fera des dégâts sur le long terme", false, QPixmap(":/icons/skill/spell50.png"), QPixmap(":/icons/skill/spell51.png"), 40, 80, "Taux de réussite" ),
-        new SpellSkill( SpellSkill::Benediction, ABLE(eWizard), "Bénédiction", 5, "Sort permettant d’encaisser les trois prochaines attaques sans dégâts", false, QPixmap(":/icons/skill/spell60.png"), QPixmap(":/icons/skill/spell61.png"), 50, 3, "Tours d'invincibilité" ),
+        new SpellSkill( SpellSkill::DeathTouch, ABLE(eWizard), "Touché de la mort", 8, "Sort mortel pour l’ennemi mais avec peu de chance de réussite", false, QPixmap(":/icons/skill/spell40.png"), QPixmap(":/icons/skill/spell41.png"), 100, 20, "Taux de réussite" ),
+        new SpellSkill( SpellSkill::Poisoning, ABLE(eWizard), "Empoisonnement", 7, "Sort d’empoisonnement qui fait des dégâts sur la durée", false, QPixmap(":/icons/skill/spell50.png"), QPixmap(":/icons/skill/spell51.png"), 40, 90, "Taux de réussite" ),
+        new SpellSkill( SpellSkill::Benediction, ABLE(eWizard), "Bénédiction", 5, "Sort permettant d’encaisser les trois prochaines attaques sans dégâts", false, QPixmap(":/icons/skill/spell60.png"), QPixmap(":/icons/skill/spell61.png"), 100, 3, "Tours d'invincibilité" ),
         new SpellSkill( SpellSkill::Confusion, ABLE(eWizard), "Confusion", 10, "Réduit drastiquement le taux d’attaque de l’ennemi", false, QPixmap(":/icons/skill/spell70.png"), QPixmap(":/icons/skill/spell71.png"), 60, 70, "Taux de réussite" )
     };
 public:

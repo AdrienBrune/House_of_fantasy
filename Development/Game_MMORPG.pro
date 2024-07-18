@@ -64,6 +64,7 @@ SOURCES += \
         w_skill.cpp \
         w_spelllistselection.cpp \
         w_usetool.cpp \
+        w_herostats.cpp \
         win_fight.cpp \
         win_gear.cpp \
         win_heroselection.cpp \
@@ -118,6 +119,7 @@ HEADERS += \
         w_spellanimation.h \
         w_spelllistselection.h \
         w_usetool.h \
+        w_herostats.h \
         win_fight.h \
         win_gear.h \
         win_heroselection.h \

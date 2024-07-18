@@ -454,7 +454,6 @@ void Win_Fight::paintEvent(QPaintEvent *)
     painter.setOpacity(1);
     painter.drawPixmap(QRect(100,50,width()-200,height()-150), QPixmap(":/graphicItems/background_window_1.png"));
 
-
     painter.drawPixmap(QRect(ui->button_useObject->x(), ui->button_heavyAttack->y(), ui->button_useObject->width()*3, ui->button_heavyAttack->height()*3),
                        QPixmap(":/graphicItems/buttons_background.png"));
 

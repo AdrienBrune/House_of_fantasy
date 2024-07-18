@@ -18,7 +18,6 @@
 #include "mapevent.h"
 #include "map.h"
 #include "soundmanager.h"
-#include "w_interface_herostats.h"
 #include "w_animation_exploration.h"
 #include "equipment.h"
 #include "win_inventory.h"
@@ -35,6 +34,7 @@
 #include "win_loadinggamescreen.h"
 #include "w_quicktooldrawer.h"
 #include "w_messagelogger.h"
+#include "w_herostats.h"
 
 namespace Ui {
 class CTRWindow;
@@ -100,10 +100,11 @@ private:
     QTimer * t_PeriodicalEvents;
     Save * mCurrentSave;
     quint8 mLoadingAvancement;
+    bool mHeroMovementAllowed;
 private:
     Win_Menu * w_menu;
     Win_LoadingGameScreen * w_loadingScreen;
-    W_Interface_HeroStats * w_heroStats;
+    W_HeroStats * w_heroStats;
     W_Animation_exploration * w_explorationLoading;
     Win_Inventory * w_inventory;
     Win_Gear * w_gear;
@@ -113,6 +114,7 @@ private:
     W_UseTool * w_tool;
     W_QuickToolDrawer * w_quickItemDrawer;
     W_MessageLogger * w_messageLogger;
+    W_Animation_Night * w_night;
     QThread mLoadingThread;
 public:
     Ui::CTRWindow *ui;

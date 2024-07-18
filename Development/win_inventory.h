@@ -29,6 +29,7 @@ private slots:
     void showItem(ItemQuickDisplayer*);
     void showItemHover(ItemQuickDisplayer*);
     void hideItemHover(ItemQuickDisplayer*);
+    void useItem(ItemQuickDisplayer*);
     void useItem(Item*);
     void onItemThrown(Item*);
 public:

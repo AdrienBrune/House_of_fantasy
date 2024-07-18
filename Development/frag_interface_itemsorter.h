@@ -36,6 +36,7 @@ signals:
     void sig_itemHoverIn(ItemQuickDisplayer*);
     void sig_itemHoverOut(ItemQuickDisplayer*);
     void sig_itemThrown(Item*);
+    void sig_itemDoubleClicked(ItemQuickDisplayer*);
 private slots:
     void itemMoved(ItemQuickDisplayer*);
     void itemClicked(ItemQuickDisplayer*);

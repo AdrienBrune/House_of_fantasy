@@ -68,6 +68,7 @@ public:
     ~Win_Altar();
 private slots:
     void onGiveOffering(Item*, int);
+    void closeWindow();
 protected:
     void paintEvent(QPaintEvent*);
 private:

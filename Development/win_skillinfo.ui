@@ -131,14 +131,10 @@
     <string notr="true">QPushButton{
 	background-color:rgba(250, 250, 250, 100);
 	color:#3c3c3c;
-	/*border:1px solid #4c4c4c;
-	border-radius:5px;*/
 }
 QPushButton::hover{
 	background-color:rgba(250, 250, 250, 180);
 	color:#3c3c3c;
-	/*border:1px solid #4c4c4c;
-	border-radius:5px;*/
 }</string>
    </property>
    <property name="text">

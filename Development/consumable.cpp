@@ -4,7 +4,7 @@ Consumable::Consumable(QString name, QPixmap image, int weight, int price, int c
     Item(name, image, weight, price),
     mCapacity(capacity)
 {
-
+    mIsUsable = true;
 }
 
 int Consumable::getCapacity()

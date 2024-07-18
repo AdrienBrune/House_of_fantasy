@@ -533,7 +533,7 @@ void Hero::throwItem(Item * item)
 
 qreal Hero::calculateDamage()
 {
-    return (1+(mExperience.level*0.1))*mGear->damageStat();
+    return (1+(mExperience.level*0.05))*mGear->damageStat();
 }
 
 int Hero::getAttackSpeed()

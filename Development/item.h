@@ -42,6 +42,7 @@ public:
     void setPrice(int);
     void setInformation(QString);
     void setHover(bool toggle);
+    bool isUsable();
 public:
     QPainterPath shape() const;
     QRectF boundingRect()const;
@@ -84,6 +85,7 @@ protected:
     int mWeight;
     int mPrice;
     QString mInformation;
+    bool mIsUsable;
     int mHover;
     QPainterPath mShape;
     QTimer * t_delayHover;

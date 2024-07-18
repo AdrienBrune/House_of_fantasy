@@ -5,56 +5,31 @@ Win_Inventory::Win_Inventory(QWidget *parent, Hero * hero) :
     QWidget(parent),
     mHero(hero),
     mItemShownRect(QRect(0,0,0,0)),
+    mItemToDisplay(nullptr),
     mItemSelected(0),
     mShowItemDescription(0),
     ui(new Ui::Win_inventory)
 {
     ui->setupUi(this);
     ui->item_info->setWordWrap(true);
-    mItemToDisplay = nullptr;
 
     mItemsContainer = new Frag_Interface_ItemSorter(this);
     connect(mItemsContainer, SIGNAL(sig_itemThrown(Item*)), this, SIGNAL(sig_itemThrown(Item*)));
     connect(mItemsContainer, SIGNAL(sig_itemThrown(Item*)), this, SLOT(onItemThrown(Item*)));
     connect(mItemsContainer, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(showItem(ItemQuickDisplayer*)));
+    connect(mItemsContainer, SIGNAL(sig_itemDoubleClicked(ItemQuickDisplayer*)), this, SLOT(useItem(ItemQuickDisplayer*)));
     connect(mItemsContainer, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SLOT(showItemHover(ItemQuickDisplayer*)));
     connect(mItemsContainer, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SLOT(hideItemHover(ItemQuickDisplayer*)));
     ui->layoutItems->addWidget(mItemsContainer, 0, Qt::AlignCenter);
 
     Bag * bag = hero->getBag();
     QList<Weapon*> weapons = bag->getWeapons();
-    for(Weapon * w : weapons)
+    for(Item * item : bag->getItems())
     {
-        mItemsContainer->addItem(w);
-    }
-    QList<Tool*> tools = bag->getTools();
-    for(Tool * t : tools)
-    {
-        mItemsContainer->addItem(t);
-    }
-    QList<Scroll*> scrolls = bag->getScrolls();
-    for(Scroll * s : scrolls)
-    {
-        mItemsContainer->addItem(s);
-    }
-    QList<ArmorPiece*> armorPieces = bag->getArmorPieces();
-    for(ArmorPiece * a : armorPieces)
-    {
-        mItemsContainer->addItem(a);
-    }
-    QList<Consumable*> consumables = bag->getConsumables();
-    for(Consumable * c : consumables)
-    {
-        mItemsContainer->addItem(c);
-    }
-    QList<Material*> materials = bag->getMaterials();
-    for(Material * m : materials)
-    {
-        mItemsContainer->addItem(m);
+        mItemsContainer->addItem(item);
     }
 
     hide();
-
 }
 
 void Win_Inventory::showItem(ItemQuickDisplayer * item)
@@ -150,6 +125,50 @@ void Win_Inventory::hideItemHover(ItemQuickDisplayer * item)
     mShowItemDescription = 0;
 }
 
+void Win_Inventory::useItem(ItemQuickDisplayer * itemDisplayer)
+{
+    /* Check usable item */
+    if(!itemDisplayer->getItem()->isUsable())
+        return;
+
+    /* Hide item shown */
+    mItemsContainer->unselectItems();
+    mItemSelected = 0;
+    if(mItemToDisplay != nullptr)
+    {
+        delete mItemToDisplay;
+    }
+    mItemToDisplay = nullptr;
+    ui->item_info->setStyleSheet("QLabel{}");
+    ui->item_info->setText("");
+    mShowItemDescription = 0;
+
+    /* Use item */
+    Item * item = itemDisplayer->getItem();
+    Consumable * consumable = dynamic_cast<Consumable*>(item);
+    if(consumable)
+    {
+        mItemsContainer->removeQuickItemDisplayer(item);
+        mHero->useConsumable(consumable);
+        return;
+    }
+    Tool * tool = dynamic_cast<Tool*>(item);
+    if(tool)
+    {
+        emit sig_useTool(tool);
+        closeInventory();
+        return;
+    }
+    Scroll * scroll = dynamic_cast<Scroll*>(item);
+    if(scroll)
+    {
+        mItemsContainer->removeQuickItemDisplayer(item);
+        emit sig_useScroll(scroll);
+        closeInventory();
+        return;
+    }
+}
+
 void Win_Inventory::useItem(Item * item)
 {
     mItemsContainer->unselectItems();
@@ -214,12 +233,6 @@ void Win_Inventory::diplayInventory()
     a->setEasingCurve(QEasingCurve::InBack);
     a->start(QPropertyAnimation::DeleteWhenStopped);
 
-//    QPropertyAnimation *b = new QPropertyAnimation(this,"geometry");
-//    b->setDuration(500);
-//    b->setStartValue(QRect(this->x()+this->width(),this->y(),this->width(),this->height()));
-//    b->setEndValue(QRect(this->x(),this->y(),this->width(),this->width()));
-//    b->start(QPropertyAnimation::DeleteWhenStopped);
-
     show();
 
     mItemShownRect = QRect(ui->itemArea->x(), ui->itemArea->y(), ui->itemArea->rect().width(), ui->itemArea->height());
@@ -236,12 +249,6 @@ void Win_Inventory::closeInventory()
     a->setEasingCurve(QEasingCurve::InBack);
     a->start(QPropertyAnimation::DeleteWhenStopped);
 
-//    QPropertyAnimation *b = new QPropertyAnimation(this,"geometry");
-//    b->setDuration(500);
-//    b->setStartValue(QRect(this->x(),this->y(),this->width(),this->height()));
-//    b->setEndValue(QRect(this->x()+this->width(),this->y(),this->width(),this->width()));
-//    b->start(QPropertyAnimation::DeleteWhenStopped);
-
     QTimer * timer = new QTimer(this);
     timer->setSingleShot(true);
     connect(timer, SIGNAL(timeout()), this, SIGNAL(sig_closeWindow()));
@@ -254,7 +261,6 @@ void Win_Inventory::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing);
 
     painter.setOpacity(0.95);
-
     painter.drawPixmap(QRect(50, ui->title->y(), width()-100, ui->itemArea->y()-40-ui->title->y()), QPixmap(":/graphicItems/background_window_2.png"));
 
     painter.setPen(QPen(QBrush(Qt::white), 2));
