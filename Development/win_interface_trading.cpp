@@ -135,8 +135,7 @@ void Win_BlackSmith::on_button_validate_clicked()
             }
         }
     }
-
-    // TODO : Create animation
+    mHero->setCoin(mHero->getCoin() - mBlacksmith->getEquipmentToCraft()->getCraftingPrice());
 
     mItemSold = mBlacksmith->getEquipmentToCraft()->takeEquipment();
     if(!mHero->getBag()->addItem(mItemSold))
