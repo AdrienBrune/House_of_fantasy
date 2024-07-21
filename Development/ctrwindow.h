@@ -115,7 +115,6 @@ private:
     W_QuickToolDrawer * w_quickItemDrawer;
     W_MessageLogger * w_messageLogger;
     W_Animation_Night * w_night;
-    QThread mLoadingThread;
 public:
     Ui::CTRWindow *ui;
 };

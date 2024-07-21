@@ -62,11 +62,6 @@ CTRWindow::~CTRWindow()
 {
     if(gItemGenerator)
         delete gItemGenerator;
-    if(mLoadingThread.isRunning())
-    {
-        mLoadingThread.quit();
-        mLoadingThread.wait();
-    }
     if(mMap)
         delete mMap;
     if(w_menu)
@@ -174,9 +169,6 @@ void CTRWindow::generateNewGame()
         delete mCurrentSave->getHeroChest();
     mCurrentSave->setChest(nullptr);
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
-
-    mLoadingThread.quit();
-    mLoadingThread.wait();
 
     w_loadingScreen->hide();
     showFullScreen();
@@ -534,7 +526,7 @@ void CTRWindow::explorationCompleted()
     heroIsSearching = false;
 
     QList<QGraphicsItem*> list = mHero->collidingItems();
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         MapEvent * mapEvent = dynamic_cast<MapEvent*>(item);
         if(mapEvent)
@@ -733,7 +725,7 @@ void CTRWindow::explorationCompleted()
                         }
                         QList<Item*> loots = monsterDead->skinMonster();
                         ShowPopUpInfo(ML_SHOW_LOOT_NUMBER(loots.size()));
-                        for(Item * loot : loots)
+                        for(Item * loot : qAsConst(loots))
                         {
                             mMap->heroThrowItemInMap(loot);
                         }

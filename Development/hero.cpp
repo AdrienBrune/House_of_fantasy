@@ -230,9 +230,10 @@ Hero *Hero::getInstance(Hero::HeroClasses hero)
 
     case eWizard:
         return new Wizard("");
-    }
 
-    return new SwordMan("");
+    default:
+        return new SwordMan("");
+    }
 }
 
 void Hero::move()
@@ -251,7 +252,7 @@ void Hero::move()
     emit sig_heroMoved();
 
     QList<QGraphicsItem*> list = collidingItems();
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         MapItem * mapItem = dynamic_cast<MapItem*>(item);
         if(mapItem)

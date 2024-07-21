@@ -49,7 +49,7 @@ public:
     {
         quint16 numberItems = mItems.size();
         stream << mPayload.current << mPayload.max << numberItems;
-        for(Item * item : mItems)
+        for(Item * item : qAsConst(mItems))
         {
             stream << item->getIdentifier();
             item->serialize(stream);

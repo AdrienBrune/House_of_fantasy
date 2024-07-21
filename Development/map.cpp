@@ -63,7 +63,7 @@ void Map::heroCollisionEventHandler()
 
     // Check village interaction
     bool found = false;
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         Village * village = dynamic_cast<Village*>(item);
         if(village){
@@ -82,7 +82,7 @@ void Map::heroCollisionEventHandler()
 
     // Check event interaction
     found = false;
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         Village_Goblin_Area * goblinVillage = dynamic_cast<Village_Goblin_Area*>(item);
         if(goblinVillage){
@@ -100,7 +100,7 @@ void Map::heroCollisionEventHandler()
     }
 
     // Check for Monster fight event
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         Monster * monster = dynamic_cast<Monster *>(item);
         if(monster && !monster->isDead()){
@@ -281,7 +281,7 @@ void Map::generateRandomMap()
 
     timer.start();
     // Remove mapItems colliding with village
-    for(MapItem * item : mElementsInMap)
+    for(MapItem * item : qAsConst(mElementsInMap))
     {
         if(item->pos().x()+item->boundingRect().width()>mVillage->getPosition().x() && item->pos().x()<mVillage->getPosition().x()+mVillage->boundingRect().width()
            && item->pos().y()+item->boundingRect().height()>mVillage->getPosition().y() && item->pos().y()<mVillage->getPosition().y()+mVillage->boundingRect().height())
@@ -294,7 +294,7 @@ void Map::generateRandomMap()
         }
     }
     // Remove mapItems colliding with Goblin village
-    for(MapItem * item : mElementsInMap)
+    for(MapItem * item : qAsConst(mElementsInMap))
     {
         if(item->pos().x()+item->boundingRect().width()>mGoblinVillage->pos().x() && item->pos().x()<mGoblinVillage->pos().x()+mGoblinVillage->boundingRect().width()
            && item->pos().y()+item->boundingRect().height()>mGoblinVillage->pos().y() && item->pos().y()<mGoblinVillage->pos().y()+mGoblinVillage->boundingRect().height())
@@ -328,7 +328,7 @@ void Map::removeMapElements()
         delete mElementsInMap.takeLast();
     }
     QList<QGraphicsItem*> itemsLeftInMap = mScene->items();
-    for(QGraphicsItem * element : itemsLeftInMap)
+    for(QGraphicsItem * element : qAsConst(itemsLeftInMap))
     {
         Item * item = dynamic_cast<Item*>(element);
         if(item){
@@ -360,7 +360,7 @@ void Map::freezeMap()
     t_monstersActions->stop();
     t_monsterMove->stop();
     t_collisionHandler->stop();
-    for(Monster * monster : mMonsters)
+    for(Monster * monster : qAsConst(mMonsters))
     {
         monster->enableMonsterAnimation(false);
     }
@@ -385,7 +385,7 @@ void Map::unfreezeMap()
     t_collisionHandler->start(TIMER_COLLISION);
     t_monstersActions->start(DELAY_BETWEEN_ACTION/mMonsters.size());
     t_monsterMove->start(TIMER_MONSTERS_MOVE);
-    for(Monster * monster : mMonsters)
+    for(Monster * monster : qAsConst(mMonsters))
     {
         monster->enableMonsterAnimation(true);
     }
@@ -418,7 +418,7 @@ void Map::generateBushes()
                 bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
                 list = mScene->collidingItems(bush);
             }
-            for(Bush * b : mBushes){
+            for(Bush * b : qAsConst(mBushes)){
                 int dx = static_cast<int>(bush->x() - b->x());
                 int dy = static_cast<int>(bush->y() - b->y());
                     if( (dy < 0 && dy > -b->boundingRect().height()) && (abs(dx) < b->boundingRect().width()) ){
@@ -479,7 +479,7 @@ void Map::generateFallenTrees()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(treeFallen, item))
                 {
@@ -614,7 +614,7 @@ void Map::generateChestBurriedEvent()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(chest, item))
                 {
@@ -643,7 +643,7 @@ void Map::generateOreSpots()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(ironOre, item))
                 {
@@ -665,7 +665,7 @@ void Map::generateOreSpots()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(stoneOre, item))
                 {
@@ -687,7 +687,7 @@ void Map::generateOreSpots()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(ore, item))
                 {
@@ -709,7 +709,7 @@ void Map::generateOreSpots()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(ore, item))
                 {
@@ -731,7 +731,7 @@ void Map::generateOreSpots()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(ore, item))
                 {
@@ -760,7 +760,7 @@ void Map::generateLaoShanLung()
         locationValid = true;
         monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH-1000), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT-1000));
         QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-        for(QGraphicsItem * item : list)
+        for(QGraphicsItem * item : qAsConst(list))
         {
             MapItem * mapItem = dynamic_cast<MapItem*>(item);
             if(mapItem)
@@ -771,7 +771,6 @@ void Map::generateLaoShanLung()
         }
 
     }while(!locationValid);
-    QPointF p = monster->pos();
 }
 
 void Map::generatePlanks()
@@ -787,7 +786,7 @@ void Map::generatePlanks()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(plank, item))
                 {
@@ -816,7 +815,7 @@ void Map::generateStones()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(stone, item))
                 {
@@ -928,7 +927,7 @@ void Map::putLakesInMap()
         while(!validatePosition)
         {
             validatePosition = true;
-            for(MapItem * item : mElementsInMap)
+            for(MapItem * item : qAsConst(mElementsInMap))
             {
                 if(!checkCollisionBeetween(lake, item))
                 {

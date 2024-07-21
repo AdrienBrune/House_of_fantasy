@@ -152,7 +152,7 @@ public:
         quint16 numberItems = mItemsToSell.size();
 
         stream << numberItems;
-        for(Item * item : mItemsToSell)
+        for(Item * item : qAsConst(mItemsToSell))
         {
             stream << item->getIdentifier();
             item->serialize(stream);
@@ -358,7 +358,7 @@ public:
         quint16 numberItems = mItems.size();
 
         stream << numberItems;
-        for(Item * item : mItems)
+        for(Item * item : qAsConst(mItems))
         {
             stream << item->getIdentifier();
             item->serialize(stream);

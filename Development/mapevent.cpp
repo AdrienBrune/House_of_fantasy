@@ -77,7 +77,7 @@ FishingEvent::FishingEvent():
     t_startAnimation->start(10000);
 
     QList<Fish*> list = generateRandomFishes();
-    for(Fish * fish : list)
+    for(Fish * fish : qAsConst(list))
     {
         mItems.append(fish);
     }

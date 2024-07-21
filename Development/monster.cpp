@@ -6,6 +6,7 @@ Monster::Monster(QGraphicsView * view):
     mIsInView(true),
     mHover(0),
     mStatus(none),
+    mSpeed(0),
     mAction(Action::stand)
 {
     setZValue(Z_MONSTERS);
@@ -489,7 +490,7 @@ bool Monster::isInView()
 {
     QRectF area = ToolFunctions::getVisibleView(mView);
     QList<QGraphicsItem*> list = mView->scene()->items(QRectF(area.x(),area.y(),area.width(),area.height()));
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         if(dynamic_cast<Monster*>(item) == this)
         {
@@ -504,7 +505,7 @@ bool Monster::isInBiggerView()
 {
     QRectF area = ToolFunctions::getBiggerView(mView);
     QList<QGraphicsItem*> list = mView->scene()->items(QRectF(area.x()-area.width()/2,area.y()-area.height()/2,area.width()*2,area.height()*2));
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         if(dynamic_cast<Monster*>(item) == this)
         {
@@ -572,7 +573,7 @@ Wolf::Wolf(QGraphicsView * view):
     mAction = Action::stand;
     mThreatLevel = 2;
     mImage = QPixmap(":/monsters/wolf/wolf_logo.png");
-    mSpeed = getSpeed();
+    mSpeed = 0;
     mDescription = "Les loups sont des chasseurs agressifs chassant exclusivement en meute";
 
     mBoundingRect = QRect(0,0,100,100);
@@ -917,7 +918,6 @@ Bear::Bear(QGraphicsView * view):
     mAction = Action::stand;
     mThreatLevel = 3;
     mImage = QPixmap(":/monsters/bear/bear_logo.png");
-    mSpeed = getSpeed();
     mDescription = "L'ours est un prédator puissant est dangereux, il hiberne pendant la saison hivernale";
 
     mBoundingRect = QRect(0,0,200,200);
@@ -1060,7 +1060,6 @@ Troll::Troll(QGraphicsView * view):
     mAction = Action::stand;
     mThreatLevel = 2;
     mImage = QPixmap(":/monsters/troll/troll_logo.png");
-    mSpeed = getSpeed();
     mDescription = "Le troll est avare et cherche à dérober les biens des humain, et ce par la force s'il le faut";
 
     mBoundingRect = QRect(0,0,100,100);
@@ -1206,7 +1205,6 @@ Oggre::Oggre(QGraphicsView * view):
     mAction = Action::stand;
     mThreatLevel = 4;
     mImage = QPixmap(":/monsters/oggre/oggre_logo.png");
-    mSpeed = getSpeed();
     mDescription = "L'ogre est massif et terriblement dangereux, il vaut mieux ne pas croiser son chemin si l'on y est pas préparé";
 
     mBoundingRect = QRect(0,0,350,350);
@@ -1346,7 +1344,6 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mAction = Action::stand;
     mThreatLevel = 10;
     mImage = QPixmap(":/monsters/laoshanlung/laoshanlung_logo.png");
-    mSpeed = getSpeed();
     mDescription = "Créature mythique, le Lao Shun Lung est un dragon de terre colossale qui écume les plaines depuis des centaines d'années";
 
     mBoundingRect = QRect(0,0,700,700);

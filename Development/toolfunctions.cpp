@@ -108,7 +108,7 @@ qreal ToolFunctions::getAngleWithVillage(QGraphicsItem * hero, QPointF villagePo
 int ToolFunctions::getNumberObstacles(QList<QGraphicsItem*> list)
 {
     int count = 0;
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         MapItem * mapItem = dynamic_cast<MapItem*>(item);
         if(mapItem){
@@ -122,7 +122,7 @@ int ToolFunctions::getNumberObstacles(QList<QGraphicsItem*> list)
 
 int ToolFunctions::getNumberObstacles(QList<QGraphicsItem*> list, QList<QGraphicsItem*> collidingWith)
 {
-    for(QGraphicsItem * item : list)
+    for(QGraphicsItem * item : qAsConst(list))
     {
         MapItem * mapItem = dynamic_cast<MapItem*>(item);
         if(mapItem){

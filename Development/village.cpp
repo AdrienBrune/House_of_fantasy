@@ -58,7 +58,7 @@ void House::mousePressEvent(QGraphicsSceneMouseEvent * event)
     {
         if(t_delayHover->isActive())
             t_delayHover->stop();
-        sig_villageInteraction(this);
+        emit sig_villageInteraction(this);
         event->accept();
     }else{
         event->ignore();
@@ -287,7 +287,7 @@ Merchant::~Merchant()
 void Merchant::replenish()
 {
     emit sig_replenish(this);
-    for(Item * item : mItemsToSell)
+    for(Item * item : qAsConst(mItemsToSell))
     {
         mItemsToSell.removeOne(item);
         delete item;
@@ -336,7 +336,7 @@ QList<Item *> Merchant::getItemsToSell()
 
 bool Merchant::itemIsInShop(Item * itemToCheck)
 {
-    for(Item * item : mItemsToSell)
+    for(Item * item : qAsConst(mItemsToSell))
     {
         if(item == itemToCheck){
             return true;
@@ -483,7 +483,7 @@ void Alchemist::replenish()
         while(!validateConsumable)
         {
             item = gItemGenerator->generateRandomConsumable();
-            for(Consumable * preferencies : mPotionPreferencies)
+            for(Consumable * preferencies : qAsConst(mPotionPreferencies))
             {
                 if(item->getName() == preferencies->getName()){
                     validateConsumable = true;
@@ -672,7 +672,7 @@ QList<Item *> Alchemist::getItemsToSell()
 
 bool Alchemist::itemIsInShop(Item * itemToCheck)
 {
-    for(Item * item : mItemsToSell)
+    for(Item * item : qAsConst(mItemsToSell))
     {
         if(item == itemToCheck){
             return true;
@@ -824,7 +824,7 @@ void Altar::setOffering(int idx, Item *item)
 
     mOfferings[idx].item = item;
 
-    for(Offering offer : mOfferings)
+    for(Offering offer : qAsConst(mOfferings))
     {
         if(!offer.item)
             return;
@@ -836,7 +836,7 @@ void Altar::setOffering(int idx, Item *item)
 
 bool Altar::isLaoShanLungSummoned()
 {
-    for(Offering offer : mOfferings)
+    for(Offering offer : qAsConst(mOfferings))
     {
         if(!offer.item)
             return false;

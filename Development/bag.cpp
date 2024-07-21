@@ -20,7 +20,7 @@ bool Bag::addItem(Item * item)
 
 bool Bag::itemIsInBag(Item * itemToCheck)
 {
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         if(item == itemToCheck){
             return true;
@@ -75,7 +75,7 @@ QList<Item *> Bag::getItems()
 QList<Consumable *> Bag::getConsumables()
 {
     QList<Consumable*> list;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         Consumable * itemCheck = dynamic_cast<Consumable*>(item);
         if(itemCheck){
@@ -88,7 +88,7 @@ QList<Consumable *> Bag::getConsumables()
 QList<Weapon *> Bag::getWeapons()
 {
     QList<Weapon*> list;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         Weapon * itemCheck = dynamic_cast<Weapon*>(item);
         if(itemCheck){
@@ -101,7 +101,7 @@ QList<Weapon *> Bag::getWeapons()
 QList<ArmorPiece *> Bag::getArmorPieces()
 {
     QList<ArmorPiece*> list;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         ArmorPiece * itemCheck = dynamic_cast<ArmorPiece*>(item);
         if(itemCheck){
@@ -114,7 +114,7 @@ QList<ArmorPiece *> Bag::getArmorPieces()
 QList<MonsterMaterial *> Bag::getMonsterMaterials()
 {
     QList<MonsterMaterial*> list;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         MonsterMaterial * itemCheck = dynamic_cast<MonsterMaterial*>(item);
         if(itemCheck){
@@ -127,7 +127,7 @@ QList<MonsterMaterial *> Bag::getMonsterMaterials()
 QList<Material *> Bag::getMaterials()
 {
     QList<Material*> list;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         Material * itemCheck = dynamic_cast<Material*>(item);
         if(itemCheck){
@@ -140,7 +140,7 @@ QList<Material *> Bag::getMaterials()
 QList<Tool *> Bag::getTools()
 {
     QList<Tool*> list;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         Tool * itemCheck = dynamic_cast<Tool*>(item);
         if(itemCheck){
@@ -153,7 +153,7 @@ QList<Tool *> Bag::getTools()
 QList<Scroll *> Bag::getScrolls()
 {
     QList<Scroll*> list;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         Scroll * itemCheck = dynamic_cast<Scroll*>(item);
         if(itemCheck){
@@ -170,7 +170,7 @@ Bag::Payload Bag::getPayload()
 
 Item *Bag::getShovel()
 {
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         Shovel * shovel = dynamic_cast<Shovel*>(item);
         if(shovel){
@@ -182,7 +182,7 @@ Item *Bag::getShovel()
 
 Item *Bag::getPickaxe()
 {
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         Pickaxe * pickaxe = dynamic_cast<Pickaxe*>(item);
         if(pickaxe){
@@ -194,7 +194,7 @@ Item *Bag::getPickaxe()
 
 Item *Bag::getFishingrod()
 {
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         FishingRod * fishingrode = dynamic_cast<FishingRod*>(item);
         if(fishingrode){
@@ -206,7 +206,7 @@ Item *Bag::getFishingrod()
 
 Item *Bag::getKnife()
 {
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         Knife * knife = dynamic_cast<Knife*>(item);
         if(knife){
@@ -219,7 +219,7 @@ Item *Bag::getKnife()
 int Bag::getQuantityOf(Item * itemToFind)
 {
     int quantity = 0;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         if(item->getIdentifier() == itemToFind->getIdentifier())
             quantity++;
@@ -230,7 +230,7 @@ int Bag::getQuantityOf(Item * itemToFind)
 int Bag::getQuantityOf(quint32 identifier)
 {
     int quantity = 0;
-    for(Item * item : mItems)
+    for(Item * item : qAsConst(mItems))
     {
         if(item->getIdentifier() == identifier)
             quantity++;
