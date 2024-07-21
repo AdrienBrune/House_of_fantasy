@@ -12,6 +12,7 @@ Win_SkillInfo::Win_SkillInfo(QWidget * parent, Hero * hero, Skill * skill) :
     ui->skillImage->setScaledContents(true);
     ui->skillPointsCost->setText(QString("%1").arg(mSkill->getUnlockPoints()));
     ui->skillImage->setPixmap(mSkill->getImage(mSkill->isUnlock()));
+    ui->skillName->setText(mSkill->getName());
     ui->skillResume->setText(mSkill->getResume());
     ui->skillAddInfo->hide();
 
@@ -23,6 +24,7 @@ Win_SkillInfo::Win_SkillInfo(QWidget * parent, Hero * hero, Skill * skill) :
     {
         ui->spellManaCost->hide();
         ui->labelManaCost->hide();
+        ui->ManaCost_logo->hide();
 
         if(!mHero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
         {
