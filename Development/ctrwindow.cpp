@@ -307,6 +307,7 @@ void CTRWindow::fightResult(Character* entityKilled)
             if(mHero->getLife().curLife < 30)
                 mSoundManager->startMusicEvent(MUSICEVENT_CLOSE_FIGHT);
         }
+        mHero->checkMapInteractions();
     }else
     {
         t_unfreezeMap->start(2000);
@@ -461,18 +462,9 @@ void CTRWindow::keyReleaseEvent(QKeyEvent *event)
             w_trading = nullptr;
             mHero->freeze(false);
         }
-        if(w_inventory != nullptr)
-        {
-            hideInventary();
-        }
-        if(w_gear != nullptr)
-        {
-            hideInventaryGear();
-        }
-        if(w_skill != nullptr)
-        {
-            hideSkillWindow();
-        }
+        hideInventary();
+        hideInventaryGear();
+        hideSkillWindow();
 
         event->accept();
     }

@@ -218,39 +218,9 @@ bool Hero::isFreeze()
     return mFreeze;
 }
 
-Hero *Hero::getInstance(Hero::HeroClasses hero)
-{
-    switch(hero)
-    {
-    case eSwordman:
-        return new SwordMan("");
-
-    case eArcher:
-        return new Archer("");
-
-    case eWizard:
-        return new Wizard("");
-
-    default:
-        return new SwordMan("");
-    }
-}
-
-void Hero::move()
+void Hero::checkMapInteractions()
 {
     bool mapEventFound = false;
-    double dx = static_cast<double>(SPEED_HERO)*qSin(qDegreesToRadians(mMoveHandler.angle));
-    double dy = -static_cast<double>(SPEED_HERO)*qCos(qDegreesToRadians(mMoveHandler.angle));
-    setPos(x()+dx, y()+dy);
-
-    if(gEnableMovementWithMouseClic)
-        if( (abs(mMoveHandler.destPos.x() - x()) < 1)  || (abs(mMoveHandler.destPos.y() - y()) < 1) )
-        {
-            stopMoving(); // Not working with keys
-        }
-
-    emit sig_heroMoved();
-
     QList<QGraphicsItem*> list = collidingItems();
     for(QGraphicsItem * item : qAsConst(list))
     {
@@ -359,6 +329,41 @@ void Hero::move()
         }
         mIsInMapEvent = false;
     }
+}
+
+Hero *Hero::getInstance(Hero::HeroClasses hero)
+{
+    switch(hero)
+    {
+    case eSwordman:
+        return new SwordMan("");
+
+    case eArcher:
+        return new Archer("");
+
+    case eWizard:
+        return new Wizard("");
+
+    default:
+        return new SwordMan("");
+    }
+}
+
+void Hero::move()
+{
+    double dx = static_cast<double>(SPEED_HERO)*qSin(qDegreesToRadians(mMoveHandler.angle));
+    double dy = -static_cast<double>(SPEED_HERO)*qCos(qDegreesToRadians(mMoveHandler.angle));
+    setPos(x()+dx, y()+dy);
+
+    if(gEnableMovementWithMouseClic)
+        if( (abs(mMoveHandler.destPos.x() - x()) < 1)  || (abs(mMoveHandler.destPos.y() - y()) < 1) )
+        {
+            stopMoving(); // Not working with keys
+        }
+
+    emit sig_heroMoved();
+
+    checkMapInteractions();
 
     mMoveHandler.lastPos = pos();
 }

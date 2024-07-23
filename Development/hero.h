@@ -95,7 +95,6 @@ public:
 
     void setLocation(QPointF);
     void setGear(Gear*);
-    void setPayload(int);
     void setCoin(int);
     void setIsInVillage(bool);
     void setSkillPoints(int);
@@ -121,6 +120,7 @@ public:
     bool isDead();
     void freeze(bool);
     bool isFreeze();
+    void checkMapInteractions();
 public:
     virtual void serialize(QDataStream& stream)const=0;
     virtual void deserialize(QDataStream& stream)=0;
