@@ -12,7 +12,7 @@ W_AnimationSpell::W_AnimationSpell(QWidget * parent, quint8 spell) :
     ui->setupUi(this);
     tAnimation = new QTimer(this);
     connect(tAnimation, &QTimer::timeout, this, &W_AnimationSpell::animate);
-    tAnimation->start(150);
+    tAnimation->start(200);
     show();
 }
 
@@ -26,7 +26,7 @@ void W_AnimationSpell::animate()
     if(mAnimation > 9)
     {
         tAnimation->stop();
-        emit sig_hideAnimation();
+        close();
     }
     else
     {

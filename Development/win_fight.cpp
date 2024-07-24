@@ -3,6 +3,12 @@
 
 #include "frag_speel.h"
 
+#define ACTION_COST_HEAVY_ATTACK    ((mHero->getStamina().maxStamina > 400) ? 400 : mHero->getStamina().maxStamina)
+#define ACTION_COST_LIGHT_ATTACK    100
+#define ACTION_COST_USE_ITEM        80
+#define ACTION_COST_FLEE            ((mHero->getStamina().maxStamina > 200) ? 200 : mHero->getStamina().maxStamina)
+#define ACTION_COST_USE_SPELL       50
+
 Win_Fight::Win_Fight(QWidget *parent, Hero * hero, Monster * monster) :
     QWidget(parent),
     mHero(hero),
@@ -11,7 +17,6 @@ Win_Fight::Win_Fight(QWidget *parent, Hero * hero, Monster * monster) :
     mFleeFail(false),
     mBreak(false),
     w_fightAnimation(nullptr),
-    w_spellAnimation(nullptr),
     w_spellList(nullptr),
     ui(new Ui::Win_Fight)
 {
@@ -31,12 +36,8 @@ Win_Fight::Win_Fight(QWidget *parent, Hero * hero, Monster * monster) :
 
     hero->stopMoving();
 
-    if(hero->getHeroClass() == Hero::eSwordman)
-        ui->button_useSpell->hide();
-
     connect(ui->button_heavyAttack, &QPushButton::clicked, this, &Win_Fight::onButtonHeavyAttackClicked);
     connect(ui->button_lightAttack, &QPushButton::clicked, this, &Win_Fight::onButtonLightAttackClicked);
-    connect(ui->button_useObject, &QPushButton::clicked, this, &Win_Fight::onButtonUseObjectClicked);
     connect(ui->button_flee, &QPushButton::clicked, this, &Win_Fight::onButtonFleeClicked);
     connect(ui->button_useSpell, &QPushButton::clicked, this, &Win_Fight::onButtonUseSpellClicked);
 }
@@ -46,8 +47,6 @@ Win_Fight::~Win_Fight()
     delete ui;
     if(w_fightAnimation)
         delete w_fightAnimation;
-    if(w_spellAnimation)
-        delete w_spellAnimation;
     if(w_spellList)
         delete w_spellList;
 }
@@ -134,8 +133,7 @@ void Win_Fight::initInterface()
     connect(t_monsterStaminaRecovery, SIGNAL(timeout()), this, SLOT(monsterStaminaRecovery()));
 
     mScenePotion = new QGraphicsScene(this);
-    //ui->graphicsView->setStyleSheet(STYLE_SHEET_GRAPHICSVIEW(0));
-    ui->graphicsView->setScene(mScenePotion);
+    ui->itemView->setScene(mScenePotion);
 
     addConsumablesOnScreen();
 
@@ -263,7 +261,12 @@ void Win_Fight::monsterStaminaRecovered()
 
 void Win_Fight::useConsumable(ItemQuickDisplayer * w_item)
 {
-    enableItemsUtilisation(false);
+    if(!heroUseStamina(ACTION_COST_USE_ITEM))
+    {
+        showNotEnoughtStamina();
+        return;
+    }
+
     Consumable * item = dynamic_cast<Consumable*>(w_item->getItem());
     while(!mConsumables.isEmpty())
     {
@@ -282,40 +285,33 @@ void Win_Fight::heroStaminaRecovered()
 void Win_Fight::enableButtons(bool toggle)
 {
     ui->button_flee->setEnabled(toggle);
-    ui->button_useObject->setEnabled(toggle);
     ui->button_heavyAttack->setEnabled(toggle);
     ui->button_lightAttack->setEnabled(toggle);
+    if(mHero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
+        ui->button_useSpell->setEnabled(toggle);
 }
 
-void Win_Fight::enableItemsUtilisation(bool toggle)
-{
-    if(toggle)
-    {
-        //ui->graphicsView->setStyleSheet(STYLE_SHEET_GRAPHICSVIEW(1));
-        for(ItemQuickDisplayer * w_item : mConsumables)
-        {
-            connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(useConsumable(ItemQuickDisplayer*)));
-        }
-    }else
-    {
-        //ui->graphicsView->setStyleSheet(STYLE_SHEET_GRAPHICSVIEW(0));
-        for(ItemQuickDisplayer * w_item : mConsumables)
-        {
-            disconnect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(useConsumable(ItemQuickDisplayer*)));
-        }
-    }
-}
 
 void Win_Fight::addConsumablesOnScreen()
 {
-    mScenePotion->setSceneRect(0,0,ui->graphicsView->width(), ui->graphicsView->height());
+    // Remove current list
+    for(ItemQuickDisplayer *item : qAsConst(mConsumables))
+    {
+        disconnect(item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(useConsumable(ItemQuickDisplayer*)));
+        ui->itemView->scene()->removeItem(item);
+        mConsumables.removeOne(item);
+    }
+
+    // Update current list
+    mScenePotion->setSceneRect(0,0,ui->itemView->width(), ui->itemView->height());
     QList<Consumable*> list = mHero->getBag()->getConsumables();
     for(Consumable * item : qAsConst(list))
     {
         ItemQuickDisplayer * w_item = new ItemQuickDisplayer(item);
         w_item->setMovable(false);
-        ui->graphicsView->scene()->addItem(w_item);
+        ui->itemView->scene()->addItem(w_item);
         mConsumables.append(w_item);
+        connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(useConsumable(ItemQuickDisplayer*)));
     }
     int offset = 5;
     for(ItemQuickDisplayer * item : qAsConst(mConsumables))
@@ -339,15 +335,19 @@ void Win_Fight::checkFightIssue()
     }
 }
 
-#define ACTION_COST_HEAVY_ATTACK    ((mHero->getStamina().maxStamina > 400) ? 400 : mHero->getStamina().maxStamina)
-#define ACTION_COST_LIGHT_ATTACK    100
-#define ACTION_COST_USE_ITEM        80
-#define ACTION_COST_FLEE            ((mHero->getStamina().maxStamina > 200) ? 200 : mHero->getStamina().maxStamina)
+void Win_Fight::showNotEnoughtStamina()
+{
+    ui->data_playerStamina->setStyleSheet(STAMINA_NOT_ENOUGTH);
+    QTimer::singleShot(1200, this, [&](){ ui->data_playerStamina->setStyleSheet(STAMINA_NORMAL_STATUS); });
+}
 
 void Win_Fight::onButtonHeavyAttackClicked()
 {
     if(!heroUseStamina(ACTION_COST_HEAVY_ATTACK))
+    {
+        showNotEnoughtStamina();
         return;
+    }
 
     enableButtons(false);
     QTimer::singleShot(1500, this, [&]{enableButtons(true);});
@@ -369,25 +369,13 @@ void Win_Fight::onButtonHeavyAttackClicked()
     checkFightIssue();
 }
 
-void Win_Fight::onButtonUseObjectClicked()
-{
-    if(mConsumables.isEmpty())
-        return;
-    if(!heroUseStamina(ACTION_COST_USE_ITEM))
-        return;
-
-    enableButtons(false);
-    QTimer::singleShot(1500, this, [&]{enableButtons(true);});
-
-    enableItemsUtilisation(true);
-
-    checkFightIssue();
-}
-
 void Win_Fight::onButtonLightAttackClicked()
 {
     if(!heroUseStamina(ACTION_COST_LIGHT_ATTACK))
+    {
+        showNotEnoughtStamina();
         return;
+    }
 
     enableButtons(false);
     QTimer::singleShot(1500, this, [&]{enableButtons(true);});
@@ -403,7 +391,10 @@ void Win_Fight::onButtonLightAttackClicked()
 void Win_Fight::onButtonFleeClicked()
 {
     if(!heroUseStamina(ACTION_COST_FLEE))
+    {
+        showNotEnoughtStamina();
         return;
+    }
 
     enableButtons(false);
     QTimer::singleShot(1500, this, [&]{enableButtons(true);});
@@ -454,7 +445,7 @@ void Win_Fight::paintEvent(QPaintEvent *)
     painter.setOpacity(1);
     painter.drawPixmap(QRect(100,50,width()-200,height()-150), QPixmap(":/graphicItems/background_window_1.png"));
 
-    painter.drawPixmap(QRect(ui->button_useObject->x(), ui->button_heavyAttack->y(), ui->button_useObject->width()*3, ui->button_heavyAttack->height()*3),
+    painter.drawPixmap(QRect(ui->button_useSpell->x(), ui->button_heavyAttack->y(), ui->button_useSpell->width()*3, ui->button_heavyAttack->height()*3),
                        QPixmap(":/graphicItems/buttons_background.png"));
 
     painter.setBrush(QBrush("#434343"));
@@ -474,7 +465,7 @@ void Win_Fight::paintEvent(QPaintEvent *)
         int heightReach = static_cast<int>(ui->data_playerStamina->y()+ui->data_playerStamina->height() - static_cast<float>(stamina/mHero->getStamina().maxStamina * ui->data_playerStamina->height()));
         painter.drawLine(ui->data_playerStamina->x()-10, heightReach, ui->data_playerStamina->x()+ui->data_playerStamina->width()+10, heightReach);
     }
-    painter.drawText(QPoint(ui->button_useObject->x()+ui->button_useObject->width()+5, ui->button_useObject->y()+ui->button_useObject->height()/2+2), QString("%1").arg(ACTION_COST_USE_ITEM));
+    painter.drawText(QPoint(ui->button_useSpell->x()+ui->button_useSpell->width()+5, ui->button_useSpell->y()+ui->button_useSpell->height()/2+2), QString("%1").arg(ACTION_COST_USE_SPELL));
     painter.drawText(QPoint(ui->button_heavyAttack->x()+ui->button_heavyAttack->width()/2-10, ui->button_heavyAttack->y()+ui->button_heavyAttack->height()+15), QString("%1").arg(ACTION_COST_HEAVY_ATTACK));
     painter.drawText(QPoint(ui->button_lightAttack->x()-18, ui->button_lightAttack->y()+ui->button_lightAttack->height()/2+2), QString("%1").arg(ACTION_COST_LIGHT_ATTACK));
     painter.drawText(QPoint(ui->button_flee->x()+ui->button_flee->width()/2-10, ui->button_flee->y()-5), QString("%1").arg(ACTION_COST_FLEE));
@@ -532,13 +523,6 @@ void Win_Fight::hideAnimation()
     w_fightAnimation = nullptr;
 }
 
-void Win_Fight::hideAnimationSpell()
-{
-    if(w_spellAnimation)
-        delete w_spellAnimation;
-    w_spellAnimation = nullptr;
-}
-
 void Win_Fight::restoreMonsterImage()
 {
     ui->image_fight->setPixmap(mMonster->getFightImage(0));
@@ -569,6 +553,12 @@ void Win_Fight::onFightEvent()
 
 void Win_Fight::onUseSpell(Skill * skill)
 {
+    if(!heroUseStamina(ACTION_COST_USE_SPELL))
+    {
+        showNotEnoughtStamina();
+        return;
+    }
+
     SpellSkill * spell = dynamic_cast<SpellSkill*>(skill);
     if(mHero->getMana().curMana < spell->getManaCost())
     {
@@ -577,15 +567,13 @@ void Win_Fight::onUseSpell(Skill * skill)
     }
 
     enableButtons(false);
+    QTimer::singleShot(3000, this, [&]{enableButtons(true);});
+
     w_spellList->hide();
 
-    w_spellAnimation = new W_AnimationSpell(this, spell->getIndex());
-    connect(w_spellAnimation, SIGNAL(sig_hideAnimation()), this, SLOT(hideAnimationSpell()));
-    w_spellAnimation->setGeometry((width()-700)/2, (height()-700)/2, 700, 700);
+    W_AnimationSpell * spellAnimation = new W_AnimationSpell(this, spell->getIndex());
+    spellAnimation->setGeometry((width()-700)/2, (height()-700)/2, 700, 700);
     emit sig_playSound(SOUND_SPELL_0+skill->getIndex());
-
-    w_spellList->enable(false);
-    QTimer::singleShot(3000, this, [&]{w_spellList->enable(true);w_spellList->show();enableButtons(true);});
 
     /* Spell can be cast */
     switch(spell->getIndex())

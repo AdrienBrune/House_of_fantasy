@@ -383,7 +383,7 @@ background-color:grey;
                 <number>0</number>
                </property>
                <item row="1" column="0">
-                <widget class="QPushButton" name="button_useObject">
+                <widget class="QPushButton" name="button_useSpell">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -405,6 +405,22 @@ background-color:grey;
                  <property name="styleSheet">
                   <string notr="true">QPushButton{
 	border:1px solid black;
+	border-image:url(:/icons/button/buttonFight_spell.png);
+}
+
+QPushButton::hover{
+	border-image:url(:/icons/button/buttonFight_spell_h.png);
+}
+
+QPushButton::pressed{
+	border-image:url(:/icons/button/buttonFight_spell_p.png);
+}
+
+QPushButton:disabled{
+	border-image:url(:/icons/button/buttonFight_spell_d.png);
+}
+/*QPushButton{
+	border:1px solid black;
 	border-image:url(:/icons/button/buttonFight_4.png);
 }
 
@@ -414,7 +430,11 @@ QPushButton::hover{
 
 QPushButton::pressed{
 	border-image:url(:/icons/button/buttonFight_4_pressed.png);
-}</string>
+}
+
+QPushButton::disabled{
+	border-image:url(:/icons/button/buttonFight_4_disabled.png);
+}*/</string>
                  </property>
                  <property name="text">
                   <string/>
@@ -453,6 +473,10 @@ QPushButton::hover{
 
 QPushButton::pressed{
 	border-image:url(:/icons/button/buttonFight_2_pressed.png);
+}
+
+QPushButton::disabled{
+	border-image:url(:/icons/button/buttonFight_2_disabled.png);
 }</string>
                  </property>
                  <property name="text">
@@ -492,6 +516,10 @@ QPushButton::hover{
 
 QPushButton::pressed{
 	border-image:url(:/icons/button/buttonFight_1_pressed.png);
+}
+
+QPushButton::disabled{
+	border-image:url(:/icons/button/buttonFight_1_disabled.png);
 }</string>
                  </property>
                  <property name="text">
@@ -531,6 +559,10 @@ QPushButton::hover{
 
 QPushButton::pressed{
 	border-image:url(:/icons/button/buttonFight_3_pressed.png);
+}
+
+QPushButton::disabled{
+	border-image:url(:/icons/button/buttonFight_3_disabled.png);
 }</string>
                  </property>
                  <property name="text">
@@ -576,7 +608,7 @@ QPushButton::pressed{
                <property name="styleSheet">
                 <string notr="true">QProgressBar {
 	border:2px solid #575757;
-border-radius:2px;
+	border-radius:2px;
 	background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #393939, stop: 1 #393939);
 }
 
@@ -760,7 +792,7 @@ QProgressBar::chunk {
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3,0">
+      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3">
        <property name="spacing">
         <number>30</number>
        </property>
@@ -771,7 +803,7 @@ QProgressBar::chunk {
         <number>20</number>
        </property>
        <item>
-        <widget class="QGraphicsView" name="graphicsView">
+        <widget class="QGraphicsView" name="itemView">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -843,46 +875,6 @@ QGraphicsView QScrollBar::sub-line:horizontal {
          </property>
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarAlwaysOn</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="button_useSpell">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>140</width>
-           <height>140</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>140</width>
-           <height>140</height>
-          </size>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QPushButton{
-	border:1px solid black;
-	border-image:url(:/icons/button/buttonFight_spell.png);
-}
-
-QPushButton::hover{
-	border-image:url(:/icons/button/buttonFight_spell_h.png);
-}
-
-QPushButton::pressed{
-	border-image:url(:/icons/button/buttonFight_spell_p.png);
-}
-
-QPushButton:disabled{
-	border-image:url(:/icons/button/buttonFight_spell_d.png);
-}</string>
-         </property>
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>

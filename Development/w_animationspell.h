@@ -19,9 +19,6 @@ public:
     explicit W_AnimationSpell(QWidget * parent = nullptr, quint8 = 0);
     ~W_AnimationSpell();
 
-signals:
-    void sig_hideAnimation();
-
 private slots:
     void animate();
 
