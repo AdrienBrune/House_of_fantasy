@@ -47,10 +47,13 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public:
     bool isObstacle();
+    bool isDestroyed();
     CollisionShape * getObstacleShape();
     const int & getZOffset();
 private:
     void setShape(QPixmap image, bool trueShape = false, bool scale = false);
+protected:
+    void destructIt();
 protected:
     QRect mBoundingRect;
     QPainterPath mShape;
@@ -60,6 +63,7 @@ protected:
     int mImageSelected;
     int mImageEvent;
     QString mMapItemName;
+    bool mDestroyed;
 protected:
     static quint32 sNbInstances;
 };

@@ -1,6 +1,6 @@
 cat .gitignore
 /Development/Ressources
-/Development/Game_MMORPG.pro.user
+/Development/House_of_fantasy.pro.user
 *.o
 /Temp
 /Conception

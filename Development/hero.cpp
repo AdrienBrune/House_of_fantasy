@@ -850,12 +850,6 @@ void Wizard::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
 {
     painter->drawPixmap(0,0, mCurrentPixmap, static_cast<int>(mNextFrame*boundingRect().width()), static_cast<int>(mImageSelected*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
 
-    // painter->setBrush(QBrush("#7700FF00"));
-    // painter->drawPath(mShape);
-
-    // painter->setBrush(QBrush("#77FF0000"));
-    // painter->drawPath(mCollisionShape->shape());
-
     Q_UNUSED(widget)
     Q_UNUSED(option)
 }

@@ -8,7 +8,7 @@ QT       += core gui multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = Game_MMORPG
+TARGET = House_of_fantasy
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use

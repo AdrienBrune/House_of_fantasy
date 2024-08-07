@@ -86,13 +86,16 @@ void Village_Goblin::setPosition(QPointF pos)
     for(Hut * hut : mHuts)
     {
         hut->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-hut->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-hut->boundingRect().height())));
+        hut->setRotation(QRandomGenerator::global()->bounded(20)-10);
 
         bool verifHutsPosition = false, verifTowersPosition = false;
         while(!verifHutsPosition || !verifTowersPosition)
         {
             hut->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-hut->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-hut->boundingRect().height())));
+            hut->setRotation(QRandomGenerator::global()->bounded(20)-10);
             while(hut->collidesWithItem(this)){
                 hut->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-hut->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-hut->boundingRect().height())));
+                hut->setRotation(QRandomGenerator::global()->bounded(20)-10);
             }
 
             verifHutsPosition = false;

@@ -752,7 +752,6 @@ void Map::generateLaoShanLung()
     initMonsterConnection(monster);
     mMonsters.append(monster);
     mScene->addItem(monster);
-    QList<QGraphicsItem*> list;
     bool locationValid = true;
 
     do

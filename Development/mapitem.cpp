@@ -11,7 +11,8 @@ MapItem::MapItem():
     mZOffset(0),
     mImageSelected(0),
     mImageEvent(0),
-    mMapItemName("")
+    mMapItemName(""),
+    mDestroyed(false)
 {
     //qDebug() << "[C] " << ++sNbInstances << " " << mMapItemName;
 }
@@ -73,6 +74,11 @@ bool MapItem::isObstacle()
     return mCollisionShape ? true : false;
 }
 
+bool MapItem::isDestroyed()
+{
+    return mDestroyed;
+}
+
 CollisionShape * MapItem::getObstacleShape()
 {
     return mCollisionShape;
@@ -97,6 +103,16 @@ void MapItem::setShape(QPixmap image, bool trueShape, bool scale)
     }
     else
         mShape.addEllipse(boundingRect());
+}
+
+void MapItem::destructIt()
+{
+    mDestroyed = true;
+    mImageEvent = 1;
+    if(mCollisionShape)
+        delete mCollisionShape;
+    mCollisionShape = nullptr;
+    update();
 }
 
 
@@ -191,12 +207,7 @@ void Tree::initMapItem()
 
 void Tree::destructIt()
 {
-    mImageEvent = 1;
-    setZValue(Z_TREE_FALLEN);
-    if(mCollisionShape)
-        delete mCollisionShape;
-    mCollisionShape = nullptr;
-    update();
+    MapItem::destructIt();
     emit sig_playSound(SOUND_TREE_FALL);
 }
 
@@ -266,11 +277,7 @@ void Rock::initMapItem()
 
 void Rock::destructIt()
 {
-    mImageEvent = 1;
-    if(mCollisionShape)
-        delete mCollisionShape;
-    mCollisionShape = nullptr;
-    update();
+    MapItem::destructIt();
     emit sig_playSound(SOUND_ROCK_CRUSH);
 }
 

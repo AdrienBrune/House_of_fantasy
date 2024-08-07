@@ -217,6 +217,15 @@ void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     painter->drawPixmap(0,0, mCurrentPixmap, static_cast<int>(mNextFrame*boundingRect().width()), static_cast<int>(mHover*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
+
+    // painter->setBrush(QBrush("#7700FF00"));
+    // painter->drawPath(mShape);
+
+    // if(mCollisionShape)
+    // {
+    //     painter->setBrush(QBrush("#77FF0000"));
+    //     painter->drawPath(mCollisionShape->shape());
+    // }
 }
 
 void Monster::chooseAction(Hero * hero)
@@ -393,20 +402,19 @@ void Monster::doCollision()
             MapItem * mapItem = dynamic_cast<MapItem*>(item);
             if(mapItem)
             {
-                if(mapItem->isObstacle())
+                if(mapItem->isDestroyed())
+                    continue;
+                Tree * tree = dynamic_cast<Tree*>(mapItem);
+                if(tree)
                 {
-                    Tree * tree = dynamic_cast<Tree*>(mapItem);
-                    if(tree)
-                    {
-                        tree->destructIt();
-                        continue;
-                    }
-                    Rock * rock = dynamic_cast<Rock*>(mapItem);
-                    if(rock)
-                    {
-                        rock->destructIt();
-                        continue;
-                    }
+                    tree->destructIt();
+                    continue;
+                }
+                Rock * rock = dynamic_cast<Rock*>(mapItem);
+                if(rock)
+                {
+                    rock->destructIt();
+                    continue;
                 }
             }
         }
@@ -1339,7 +1347,7 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mDescription = "Créature mythique, le Lao Shun Lung est un dragon de terre colossale qui écume les plaines depuis des centaines d'années";
 
     mBoundingRect = QRect(0,0,700,700);
-    mShape.addEllipse(QRect(250, 100, static_cast<int>(boundingRect().width())-500, static_cast<int>(boundingRect().height())-200));
+    mShape.addEllipse(QRect(mBoundingRect.height()/2 - mBoundingRect.height()*4/25, mBoundingRect.width()/5, mBoundingRect.height()*4/25, mBoundingRect.width()*3/4));
 
     mFrames.run = 18;
     mFrames.dead = 1;
