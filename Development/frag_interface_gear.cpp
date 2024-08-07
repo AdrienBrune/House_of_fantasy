@@ -27,7 +27,7 @@ Frag_Interface_Gear::Frag_Interface_Gear(QWidget *parent, Hero * hero) :
     addItemsLeftSide();
 }
 
-void Frag_Interface_Gear::itemMovedHandler(ItemQuickDisplayer * item)
+void Frag_Interface_Gear::onItemMovedHandler(ItemQuickDisplayer * item)
 {
     item->setZValue(0);
     if(!mScene->sceneRect().contains(item->boundingRect()))
@@ -145,9 +145,9 @@ void Frag_Interface_Gear::itemMovedHandler(ItemQuickDisplayer * item)
     }
 }
 
-void Frag_Interface_Gear::itemSelected(ItemQuickDisplayer * item)
+void Frag_Interface_Gear::onItemSelected(ItemQuickDisplayer * item)
 {
-    sig_itemClicked(item);
+    emit sig_itemClicked(item);
     item->setZValue(1);
 }
 
@@ -159,8 +159,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         w_helmet->setInitialPosition(helmetPos);
         w_helmet->setPos(helmetPos);
         equipmentRightSide.append(w_helmet);
-        connect(w_helmet, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-        connect(w_helmet, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+        connect(w_helmet, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+        connect(w_helmet, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_helmet, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_helmet, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
@@ -170,8 +170,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         w_breasplate->setInitialPosition(breastplatePos);
         w_breasplate->setPos(breastplatePos);
         equipmentRightSide.append(w_breasplate);
-        connect(w_breasplate, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-        connect(w_breasplate, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+        connect(w_breasplate, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+        connect(w_breasplate, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_breasplate, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_breasplate, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
@@ -181,8 +181,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         w_gloves->setInitialPosition(glovesPos);
         w_gloves->setPos(glovesPos);
         equipmentRightSide.append(w_gloves);
-        connect(w_gloves, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-        connect(w_gloves, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+        connect(w_gloves, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+        connect(w_gloves, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_gloves, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_gloves, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
@@ -192,8 +192,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         w_pant->setInitialPosition(pantPos);
         w_pant->setPos(pantPos);
         equipmentRightSide.append(w_pant);
-        connect(w_pant, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-        connect(w_pant, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+        connect(w_pant, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+        connect(w_pant, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_pant, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_pant, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
@@ -203,8 +203,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         w_footwears->setInitialPosition(footwearsPos);
         w_footwears->setPos(footwearsPos);
         equipmentRightSide.append(w_footwears);
-        connect(w_footwears, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-        connect(w_footwears, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+        connect(w_footwears, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+        connect(w_footwears, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_footwears, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_footwears, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
@@ -214,8 +214,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         w_amulet->setInitialPosition(amuletPos);
         w_amulet->setPos(amuletPos);
         equipmentRightSide.append(w_amulet);
-        connect(w_amulet, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-        connect(w_amulet, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+        connect(w_amulet, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+        connect(w_amulet, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_amulet, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_amulet, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
@@ -225,8 +225,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         w_weapon->setInitialPosition(weaponPos);
         w_weapon->setPos(weaponPos);
         equipmentRightSide.append(w_weapon);
-        connect(w_weapon, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-        connect(w_weapon, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+        connect(w_weapon, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+        connect(w_weapon, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_weapon, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_weapon, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
@@ -240,8 +240,8 @@ void Frag_Interface_Gear::addItemLeftSide(Item * item)
 
     int vOffset = 10, hOffset = 10;
     w_item->setPos(vOffset, hOffset);
-    connect(w_item, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-    connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
     connect(w_item, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
     connect(w_item, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
 

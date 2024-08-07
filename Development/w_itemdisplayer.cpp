@@ -167,8 +167,20 @@ void ItemQuickDisplayer::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
 void ItemQuickDisplayer::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
-    emit sig_itemClicked(this);
-    QGraphicsItem::mousePressEvent(event);
+    if(event->button() == Qt::LeftButton)
+    {
+        emit sig_itemClicked(this);
+        QGraphicsItem::mousePressEvent(event);
+        event->accept();
+    }
+    else if(event->button() == Qt::RightButton){
+        emit sig_itemRightClicked(this);
+        QGraphicsItem::mousePressEvent(event);
+        event->accept();
+    }
+    else{
+        event->ignore();
+    }   
 }
 
 void ItemQuickDisplayer::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
@@ -176,7 +188,10 @@ void ItemQuickDisplayer::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
     if(isMovable){
         emit sig_itemMoved(this);
         QGraphicsItem::mouseReleaseEvent(event);
+        event->accept();
     }
+    else
+        event->ignore();
 }
 
 void ItemQuickDisplayer::hoverEnterEvent(QGraphicsSceneHoverEvent * event)

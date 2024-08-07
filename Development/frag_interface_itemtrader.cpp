@@ -32,7 +32,7 @@ Frag_Interface_ItemTrader::Frag_Interface_ItemTrader(QWidget *parent, QPixmap pi
     ui->graphicsView->setStyleSheet("background-color:rgba(0,0,0,0);border:no border;");
 }
 
-void Frag_Interface_ItemTrader::itemMovedHandler(ItemQuickDisplayer * item)
+void Frag_Interface_ItemTrader::onItemMovedHandler(ItemQuickDisplayer * item)
 {
     item->setZValue(0);
     if(!mScene->sceneRect().contains(item->boundingRect()))
@@ -62,10 +62,33 @@ void Frag_Interface_ItemTrader::itemMovedHandler(ItemQuickDisplayer * item)
     }
 }
 
-void Frag_Interface_ItemTrader::itemSelected(ItemQuickDisplayer * item)
+void Frag_Interface_ItemTrader::onItemSelected(ItemQuickDisplayer * item)
 {
     item->setZValue(1);
     emit sig_itemClicked(item);
+}
+
+void Frag_Interface_ItemTrader::onItemRightClicked(ItemQuickDisplayer* itemDisplayer)
+{
+    QList<Item*> itemsLeft = getItemsLeftSide();
+    QList<Item*> itemsRight = getItemsRightSide();
+
+    for(Item *item : qAsConst(itemsLeft))
+    {
+        if(item == itemDisplayer->getItem())
+        {
+            moveItemLeftToRight(itemDisplayer);
+            emit sig_itemSwipedToRight(itemDisplayer);
+        }
+    }
+    for(Item *item : qAsConst(itemsRight))
+    {
+        if(item == itemDisplayer->getItem())
+        {
+            moveItemRightToLeft(itemDisplayer);
+            emit sig_itemSwipedToLeft(itemDisplayer);
+        }
+    }
 }
 
 void Frag_Interface_ItemTrader::setSceneDeep(int deep)
@@ -82,8 +105,9 @@ void Frag_Interface_ItemTrader::addItemLeftSide(Item * item)
 
     int vOffset = mSizeData.verticalOffset, hOffset = mSizeData.horizontalOffset;
     w_item->setPos(hOffset, vOffset);
-    connect(w_item, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-    connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
 
     while(!w_item->collidingItems().isEmpty())
     {
@@ -113,8 +137,9 @@ void Frag_Interface_ItemTrader::addItemRightSide(Item * item)
 
     int vOffset = mSizeData.verticalOffset, hOffset = mSizeData.xPosSplitter+50+mSizeData.horizontalOffset;
     w_item->setPos(hOffset, vOffset);
-    connect(w_item, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(itemMovedHandler(ItemQuickDisplayer*)));
-    connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(itemSelected(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
 
     while(!w_item->collidingItems().isEmpty())
     {
@@ -188,7 +213,7 @@ QList<Item *> Frag_Interface_ItemTrader::getItemsRightSide()
 
 void Frag_Interface_ItemTrader::removeItemRightSide(Item * itemToRemove)
 {
-    for(ItemQuickDisplayer * item : itemsRightSide)
+    for(ItemQuickDisplayer * item : qAsConst(itemsRightSide))
     {
         if(item->getItem() == itemToRemove)
         {
@@ -201,7 +226,7 @@ void Frag_Interface_ItemTrader::removeItemRightSide(Item * itemToRemove)
 
 void Frag_Interface_ItemTrader::removeItemLeftSide(Item * itemToRemove)
 {
-    for(ItemQuickDisplayer * item : itemsLeftSide)
+    for(ItemQuickDisplayer * item : qAsConst(itemsLeftSide))
     {
         if(item->getItem() == itemToRemove)
         {

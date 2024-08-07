@@ -29,9 +29,11 @@ signals:
     void sig_itemSwipedToRight(ItemQuickDisplayer*);
     void sig_itemSwipedToLeft(ItemQuickDisplayer*);
     void sig_itemClicked(ItemQuickDisplayer*);
+    void sig_itemSelected(ItemQuickDisplayer*);
 private slots:
-    void itemMovedHandler(ItemQuickDisplayer*);
-    void itemSelected(ItemQuickDisplayer*);
+    void onItemMovedHandler(ItemQuickDisplayer*);
+    void onItemSelected(ItemQuickDisplayer*);
+    void onItemRightClicked(ItemQuickDisplayer*);
 public:
     void setSceneDeep(int);
     void addItemLeftSide(Item*);

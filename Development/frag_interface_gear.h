@@ -26,8 +26,8 @@ signals:
     void sig_equipItem(Item*);
     void sig_unequipItem(Item*);
 private slots:
-    void itemMovedHandler(ItemQuickDisplayer*); // check travels R->L or L->R - connect to move signals
-    void itemSelected(ItemQuickDisplayer*);
+    void onItemMovedHandler(ItemQuickDisplayer*); // check travels R->L or L->R - connect to move signals
+    void onItemSelected(ItemQuickDisplayer*);
 public:
     void addItemLeftSide(Item*);
     void initEquipmentRightSide();

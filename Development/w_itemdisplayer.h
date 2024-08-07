@@ -17,6 +17,7 @@ public:
     ~ItemQuickDisplayer();
 signals:
     void sig_itemClicked(ItemQuickDisplayer*);
+    void sig_itemRightClicked(ItemQuickDisplayer*);
     void sig_itemDoubleClicked(ItemQuickDisplayer*);
     void sig_itemMoved(ItemQuickDisplayer*);
     void sig_itemHoverIn(ItemQuickDisplayer*);
