@@ -77,6 +77,7 @@ protected:
 
     QRect mBoundingRect;
     QPainterPath mShape;
+    CollisionShape * mCollisionShape;
     QPixmap mImage;
     int mNextFrame;
     int mNumberFrame;

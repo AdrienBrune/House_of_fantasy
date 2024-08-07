@@ -11,6 +11,25 @@
 #include "item.h"
 #include "constants.h"
 
+class CollisionShape : public QObject, public QGraphicsPixmapItem
+{
+public:
+    explicit CollisionShape(QGraphicsItem *parent = nullptr, QRect bounding = QRect(), QPainterPath shape = QPainterPath()):
+        QObject(),
+        QGraphicsPixmapItem(parent),
+        mShape(shape),
+        mBoundingRect(bounding)
+    {}
+    ~CollisionShape(){}
+
+    QPainterPath shape() const { return mShape; }
+    QRectF boundingRect() const { return static_cast<QRectF>(mBoundingRect); }
+    void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *){}
+private:
+    QPainterPath mShape;
+    QRect mBoundingRect;
+};
+
 class MapItem : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
@@ -20,21 +39,27 @@ public:
 signals:
     void sig_playSound(int);
 public:
+    void setImage(QPixmap image, bool trueShape = false, bool scale = false);
     QPixmap getImage();
     QString invocName();
     QPainterPath shape() const;
     QRectF boundingRect()const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public:
-    virtual bool isObstacle()=0;
+    bool isObstacle();
+    CollisionShape * getObstacleShape();
+    const int & getZOffset();
+private:
+    void setShape(QPixmap image, bool trueShape = false, bool scale = false);
 protected:
     QRect mBoundingRect;
     QPainterPath mShape;
+    CollisionShape *mCollisionShape;
+    int mZOffset;
     QPixmap mImage;
     int mImageSelected;
     int mImageEvent;
     QString mMapItemName;
-    bool mObstacle;
 protected:
     static quint32 sNbInstances;
 };
@@ -52,12 +77,10 @@ signals:
 public:
     void setInitialPosition(QPointF);
     void setReadyToDelete();
-
-    bool isObstacle();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 protected:
-    void setShape();
-
+    void setImage(QPixmap image);
+public slots:
     void mousePressEvent(QGraphicsSceneMouseEvent *);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *);
@@ -78,7 +101,6 @@ public:
     Tree();
     ~Tree();
 public:
-    bool isObstacle();
     void destructIt();
 private:
     void initMapItem();
@@ -89,8 +111,6 @@ class TreeFallen : public MapItem
 public:
     TreeFallen();
     ~TreeFallen();
-public:
-    bool isObstacle();
 private:
     void initMapItem();
 };
@@ -102,7 +122,6 @@ public:
     Bush();
     ~Bush();
 public:
-    bool isObstacle();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public:
     void startAnimation();
@@ -122,7 +141,6 @@ public:
     Rock();
     ~Rock();
 public:
-    bool isObstacle();
     void destructIt();
 private:
     void initMapItem();
@@ -133,8 +151,6 @@ class Ground : public MapItem
 public:
     Ground();
     ~Ground();
-public:
-    bool isObstacle();
 private:
     void initMapItem();
 };
@@ -166,8 +182,6 @@ public:
     ~Lake();
 public:
     MapItem * getEvent();
-
-    bool isObstacle();
 private:
     void initMapItem();
 private:

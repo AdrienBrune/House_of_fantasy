@@ -113,28 +113,24 @@ void FishingEvent::itemsTook()
     update();
 }
 
-bool FishingEvent::isObstacle()
-{
-    return mObstacle;
-}
-
 void FishingEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mNextFrame), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
+
+    // painter->setBrush(QBrush("#7700FF00"));
+    // painter->drawPath(mShape);
 }
 
 void FishingEvent::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/animation_fish.png");
+    mBoundingRect = QRect(0,0,200,100);
     mImageSelected = 0;
     mNextFrame = 6;
+    setImage(QPixmap(":/MapItems/animation_fish.png"));
     setZValue(Z_FISH_EVENT);
-
-    mBoundingRect = QRect(0,0,200,100);
-    mShape.addRect(mBoundingRect);
 }
 
 QList<Fish*> FishingEvent::generateRandomFishes()
@@ -174,12 +170,14 @@ BushEvent::BushEvent():
     MapEvent ()
 {
     mMapItemName = "Bush event";
-    setRotation(QRandomGenerator::global()->bounded(31)-15);
-    mNextFrame = 0;
-    setZValue(Z_BUSH);
-
+    
     mBoundingRect = QRect(0,0,100,100);
-    mShape.addEllipse(QRect(20,20,60,60));
+    mZOffset = mBoundingRect.height()*5/6;
+    setImage(QPixmap(":/MapItems/bush.png"));
+
+    mNextFrame = 0;
+    setRotation(QRandomGenerator::global()->bounded(31)-15);
+    setZValue(Z_BUSH);
 
     t_animation = new QTimer(this);
     connect(t_animation, SIGNAL(timeout()), this, SLOT(animate()));
@@ -214,6 +212,9 @@ void BushEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mNextFrame), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
+
+    // painter->setBrush(QBrush("#7700FF00"));
+    // painter->drawPath(mShape);
 }
 
 void BushEvent::restoreGraphicStuff()
@@ -246,11 +247,6 @@ void BushEventCoin::initGraphicStuff()
     mImageSelected = QRandomGenerator::global()->bounded(RES_BUSH);
 }
 
-bool BushEventCoin::isObstacle()
-{
-    return mObstacle;
-}
-
 void BushEventCoin::itemsTook()
 {
     BushEvent::restoreGraphicStuff();
@@ -278,11 +274,6 @@ void BushEventEquipment::initGraphicStuff()
 {
     mImage = QPixmap(":/MapItems/bush_event_equipment.png");
     mImageSelected = QRandomGenerator::global()->bounded(RES_BUSH);
-}
-
-bool BushEventEquipment::isObstacle()
-{
-    return mObstacle;
 }
 
 void BushEventEquipment::itemsTook()
@@ -430,6 +421,9 @@ void ChestEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     Q_UNUSED(widget)
     Q_UNUSED(option)
+
+    // painter->setBrush(QBrush("#7700FF00"));
+    // painter->drawPath(mShape);
 }
 
 void ChestEvent::itemsTook()
@@ -439,11 +433,6 @@ void ChestEvent::itemsTook()
     mHover = false;
     disconnect(this, SIGNAL(sig_clicToOpenChest(ChestEvent*)), nullptr, nullptr);
     update();
-}
-
-bool ChestEvent::isObstacle()
-{
-    return mObstacle;
 }
 
 ChestEvent::~ChestEvent()
@@ -532,28 +521,25 @@ void OreSpot::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mType), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
+
+    // painter->setBrush(QBrush("#77FF00FF"));
+    // painter->drawPath(mShape);
 }
 
 void OreSpot::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/oreSpot.png");
-    mImageSelected = QRandomGenerator::global()->bounded(RES_ORE_SPOT);
-    setZValue(Z_ORESPOT);
     mType = Ore::none;
-
     mBoundingRect = QRect(0,0,100,100);
-    mShape.addEllipse(mBoundingRect);
+    mZOffset = mBoundingRect.height()/2;
+    mImageSelected = QRandomGenerator::global()->bounded(RES_ORE_SPOT);
+    setImage(QPixmap(":/MapItems/oreSpot.png"));
+    setZValue(Z_ORESPOT);
 }
 
 void OreSpot::itemsTook()
 {
     mType = Ore::none;
     update();
-}
-
-bool OreSpot::isObstacle()
-{
-    return mObstacle;
 }
 
 

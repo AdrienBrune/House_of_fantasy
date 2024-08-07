@@ -4,7 +4,8 @@ Character::Character():
     QObject(),
     QGraphicsPixmapItem(),
     mBoundingRect(QRect()),
-    mShape(QPainterPath())
+    mShape(QPainterPath()),
+    mCollisionShape(nullptr)
 {
 
 }

@@ -924,7 +924,7 @@ void CTRWindow::openInterface(QGraphicsItem * item)
         displayInterfaceTrading(new Win_Alchemist(this, mHero, mMap->getVillage()->getAlchemist()));
         return;
     }
-    MainHouse * heroHouse = dynamic_cast<MainHouse*>(item);
+    Taverne * heroHouse = dynamic_cast<Taverne*>(item);
     if(heroHouse){
         mHero->freeze(true);
         if(w_night)

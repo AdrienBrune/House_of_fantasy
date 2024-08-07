@@ -295,7 +295,7 @@ void Monster::advance(int phase)
     if(mAction == Action::stand && mIsInView)
     {
         QList<QGraphicsItem*> itemsColliding = scene()->collidingItems(this);
-        for(QGraphicsItem * i : itemsColliding)
+        for(QGraphicsItem * i : qAsConst(itemsColliding))
         {
             Monster * monster = dynamic_cast<Monster*>(i);
             if(monster){
@@ -348,14 +348,16 @@ void Monster::advance(int phase)
 
 void Monster::doCollision()
 {
+    int zOffset;
+
     // Refresh data
     mMove.collision.first() = mMove.collision.last();
     mMove.collision.last() = false;
-    bool collisionWithMonster = false;
 
     // Check for collision with specific items
     QList<QGraphicsItem*> itemsColliding = scene()->collidingItems(this);
-    for(QGraphicsItem * item : itemsColliding)
+    zOffset = itemsColliding.isEmpty() ? Z_MONSTERS : Z_GROUND_FOREGROUND ;
+    for(QGraphicsItem * item : qAsConst(itemsColliding))
     {
         Village * village = dynamic_cast<Village*>(item);
         if(village){
@@ -374,23 +376,19 @@ void Monster::doCollision()
         Monster * monster = dynamic_cast<Monster*>(item);
         if(monster){
             // Set Z value to establish depth
-            collisionWithMonster = true;
             if(pos().y()+boundingRect().height() > monster->y()+monster->boundingRect().height())
-                setZValue(Z_MONSTER_FOREGROUND);
+                zOffset = Z_MONSTER_FOREGROUND;
             else
-                setZValue(Z_MONSTER_BACKGROUND);
+                zOffset = Z_MONSTER_BACKGROUND;
 
             continue;
         }
     }
 
-    if(!collisionWithMonster)
-        setZValue(Z_MONSTERS);
-
     if(mThreatLevel >= 10)
     {
         // MapItem destruction
-        for(QGraphicsItem * item : itemsColliding)
+        for(QGraphicsItem * item : qAsConst(itemsColliding))
         {
             MapItem * mapItem = dynamic_cast<MapItem*>(item);
             if(mapItem)
@@ -435,22 +433,23 @@ void Monster::doCollision()
     }
 
     // Process map items which are not obstacles
-    for(QGraphicsItem * i : itemsColliding)
+    for(QGraphicsItem * i : qAsConst(itemsColliding))
     {
         MapItem * item = dynamic_cast<MapItem*>(i);
         if(item){
             if(!item->isObstacle())
             {
+                // Update Z position
+                if(y() + this->boundingRect().height() < item->y() + item->getZOffset())
+                    zOffset = (zOffset < item->zValue() - 1) ? item->zValue() - 1 : zOffset ;
+                else
+                    zOffset = (zOffset < item->zValue() + 1) ? item->zValue() + 1 : zOffset ;
+
                 Bush * bush = dynamic_cast<Bush*>(item);
                 BushEventCoin * bushEventCoin = dynamic_cast<BushEventCoin*>(item);
                 BushEventEquipment * bushEventEquipment = dynamic_cast<BushEventEquipment*>(item);
                 if(bush){
                     if(isInView()){
-                        if(y()+boundingRect().height() < item->y()+item->boundingRect().height()*3/4){
-                            item->setZValue(Z_MONSTER_FOREGROUND+1);
-                        }else {
-                            item->setZValue(Z_BUSH);
-                        }
                         if(!bush->isAnimated()){
                             emit sig_movedInBush(bush);
                         }
@@ -458,11 +457,6 @@ void Monster::doCollision()
                     }
                 }else if(bushEventCoin){
                     if(isInView()){
-                        if(y()+boundingRect().height() < item->y()+item->boundingRect().height()*3/4){
-                            item->setZValue(Z_MONSTER_FOREGROUND+1);
-                        }else {
-                            item->setZValue(Z_BUSH);
-                        }
                         if(!bushEventCoin->isAnimated()){
                             emit sig_movedInBushEvent(bushEventCoin);
                         }
@@ -470,11 +464,6 @@ void Monster::doCollision()
                     }
                 }else if(bushEventEquipment){
                     if(isInView()){
-                        if(y()+boundingRect().height() < item->y()+item->boundingRect().height()*3/4){
-                            item->setZValue(Z_MONSTER_FOREGROUND+1);
-                        }else {
-                            item->setZValue(Z_BUSH);
-                        }
                         if(!bushEventEquipment->isAnimated()){
                             emit sig_movedInBushEvent(bushEventEquipment);
                         }
@@ -484,6 +473,9 @@ void Monster::doCollision()
             }
         }
     }
+
+    setZValue(zOffset);
+    update();
 }
 
 bool Monster::isInView()

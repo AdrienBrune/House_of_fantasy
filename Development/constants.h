@@ -97,26 +97,26 @@
 #define RES_LAKE        1
 #define RES_ORE_SPOT    4
 
-#define Z_GROUND        1
-#define Z_GROUND_FOREGROUND 2
-#define Z_CHEST_BURRIED 3
-#define Z_ORESPOT       3
-#define Z_PLANK         4
-#define Z_STONE         5
-#define Z_ROCK          6
-#define Z_BUSH          7
-#define Z_TREE_FALLEN   8
-#define Z_TREE          16
-#define Z_ITEM          Z_GROUND_FOREGROUND
-#define Z_ITEM_FOREGROUND Z_HERO-4
-#define Z_LAKE          8
-#define Z_FISH_EVENT    Z_LAKE+1
+#define Z_GROUND                1
+#define Z_GROUND_FOREGROUND     2
+#define Z_CHEST_BURRIED         3
+#define Z_ORESPOT               3
+#define Z_PLANK                 4
+#define Z_STONE                 5
+#define Z_ROCK                  6
+#define Z_BUSH                  7
+#define Z_TREE_FALLEN           8
+#define Z_TREE                  14
+#define Z_ITEM                  Z_GROUND_FOREGROUND
+#define Z_ITEM_FOREGROUND       Z_HERO-4
+#define Z_LAKE                  8
+#define Z_FISH_EVENT            Z_LAKE+1
 
-#define Z_VILLAGE       Z_HERO-4
-#define Z_MONSTER_BACKGROUND 10
-#define Z_MONSTERS      11
-#define Z_MONSTER_FOREGROUND 12
-#define Z_HERO          14
+#define Z_VILLAGE               Z_HERO-4
+#define Z_MONSTER_BACKGROUND    10
+#define Z_MONSTERS              11
+#define Z_MONSTER_FOREGROUND    12
+#define Z_HERO                  15
 
 // Sounds
 #define SOUND_BUSH_SHAKED                   0

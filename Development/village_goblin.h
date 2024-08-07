@@ -16,14 +16,6 @@ class Hut : public MapItem
 public:
     Hut();
     ~Hut();
-public:
-    bool isObstacle();
-public:
-    QPainterPath shape() const;
-    QRectF boundingRect()const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-private:
-    void setTexture();
 };
 
 class TownHall : public MapItem
@@ -31,14 +23,6 @@ class TownHall : public MapItem
 public:
     TownHall();
     ~TownHall();
-public:
-    bool isObstacle();
-public:
-    QPainterPath shape() const;
-    QRectF boundingRect()const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-private:
-    void setTexture();
 };
 
 class WatchTower : public MapItem
@@ -46,14 +30,6 @@ class WatchTower : public MapItem
 public:
     WatchTower();
     ~WatchTower();
-public:
-    bool isObstacle();
-public:
-    QPainterPath shape() const;
-    QRectF boundingRect()const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-private:
-    void setTexture();
 };
 
 class Village_Goblin : public QObject, public QGraphicsPixmapItem

@@ -23,18 +23,12 @@ private slots:
     void showBuildingInfo();
 public:
     QString getInformation();
-    bool isObstacle();
-    QPainterPath shape() const;
-    QRectF boundingRect()const;
 protected:
-    void setShape();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void mousePressEvent(QGraphicsSceneMouseEvent *);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *);
 protected:
-    QRect mBounding;
-    QPainterPath mCollisionShape;
     bool mHover;
     QString mInformation;
     QTimer * t_delayHover;
@@ -331,11 +325,11 @@ private:
 
 
 
-class MainHouse : public House
+class Taverne : public House
 {
 public:
-    MainHouse();
-    ~MainHouse();
+    Taverne();
+    ~Taverne();
 private:
     void setGraphicStuff();
 };
@@ -390,8 +384,6 @@ public:
         object.deserialize(stream);
         return stream;
     }
-public:
-    bool isObstacle();
 private:
     void setGraphicStuff();
 private:
@@ -405,32 +397,54 @@ public:
     HeroHouse();
     ~HeroHouse();
 public:
-    MainHouse * getHouse();
+    Taverne * getHouse();
     HeroChest * getChest();
     void setPosition(QPointF);
 public:
-    MainHouse * mHouse;
+    Taverne * mHouse;
     HeroChest * mChest;
 };
 
-class RampartBot :  public House
+
+
+
+class ChevalDeFrise : public MapItem
 {
 public:
-    RampartBot();
-    ~RampartBot();
+    ChevalDeFrise(float ratio = 1.0):
+        MapItem(),
+        mRatio(ratio)
+    {}
+    virtual ~ChevalDeFrise(){}
 public:
-    void setPosition(QPointF);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    void setPosition(QPointF position) { setPos(position.x(),position.y()); }
+protected:
+    virtual void setGraphicStuff()=0;
+protected:
+    float mRatio;
+};
+class ChevalDeFriseFront : public ChevalDeFrise
+{
+public:
+    ChevalDeFriseFront(float ratio = 1.0):
+        ChevalDeFrise(ratio)
+    {
+        setGraphicStuff();
+    }
+    ~ChevalDeFriseFront(){}
 private:
     void setGraphicStuff();
 };
-
-class RampartTop :  public House
+class ChevalDeFriseDiag : public ChevalDeFrise
 {
 public:
-    RampartTop();
-    ~RampartTop();
-public:
-    void setPosition(QPointF);
+    ChevalDeFriseDiag(float ratio = 1.0):
+        ChevalDeFrise(ratio)
+    {
+        setGraphicStuff();
+    }
+    ~ChevalDeFriseDiag(){}
 private:
     void setGraphicStuff();
 };
@@ -494,8 +508,7 @@ private:
     HeroHouse * mHouse;
     Altar * mAltar;
     Alchemist * mAlchemist;
-    RampartTop * mRampartTop;
-    RampartBot * mRampartBot;
+    QList<ChevalDeFrise*> mChevalDeFriseList;
 };
 
 

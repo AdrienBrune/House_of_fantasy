@@ -7,17 +7,27 @@ MapItem::MapItem():
     QGraphicsPixmapItem(),
     mBoundingRect(QRect()),
     mShape(QPainterPath()),
+    mCollisionShape(nullptr),
+    mZOffset(0),
     mImageSelected(0),
     mImageEvent(0),
-    mMapItemName(""),
-    mObstacle(false)
+    mMapItemName("")
 {
     //qDebug() << "[C] " << ++sNbInstances << " " << mMapItemName;
 }
 
 MapItem::~MapItem()
 {
+    if(mCollisionShape)
+        delete mCollisionShape;
+    mCollisionShape = nullptr;
     //qDebug() << "[D] " << --sNbInstances << " " << mMapItemName;
+}
+
+void MapItem::setImage(QPixmap image, bool trueShape, bool scale)
+{
+    mImage = image;
+    setShape(image, trueShape, scale);
 }
 
 QPixmap MapItem::getImage()
@@ -45,11 +55,49 @@ void MapItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
 {
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(mImageEvent*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
+
     Q_UNUSED(widget)
     Q_UNUSED(option)
+
+    // painter->setBrush(QBrush("#7700FF00"));
+    // painter->drawPath(mShape);
+    // if(isObstacle())
+    // {
+    //     painter->setBrush(QBrush("#77FF0000"));
+    //     painter->drawPath(mCollisionShape->shape());
+    // }
 }
 
+bool MapItem::isObstacle()
+{
+    return mCollisionShape ? true : false;
+}
 
+CollisionShape * MapItem::getObstacleShape()
+{
+    return mCollisionShape;
+}
+
+const int & MapItem::getZOffset()
+{
+    return mZOffset;
+}
+
+void MapItem::setShape(QPixmap image, bool trueShape, bool scale)
+{
+    if(trueShape)
+    {
+        QGraphicsPixmapItem * tmp = new QGraphicsPixmapItem(this);
+        if(scale)
+            tmp->setPixmap(mImage.scaled(static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height())));
+        else
+            tmp->setPixmap(image.copy(static_cast<int>(mImageSelected*boundingRect().width()), 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height())));
+        mShape = tmp->shape();
+        delete tmp;
+    }
+    else
+        mShape.addEllipse(boundingRect());
+}
 
 
 Bush::Bush():
@@ -61,23 +109,18 @@ Bush::Bush():
 void Bush::initMapItem()
 {
     mMapItemName = "Bush";
-    mImage = QPixmap(":/MapItems/bush.png");
-    mImageSelected = QRandomGenerator::global()->bounded(RES_BUSH);
-    setZValue(Z_BUSH);
 
     mBoundingRect = QRect(0,0,100,100);
-    mShape.addRect(QRectF(20, 20, boundingRect().width()-20, boundingRect().height()-20));
+    mZOffset = mBoundingRect.height()*9/10;
+    mImageSelected = QRandomGenerator::global()->bounded(RES_BUSH);
+    setImage(QPixmap(":/MapItems/bush.png"));
 
     mNextFrame = 0;
     t_animation = new QTimer(this);
     connect(t_animation, SIGNAL(timeout()), this, SLOT(animate()));
 
+    setZValue(Z_BUSH);
     setRotation(QRandomGenerator::global()->bounded(40)-20);
-}
-
-bool Bush::isObstacle()
-{
-    return mObstacle;
 }
 
 void Bush::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -86,6 +129,9 @@ void Bush::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mNextFrame), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
+
+    // painter->setBrush(QBrush("#7700FF00"));
+    // painter->drawPath(mShape);
 }
 
 void Bush::animate()
@@ -133,27 +179,23 @@ Tree::Tree():
 void Tree::initMapItem()
 {
     mMapItemName = "Tree";
-    mImage = QPixmap(":/MapItems/tree.png");
-    mImageSelected = QRandomGenerator::global()->bounded(RES_TREE);
-    setZValue(Z_TREE);
-    mObstacle = true;
 
     mBoundingRect = QRect(0,0,200,400);
-    mShape.addEllipse(QRectF(boundingRect().width()/3,boundingRect().height()*3/4,boundingRect().width()*2/5,boundingRect().height()/4));
+    mZOffset = mBoundingRect.height()*19/20;
+    mImageSelected = QRandomGenerator::global()->bounded(RES_TREE);
+    setImage(QPixmap(":/MapItems/tree.png"));
 
+    setZValue(Z_TREE);
     setRotation(QRandomGenerator::global()->bounded(20)-10);
-}
-
-bool Tree::isObstacle()
-{
-    return mObstacle;
 }
 
 void Tree::destructIt()
 {
     mImageEvent = 1;
     setZValue(Z_TREE_FALLEN);
-    mObstacle = false;
+    if(mCollisionShape)
+        delete mCollisionShape;
+    mCollisionShape = nullptr;
     update();
     emit sig_playSound(SOUND_TREE_FALL);
 }
@@ -181,18 +223,14 @@ TreeFallen::TreeFallen():
 void TreeFallen::initMapItem()
 {
     mMapItemName = "Tree fallen";
-    mImage = QPixmap(":/MapItems/tree_fallen.png");
-    mImageSelected = QRandomGenerator::global()->bounded(RES_TREE_FALLEN);
-    setZValue(Z_TREE_FALLEN);
 
     mBoundingRect = QRect(0,0,200,100);
+    mZOffset = mBoundingRect.height()*3/4;
+    mImageSelected = QRandomGenerator::global()->bounded(RES_TREE_FALLEN);
+    setImage(QPixmap(":/MapItems/tree_fallen.png"));
 
-    setRotation(QRandomGenerator::global()->bounded(32)-16);
-}
-
-bool TreeFallen::isObstacle()
-{
-    return mObstacle;
+    setZValue(Z_TREE_FALLEN);
+    setRotation(QRandomGenerator::global()->bounded(20)-10);
 }
 
 TreeFallen::~TreeFallen()
@@ -216,26 +254,22 @@ Rock::Rock():
 void Rock::initMapItem()
 {
     mMapItemName = "Rock";
-    mImage = QPixmap(":/MapItems/rock.png");
-    mImageSelected = QRandomGenerator::global()->bounded(RES_ROCK);
-    setZValue(Z_ROCK);
-    mObstacle = true;
 
     mBoundingRect = QRect(0,0,150,150);
-    mShape.addEllipse(QRect(40,0,70,50));
+    mZOffset = mBoundingRect.height()*3/4;
+    mImageSelected = QRandomGenerator::global()->bounded(RES_ROCK);
+    setImage(QPixmap(":/MapItems/rock.png"));
 
+    setZValue(Z_ROCK);
     setRotation(QRandomGenerator::global()->bounded(20)-10);
-}
-
-bool Rock::isObstacle()
-{
-    return mObstacle;
 }
 
 void Rock::destructIt()
 {
     mImageEvent = 1;
-    mObstacle = false;
+    if(mCollisionShape)
+        delete mCollisionShape;
+    mCollisionShape = nullptr;
     update();
     emit sig_playSound(SOUND_ROCK_CRUSH);
 }
@@ -259,20 +293,15 @@ Ground::Ground():
 
 void Ground::initMapItem()
 {
-    QString buff = "";
+    QString temp = "";
     mMapItemName = "Ground";
-    mImageSelected = 0;
-    mImage = QPixmap(":/grounds/grounds/ground_" + buff.asprintf("%d", QRandomGenerator::global()->bounded(RES_GROUND)) + ".png");
-    setZValue(Z_GROUND);
 
     mBoundingRect = QRect(0,0,500,300);
+    mImageSelected = 0;
+    setImage(QPixmap(":/grounds/grounds/ground_" + temp.asprintf("%d", QRandomGenerator::global()->bounded(RES_GROUND)) + ".png"));
 
+    setZValue(Z_GROUND);
     setRotation(QRandomGenerator::global()->bounded(30)-15);
-}
-
-bool Ground::isObstacle()
-{
-    return mObstacle;
 }
 
 Ground::~Ground()
@@ -304,12 +333,10 @@ MapItemMovable::~MapItemMovable()
 
 }
 
-void MapItemMovable::setShape()
+void MapItemMovable::setImage(QPixmap image)
 {
-    QGraphicsPixmapItem * tmp = new QGraphicsPixmapItem(this);
-    tmp->setPixmap(mImage.copy(static_cast<int>(mImageSelected*boundingRect().width()), 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height())));
-    mBorders = tmp->shape();
-    delete tmp;
+    MapItem::setImage(image, true);
+    mBorders = mShape;
 }
 
 void MapItemMovable::setInitialPosition(QPointF p)
@@ -320,11 +347,6 @@ void MapItemMovable::setInitialPosition(QPointF p)
 void MapItemMovable::setReadyToDelete()
 {
     mReadyToDelete = true;
-}
-
-bool MapItemMovable::isObstacle()
-{
-    return mObstacle;
 }
 
 void MapItemMovable::mousePressEvent(QGraphicsSceneMouseEvent * event)
@@ -408,14 +430,13 @@ Plank::Plank():
 void Plank::initMapItem()
 {
     mMapItemName = "Plank";
-    mImage = QPixmap(":/MapItems/plank.png");
-    mImageSelected = QRandomGenerator::global()->bounded(RES_PLANK);
-    setZValue(Z_PLANK);
 
     mBoundingRect = QRect(0,0,100,100);
-    mShape.addEllipse(mBoundingRect);
-    setShape();
+    mZOffset = mBoundingRect.height()*3/4;
+    mImageSelected = QRandomGenerator::global()->bounded(RES_PLANK);
+    setImage(QPixmap(":/MapItems/plank.png"));
 
+    setZValue(Z_PLANK);
     setRotation(QRandomGenerator::global()->bounded(30)-15);
 }
 
@@ -435,14 +456,13 @@ Stone::Stone():
 void Stone::initMapItem()
 {
     mMapItemName = "Stone";
-    mImage = QPixmap(":/MapItems/stone.png");
-    mImageSelected = QRandomGenerator::global()->bounded(RES_STONE);
-    setZValue(Z_STONE);
 
     mBoundingRect = QRect(0,0,70,70);
-    mShape.addEllipse(mBoundingRect);
-    setShape();
+    mZOffset = mBoundingRect.height()*3/4;
+    mImageSelected = QRandomGenerator::global()->bounded(RES_STONE);
+    setImage(QPixmap(":/MapItems/stone.png"));
 
+    setZValue(Z_STONE);
     setRotation(QRandomGenerator::global()->bounded(30)-15);
 }
 
@@ -465,39 +485,36 @@ Lake::Lake(MapItem * event):
 void Lake::initMapItem()
 {
     mMapItemName = "Lake";
-    mImage = QPixmap(":/MapItems/lake.png");
-    mImageSelected = QRandomGenerator::global()->bounded(RES_LAKE);
-    setZValue(Z_LAKE);
-    mObstacle = true;
 
     mBoundingRect = QRect(0,0,700,700);
+    mImageSelected = QRandomGenerator::global()->bounded(RES_LAKE);
+    setImage(QPixmap(":/MapItems/lake.png"));
+
+    QPainterPath collidingShape;
     QPolygon polygon;
     static const int points[] = {
         10, 395,
-        40, 315,
-        120, 215,
-        360, 120,
-        600, 125,
-        645, 245,
-        635, 410,
-        485, 550,
-        365, 570,
-        260, 540,
-        135, 535,
-        25, 420
+        33, 486,
+        185, 590,
+        450, 610,
+        503, 512,
+        541, 376,
+        517, 185,
+        390, 121,
+        333, 158,
+        138, 207,
+        18, 329
     };
-    polygon.setPoints(12, points);
-    mShape.addPolygon(polygon);
+    polygon.setPoints(11, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
+
+    setZValue(Z_LAKE);
 }
 
 MapItem *Lake::getEvent()
 {
     return mEvent;
-}
-
-bool Lake::isObstacle()
-{
-    return mObstacle;
 }
 
 Lake::~Lake()

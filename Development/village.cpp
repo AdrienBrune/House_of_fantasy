@@ -3,8 +3,6 @@
 
 
 House::House():
-    mBounding(QRect()),
-    mCollisionShape(QPainterPath()),
     mHover(false),
     mInformation("")
 {
@@ -27,29 +25,6 @@ void House::showBuildingInfo()
 QString House::getInformation()
 {
     return mInformation;
-}
-
-bool House::isObstacle()
-{
-    return true;
-}
-
-void House::setShape()
-{
-    QGraphicsPixmapItem * tmp = new QGraphicsPixmapItem(this);
-    tmp->setPixmap(mImage.scaled(static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height())));
-    mShape = tmp->shape();
-    delete tmp;
-}
-
-QPainterPath House::shape() const
-{
-    return mCollisionShape;
-}
-
-QRectF House::boundingRect() const
-{
-    return mBounding;
 }
 
 void House::mousePressEvent(QGraphicsSceneMouseEvent * event)
@@ -98,6 +73,14 @@ void House::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
         painter->drawPath(mShape);
     }
 
+//    painter->setBrush(QBrush("#7700FF00"));
+//    painter->drawPath(mShape);
+//    if(isObstacle())
+//    {
+//        painter->setBrush(QBrush("#77FF0000"));
+//        painter->drawPath(mCollisionShape->shape());
+//    }
+
     Q_UNUSED(widget)
     Q_UNUSED(option)
 }
@@ -125,31 +108,24 @@ BlacksmithHouse::~BlacksmithHouse()
 
 void BlacksmithHouse::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/blacksmith_house.png");
+    mBoundingRect = QRect(0,0,400,400);
+    mZOffset = mBoundingRect.height()*2/3;
+    setImage(QPixmap(":/MapItems/blacksmith_house.png"), true);
 
-    mBounding = QRect(0,0,400,400);
-
-    House::setShape();
+    QPainterPath collidingShape;
     QPolygon polygon;
     static const int points[] = {
-        30, 40,
-        200, 5,
-        205, 60,
-        250, 50,
-        280, 150,
-        350,170,
-        375, 220,
-        315, 260,
-        200, 220,
-        130, 240,
-        5, 200
+        23, 273,
+        130, 327,
+        202, 281,
+        245, 302,
+        312, 320,
+        367, 276,
+        170, 215,
     };
-    polygon.setPoints(11, points);
-    mCollisionShape.addPolygon(QPolygon(polygon));
-
-    House::setShape();
-
-    update();
+    polygon.setPoints(7, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 }
 
 
@@ -232,35 +208,24 @@ MerchantHouse::~MerchantHouse()
 
 void MerchantHouse::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/merchant_house.png");
-
-    mBounding = QRect(0,0,400,300);
+    mBoundingRect = QRect(0,0,400,300);
+    mZOffset = mBoundingRect.height()*2/3;
+    setImage(QPixmap(":/MapItems/merchant_house.png"), true);
 
     QPolygon polygon;
+    QPainterPath collidingShape;
     static const int points[] = {
-        100, 0,
-        145, 20,
-        200, 15,
-        280, 10,
-        350, 25,
-        345, 65,
-        320, 65,
-        345, 155,
-        265, 230,
-        180, 210,
-        170, 210,
-        160, 230,
-        55, 200,
-        50, 150,
-        80, 60,
-        70, 45,
+        55, 228,
+        63, 255,
+        150, 286,
+        167, 270,
+        225, 297,
+        315, 222,
+        142, 177
     };
-    polygon.setPoints(16, points);
-    mCollisionShape.addPolygon(polygon);
-
-    House::setShape();
-
-    update();
+    polygon.setPoints(7, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 }
 
 
@@ -399,44 +364,24 @@ AlchemistHouse::~AlchemistHouse()
 
 void AlchemistHouse::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/alchemist_house.png");
-
-    mBounding = QRect(0,0,400,500);
+    mBoundingRect = QRect(0,0,400,500);
+    mZOffset = mBoundingRect.height()*2/3;
+    setImage(QPixmap(":/MapItems/alchemist_house.png"), true);
 
     QPolygon polygon;
+    QPainterPath collidingShape;
     static const int points[] = {
-        240, 20,
-        260, 45,
-        330, 55,
-        355, 30,
-        385, 110,
-        375, 150,
-        400, 190,
-        400, 245,
-        385, 290,
-        355, 300,
-        275, 255,
-        240, 245,
-        130, 290,
-        60, 330,
-        0, 270,
-        15, 210,
-        40, 190,
-        80, 190,
-        80, 150,
-        125, 120,
-        150, 170,
-        205, 165,
-        205, 100,
-        230, 80,
-        225, 35
+        70, 341,
+        96, 388,
+        232, 310,
+        361, 365,
+        388, 327,
+        246, 262,
+        90, 301
     };
-    polygon.setPoints(25, points);
-    mCollisionShape.addPolygon(polygon);
-
-    House::setShape();
-
-    update();
+    polygon.setPoints(7, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 }
 
 
@@ -734,20 +679,30 @@ void AltarBuilding::animate()
 
 void AltarBuilding::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/altar.png");
+    mBoundingRect = QRect(0,0,400,300);
+    mZOffset = mBoundingRect.height()*2/3;
+    setImage(QPixmap(":/MapItems/altar.png"), true);
 
-    mBounding = QRect(0,0,400,300);
+    QPolygon polygon;
+    QPainterPath collidingShape;
+    static const int points[] = {
+        100, 155,
+        98, 238,
+        205, 251,
+        308, 230,
+        308, 165
+    };
+    polygon.setPoints(5, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 
-    mCollisionShape.addRect(QRect(0,0,400,190));
-
-    QGraphicsPixmapItem * tmp = new QGraphicsPixmapItem(this);
-    QPixmap tmpImg(":/MapItems/altar_bound.png");
-    tmpImg.scroll(0,0,0,0,boundingRect().width(), boundingRect().height());
-    tmp->setPixmap(tmpImg);
-    mShape = tmp->shape();
-    delete tmp;
-
-    update();
+    // QGraphicsPixmapItem * tmp = new QGraphicsPixmapItem(this);
+    // QPixmap tmpImg(":/MapItems/altar_bound.png");
+    // tmpImg.scroll(0,0,0,0,boundingRect().width(), boundingRect().height());
+    // tmp->setPixmap(tmpImg);
+    // mShape = tmp->shape();
+    // delete tmp;
+    //update();
 }
 
 void AltarBuilding::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -851,93 +806,38 @@ bool Altar::isLaoShanLungSummoned()
 
 
 
-MainHouse::MainHouse():
+Taverne::Taverne():
     House ()
 {
     setGraphicStuff();
     setZValue(Z_VILLAGE);
-    mInformation = "Maison\nVous permet de passer la nuit";
+    mInformation = "Taverne\nVous permet de passer la nuit";
 }
 
-MainHouse::~MainHouse()
+Taverne::~Taverne()
 {
-    mImage = QPixmap(":/MapItems/house.png");
 
-    mBounding = QRect(0,0,400,400);
-
-    QPolygon polygon;
-    static const int points[] = {
-        115, 0,
-        145, 30,
-        200, 60,
-        255, 75,
-        350, 80,
-        335, 130,
-        370,145,
-        375, 180,
-        280, 235,
-        295, 245,
-        185, 320,
-        195, 340,
-        145, 340,
-        150, 320,
-        55, 250,
-        30, 265,
-        30, 215,
-        70, 205,
-        70, 180,
-        30, 150,
-        25, 125,
-        80, 70,
-        80, 20,
-    };
-    polygon.setPoints(23, points);
-    mCollisionShape.addPolygon(polygon);
-
-    House::setShape();
-
-    update();
 }
 
 
-void MainHouse::setGraphicStuff()
+void Taverne::setGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/house.png");
-
-    mBounding = QRect(0,0,400,400);
+    mBoundingRect = QRect(0,0,400,400);
+    mZOffset = mBoundingRect.height()*2/3;
+    setImage(QPixmap(":/MapItems/house.png"), true);
 
     QPolygon polygon;
+    QPainterPath collidingShape;
     static const int points[] = {
-        115, 0,
-        145, 30,
-        200, 60,
-        255, 75,
-        350, 80,
-        335, 130,
-        370,145,
-        375, 180,
-        280, 235,
-        295, 245,
-        185, 320,
-        195, 340,
-        145, 340,
-        150, 320,
-        55, 250,
-        30, 265,
-        30, 215,
-        70, 205,
-        70, 180,
-        30, 150,
-        25, 125,
-        80, 70,
-        80, 20,
+        44, 231,
+        44, 261,
+        176, 370,
+        344, 274,
+        200, 200,
     };
-    polygon.setPoints(23, points);
-    mCollisionShape.addPolygon(polygon);
-
-    House::setShape();
-
-    update();
+    polygon.setPoints(4, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 }
 
 HeroChest::HeroChest():
@@ -992,29 +892,18 @@ bool HeroChest::isOpen()
     return mIsOpen;
 }
 
-bool HeroChest::isObstacle()
-{
-    return false;
-}
-
 void HeroChest::setGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/heroChest.png");
-
-    mBounding = QRect(0,0,70,70);
-
-    mCollisionShape.addRect(mBounding);
-
-    House::setShape();
-
-    update();
+    mBoundingRect = QRect(0,0,70,70);
+    mZOffset = mBoundingRect.height()/2;
+    setImage(QPixmap(":/MapItems/heroChest.png"), true);
 }
 
 
 
 HeroHouse::HeroHouse()
 {
-    mHouse = new MainHouse();
+    mHouse = new Taverne();
     mChest = new HeroChest();
 }
 
@@ -1026,7 +915,7 @@ HeroHouse::~HeroHouse()
         delete mChest;
 }
 
-MainHouse *HeroHouse::getHouse()
+Taverne *HeroHouse::getHouse()
 {
     return mHouse;
 }
@@ -1044,122 +933,39 @@ void HeroHouse::setPosition(QPointF position)
 
 
 
-
-
-
-
-RampartBot::RampartBot()
+void ChevalDeFrise::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    setAcceptHoverEvents(false);
-    setGraphicStuff();
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->drawPixmap(0,0, mImage.scaled(boundingRect().size().toSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+    Q_UNUSED(widget)
+    Q_UNUSED(option)
+}
+void ChevalDeFriseFront::setGraphicStuff()
+{
+    mBoundingRect = QRect(0, 0, 250 * mRatio, 200 * mRatio);
+    mZOffset = mBoundingRect.height()/2;
+    setImage(QPixmap(":/MapItems/cheval_de_frise_front.png"), false, true);
+
+    QPainterPath collidingShape;
+    collidingShape.addRect(QRect(0, mBoundingRect.height() - mBoundingRect.height()/2 - mBoundingRect.height()/20, mBoundingRect.width(), mBoundingRect.height()/10));
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
+
     setZValue(Z_VILLAGE-1);
 }
 
-RampartBot::~RampartBot()
+void ChevalDeFriseDiag::setGraphicStuff()
 {
+    mBoundingRect = QRect(0, 0, 240 * mRatio, 260 * mRatio);
+    mZOffset = mBoundingRect.height()/2;
+    setImage(QPixmap(":/MapItems/cheval_de_frise_diag.png"), false, true);
 
-}
+    QPainterPath collidingShape;
+    collidingShape.addRect(QRect(mBoundingRect.width()/3, mBoundingRect.height() - mBoundingRect.height()/2 - mBoundingRect.height()/20, mBoundingRect.width()/3, mBoundingRect.height()/10));
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 
-
-void RampartBot::setGraphicStuff()
-{
-    mImage = QPixmap(":/MapItems/rampartBot.png");
-
-    mBounding = QRect(0,0,2000,750);
-
-    QPolygon formLeft, formRight;
-    static const int pointsleft[] = {
-        35, 0,
-        110, 0,
-        80, 235,
-        25, 270
-    };
-    static const int pointsRight[] = {
-        1910, 0,
-        1910, 240,
-        1690, 400,
-        510, 400,
-        505, 575,
-        1305, 595,
-        1680, 550,
-        1940, 330,
-        1970, 0
-    };
-    formLeft.setPoints(4, pointsleft);
-    formRight.setPoints(9, pointsRight);
-    mCollisionShape.addPolygon(formLeft);
-    mCollisionShape.addPolygon(formRight);
-
-    House::setShape();
-
-    update();
-}
-
-void RampartBot::setPosition(QPointF position)
-{
-    setPos(position.x(),position.y());
-}
-
-
-
-
-
-
-
-
-RampartTop::RampartTop()
-{
-    setAcceptHoverEvents(false);
-    setGraphicStuff();
     setZValue(Z_VILLAGE-1);
 }
-
-RampartTop::~RampartTop()
-{
-
-}
-
-
-void RampartTop::setGraphicStuff()
-{
-    mImage = QPixmap(":/MapItems/rampartTop.png");
-
-    mBounding = QRect(0,0,2000,750);
-
-    QPolygon form;
-    static const int points[] = {
-        110, 750,
-        130, 370,
-        470, 215,
-        1180, 215,
-        1775, 330,
-        1950, 540,
-        1930, 750,
-        1980, 750,
-        1970, 750,
-        1990, 400,
-        1800, 130,
-        1385, 30,
-        1100, 0,
-        825, 25,
-        450, 50,
-        140, 130,
-        75, 210,
-        25, 750
-    };
-    form.setPoints(18, points);
-    mCollisionShape.addPolygon(form);
-
-    House::setShape();
-
-    update();
-}
-
-void RampartTop::setPosition(QPointF position)
-{
-    setPos(position.x(),position.y());
-}
-
 
 
 
@@ -1175,8 +981,6 @@ Village::Village():
     mAlchemist = new Alchemist();
     mHouse = new HeroHouse();
     mAltar = new Altar();
-    mRampartTop = new RampartTop();
-    mRampartBot = new RampartBot();
     connect(mBlacksmith, SIGNAL(sig_replenish(QObject*)), this, SIGNAL(sig_replenish(QObject*)));
     connect(mBlacksmith->getHouse(), SIGNAL(sig_villageInteraction(QGraphicsItem*)), this, SIGNAL(sig_villageInteraction(QGraphicsItem*)));
     connect(mBlacksmith->getHouse(), SIGNAL(sig_villageShowInfo(QGraphicsItem*)), this, SIGNAL(sig_villageShowInfo(QGraphicsItem*)));
@@ -1193,6 +997,15 @@ Village::Village():
     connect(mAltar->getBuilding(), SIGNAL(sig_villageShowInfo(QGraphicsItem*)), this, SIGNAL(sig_villageShowInfo(QGraphicsItem*)));
     connect(mAltar->getBuilding(), SIGNAL(sig_villageInteraction(QGraphicsItem*)), this, SIGNAL(sig_villageInteraction(QGraphicsItem*)));
     connect(mAltar, SIGNAL(sig_LaoShanLungSummoned()), this, SIGNAL(sig_LaoShanLungSummoned()));
+    
+    mChevalDeFriseList.append(new ChevalDeFriseFront(1.0));
+    mChevalDeFriseList.append(new ChevalDeFriseFront(1.0));
+    mChevalDeFriseList.append(new ChevalDeFriseFront(0.7));
+    mChevalDeFriseList.append(new ChevalDeFriseFront(0.7));
+    mChevalDeFriseList.append(new ChevalDeFriseDiag(0.8));
+    mChevalDeFriseList.append(new ChevalDeFriseDiag(1.0));
+    mChevalDeFriseList.append(new ChevalDeFriseDiag(0.8));
+    mChevalDeFriseList.append(new ChevalDeFriseDiag(1.0));
 }
 
 Village::~Village()
@@ -1205,12 +1018,10 @@ Village::~Village()
         delete mHouse;
     if(mAlchemist)
         delete mAlchemist;
-    if(mRampartTop)
-        delete mRampartTop;
-    if(mRampartBot)
-        delete mRampartBot;
     if(mAltar)
         delete mAltar;
+    while(!mChevalDeFriseList.isEmpty())
+        delete mChevalDeFriseList.takeLast();
 }
 
 void Village::addInScene(QGraphicsScene * scene)
@@ -1222,8 +1033,8 @@ void Village::addInScene(QGraphicsScene * scene)
     scene->addItem(mHouse->mChest);
     scene->addItem(mAltar->mBuilding);
     scene->addItem(mAlchemist->mHouse);
-    scene->addItem(mRampartTop);
-    scene->addItem(mRampartBot);
+    for(ChevalDeFrise * mapItem : mChevalDeFriseList)
+        scene->addItem(mapItem);
 }
 
 void Village::removeFromScene(QGraphicsScene * scene)
@@ -1235,21 +1046,35 @@ void Village::removeFromScene(QGraphicsScene * scene)
     scene->removeItem(mHouse->mChest);
     scene->removeItem(mAltar->mBuilding);
     scene->removeItem(mAlchemist->mHouse);
-    scene->removeItem(mRampartTop);
-    scene->removeItem(mRampartBot);
+    for(ChevalDeFrise * mapItem : mChevalDeFriseList)
+        scene->removeItem(mapItem);
 }
 
 void Village::setPosition(QPointF position)
 {
     setPos(position);
     mPosition = position;
-    mBlacksmith->setPosition(QPointF(position.x()+300, position.y()+200));
-    mMerchant->setPosition(QPointF(position.x()+1250, position.y()+150));
-    mHouse->setPosition(QPointF(position.x()+750, position.y()+550));
-    mAlchemist->setPosition(QPointF(position.x()+1450, position.y()+450));
-    mRampartTop->setPosition(QPointF(position.x(), position.y()));
-    mRampartBot->setPosition(QPointF(position.x(), position.y()+748));
-    mAltar->setPosition(QPointF(position.x()+700, position.y()+1160));
+    mBlacksmith->setPosition(QPointF(position.x()+328, position.y()+367));
+    mMerchant->setPosition(QPointF(position.x()+1267, position.y()+393));
+    mHouse->setPosition(QPointF(position.x()+840, position.y()+225));
+    mAlchemist->setPosition(QPointF(position.x()+1447, position.y()+628));
+    mAltar->setPosition(QPointF(position.x()+1670, position.y()+1165));
+
+    mChevalDeFriseList.at(0)->setPosition(QPointF(position.x()+845, position.y()+1255));
+    mChevalDeFriseList.at(1)->setPosition(QPointF(position.x()+1600, position.y()+1186));
+    mChevalDeFriseList.at(1)->setTransform(QTransform(-1, 0, 0, 1, 0, 0));
+    mChevalDeFriseList.at(1)->setRotation(8.0);
+    mChevalDeFriseList.at(2)->setPosition(QPointF(position.x()+619, position.y()+110));
+    mChevalDeFriseList.at(2)->setRotation(-6.0);
+    mChevalDeFriseList.at(3)->setPosition(QPointF(position.x()+1234, position.y()+100));
+    mChevalDeFriseList.at(3)->setRotation(5.0);
+    mChevalDeFriseList.at(4)->setPosition(QPointF(position.x()+100, position.y()+462));
+    mChevalDeFriseList.at(5)->setPosition(QPointF(position.x()+266, position.y()+863));
+    mChevalDeFriseList.at(5)->setTransform(QTransform(-1, 0, 0, 1, 0, 0));
+    mChevalDeFriseList.at(6)->setPosition(QPointF(position.x()+1950, position.y()+358));
+    mChevalDeFriseList.at(6)->setTransform(QTransform(-1, 0, 0, 1, 0, 0));
+    mChevalDeFriseList.at(6)->setRotation(5.0);
+    mChevalDeFriseList.at(7)->setPosition(QPointF(position.x()+1850, position.y()+925));
 }
 
 QPointF Village::getPosition()

@@ -1,5 +1,7 @@
 #include "village_goblin.h"
 
+// TODO : 3 obstacles !!
+
 Village_Goblin::Village_Goblin():
     mImage(QPixmap(":/MapItems/village_goblin_ground.png")),
     mRoadsWeight(200)
@@ -194,7 +196,24 @@ void Village_Goblin::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 Hut::Hut():
     MapItem ()
 {
-    setTexture();
+    mBoundingRect = QRect(0,0,200,200);
+    mZOffset = mBoundingRect.height()*3/4;
+    setImage(QPixmap(":/MapItems/goblin_hut.png"));
+
+    QPolygon polygon;
+    QPainterPath collidingShape;
+    static const int points[] = {
+        28, 158,
+        98, 191,
+        174, 159,
+        164, 134,
+        104, 125,
+        29, 132
+    };
+    polygon.setPoints(6, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
+
     setZValue(Z_VILLAGE);
 }
 
@@ -203,43 +222,6 @@ Hut::~Hut()
 
 }
 
-bool Hut::isObstacle()
-{
-    return true;
-}
-
-QPainterPath Hut::shape() const
-{
-    QPainterPath path;
-    QPolygon polygon;
-    static const int points[] = {
-        105,0,
-        190,120,
-        145, 120,
-        15, 120
-    };
-    polygon.setPoints(4, points);
-    path.addPolygon(polygon);
-    return path;
-}
-
-QRectF Hut::boundingRect() const
-{
-    return QRect(0,0,200,200);
-}
-
-void Hut::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    painter->setRenderHint(QPainter::Antialiasing);
-    painter->drawPixmap(0,0, mImage, 0, 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
-    Q_UNUSED(widget);
-    Q_UNUSED(option);
-}
-
-void Hut::setTexture()
-{
-    mImage = QPixmap(":/MapItems/goblin_hut.png");
-}
 
 
 
@@ -248,65 +230,30 @@ void Hut::setTexture()
 TownHall::TownHall():
     MapItem ()
 {
-    setTexture();
+    mBoundingRect = QRect(0,0,300,400);
+    mZOffset = mBoundingRect.height()*3/4;
+    setImage(QPixmap(":/MapItems/goblin_townhall.png"));
+
+    QPolygon polygon;
+    QPainterPath collidingShape;
+    static const int points[] = {
+        50, 273,
+        50, 330,
+        167, 370,
+        255, 330,
+        257, 253,
+        155, 244
+    };
+    polygon.setPoints(6, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
+
     setZValue(Z_VILLAGE);
 }
 
 TownHall::~TownHall()
 {
 
-}
-
-bool TownHall::isObstacle()
-{
-    return true;
-}
-
-QPainterPath TownHall::shape() const
-{
-    QPainterPath path;
-    QPolygon polygon;
-    static const int points[] = {
-        135, 5,
-        170, 70,
-        160, 95,
-        205, 155,
-        235, 170,
-        250, 200,
-        245, 210,
-        245, 235,
-        260, 255,
-        160, 290,
-        80, 260,
-        55, 230,
-        30, 185,
-        70, 155,
-        80, 130,
-        115, 90,
-        105, 50,
-        120, 40
-    };
-    polygon.setPoints(18, points);
-    path.addPolygon(polygon);
-    return path;
-}
-
-QRectF TownHall::boundingRect() const
-{
-    return QRect(0,0,300,400);
-}
-
-void TownHall::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    painter->setRenderHint(QPainter::Antialiasing);
-    painter->drawPixmap(0,0, mImage, 0, 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
-    Q_UNUSED(widget);
-    Q_UNUSED(option);
-}
-
-void TownHall::setTexture()
-{
-    mImage = QPixmap(":/MapItems/goblin_townhall.png");
 }
 
 
@@ -319,7 +266,22 @@ void TownHall::setTexture()
 WatchTower::WatchTower():
     MapItem ()
 {
-    setTexture();
+    mBoundingRect = QRect(0,0,200,300);
+    mZOffset = mBoundingRect.height()*255/300;
+    setImage(QPixmap(":/MapItems/goblin_watchtower.png"));
+
+    QPolygon polygon;
+    QPainterPath collidingShape;
+    static const int points[] = {
+        36, 258,
+        100, 283,
+        150, 261,
+        100, 229
+    };
+    polygon.setPoints(4, points);
+    collidingShape.addPolygon(polygon);
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
+
     setZValue(Z_VILLAGE);
 }
 
@@ -327,54 +289,6 @@ WatchTower::~WatchTower()
 {
 
 }
-
-bool WatchTower::isObstacle()
-{
-    return true;
-}
-
-QPainterPath WatchTower::shape() const
-{
-    QPainterPath path;
-    QPolygon polygon;
-    static const int points[] = {
-        120, 25,
-        180, 90,
-        170, 150,
-        145, 160,
-        145, 180,
-        95, 205,
-        40, 180,
-        40, 160,
-        15, 150,
-        5, 80,
-        45, 50
-    };
-    polygon.setPoints(11, points);
-    path.addPolygon(polygon);
-    return path;
-}
-
-QRectF WatchTower::boundingRect() const
-{
-    return QRect(0,0,200,300);
-}
-
-void WatchTower::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    painter->setRenderHint(QPainter::Antialiasing);
-    painter->drawPixmap(0,0, mImage, 0, 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
-    Q_UNUSED(widget);
-    Q_UNUSED(option);
-}
-
-void WatchTower::setTexture()
-{
-    mImage = QPixmap(":/MapItems/goblin_watchtower.png");
-}
-
-
-
 
 
 

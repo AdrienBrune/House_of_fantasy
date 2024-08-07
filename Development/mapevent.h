@@ -41,9 +41,7 @@ public slots:
     void startAnimation();
 public:
     bool isAnimated();
-
     void itemsTook();
-    bool isObstacle();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 protected:
     void initGraphicStuff();
@@ -83,7 +81,6 @@ public:
     BushEventCoin();
     ~BushEventCoin();
 public:
-    bool isObstacle();
     void itemsTook();
 private:
     void initGraphicStuff();
@@ -96,7 +93,6 @@ public:
     BushEventEquipment();
     ~BushEventEquipment();
 public:
-    bool isObstacle();
     void itemsTook();
 private:
     void initGraphicStuff();
@@ -119,7 +115,6 @@ public:
     virtual ~OreSpot();
 public:
     void itemsTook();
-    bool isObstacle();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 protected:
     void initGraphicStuff();
@@ -181,7 +176,6 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void itemsTook();
-    bool isObstacle();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *);

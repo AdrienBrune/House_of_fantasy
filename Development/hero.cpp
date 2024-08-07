@@ -220,89 +220,26 @@ bool Hero::isFreeze()
 
 void Hero::checkMapInteractions()
 {
+    int zOffset;
     bool mapEventFound = false;
-    QList<QGraphicsItem*> list = collidingItems();
+    QList<QGraphicsItem*> list;
+
+    list = mCollisionShape->collidingItems();
     for(QGraphicsItem * item : qAsConst(list))
     {
-        MapItem * mapItem = dynamic_cast<MapItem*>(item);
-        if(mapItem)
+        CollisionShape * obstacle = dynamic_cast<CollisionShape*>(item);
+        if(obstacle)
         {
-            if(mapItem->isObstacle()){
-                setPos(mMoveHandler.lastPos);
-                stopMoving();
-                return;
-            }
-            Bush * bush = dynamic_cast<Bush*>(item);
-            if(bush)
-            {
-                if(y()+this->boundingRect().height() < mapItem->y()+mapItem->boundingRect().height()*3/4){
-                    mapItem->setZValue(Z_HERO+1);
-                }else {
-                    mapItem->setZValue(Z_BUSH);
-                }
-                if(!bush->isAnimated()){
-                    emit sig_movedInBush(bush);
-                }
-                continue;
-            }
-            BushEventCoin * bushCoinEvent = dynamic_cast<BushEventCoin*>(item);
-            if(bushCoinEvent)
-            {
-                if(y()+this->boundingRect().height() < mapItem->y()+mapItem->boundingRect().height()*3/4){
-                    mapItem->setZValue(Z_HERO+1);
-                }else {
-                    mapItem->setZValue(Z_BUSH);
-                }
-                if(!bushCoinEvent->isAnimated()){
-                    emit sig_movedInBushEvent(bushCoinEvent);
-                }
-                continue;
-            }
-            BushEventEquipment * bushEquipmentEvent = dynamic_cast<BushEventEquipment*>(item);
-            if(bushEquipmentEvent)
-            {
-                if(y()+this->boundingRect().height() < mapItem->y()+mapItem->boundingRect().height()*3/4){
-                    mapItem->setZValue(Z_HERO+1);
-                }else {
-                    mapItem->setZValue(Z_BUSH);
-                }
-                if(!bushEquipmentEvent->isAnimated()){
-                    emit sig_movedInBushEvent(bushEquipmentEvent);
-                }
-                continue;
-            }
+            setPos(mMoveHandler.lastPos);
+            stopMoving();
+            break;
         }
-        MapEvent* mapEvent = dynamic_cast<MapEvent*>(item);
-        if(mapEvent)
-        {
-            if(mapEvent->eventIsActive())
-                mapEventFound = true;
-            if(!mIsInMapEvent && mapEvent->eventIsActive())
-            {
-                Tool * tool = nullptr;
+    }
 
-                ChestEvent * chestEvent = dynamic_cast<ChestEvent*>(mapEvent);
-                if(chestEvent)
-                {
-                    tool = dynamic_cast<Tool*>(getBag()->getShovel());
-                }
-
-                OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
-                if(oreSpot)
-                {
-                    tool = dynamic_cast<Tool*>(getBag()->getPickaxe());
-                }
-
-                FishingEvent * fishes = dynamic_cast<FishingEvent*>(mapEvent);
-                if(fishes)
-                {
-                    tool = dynamic_cast<Tool*>(getBag()->getFishingrod());
-                }
-
-                if(tool)
-                    emit sig_enterMapEvent(tool);
-            }
-        }
+    list = collidingItems();
+    zOffset = list.isEmpty() ? Z_HERO : Z_GROUND_FOREGROUND ;
+    for(QGraphicsItem * item : qAsConst(list))
+    {
         Monster * monsterDead = dynamic_cast<Monster*>(item);
         if(monsterDead)
         {
@@ -314,8 +251,80 @@ void Hero::checkMapInteractions()
                 if(tool)
                     emit sig_enterMapEvent(tool);
             }
+            zOffset = Z_HERO;
+        }
+
+        MapItem * mapItem = dynamic_cast<MapItem*>(item);
+        if(mapItem)
+        {
+            Bush * bush = dynamic_cast<Bush*>(item);
+            if(bush)
+            {
+                if(!bush->isAnimated())
+                {
+                    emit sig_movedInBush(bush);
+                }
+            }
+            BushEventCoin * bushCoinEvent = dynamic_cast<BushEventCoin*>(item);
+            if(bushCoinEvent)
+            {
+                if(!bushCoinEvent->isAnimated())
+                {
+                    emit sig_movedInBushEvent(bushCoinEvent);
+                }
+            }
+            BushEventEquipment * bushEquipmentEvent = dynamic_cast<BushEventEquipment*>(item);
+            if(bushEquipmentEvent)
+            {
+                if(!bushEquipmentEvent->isAnimated())
+                {
+                    emit sig_movedInBushEvent(bushEquipmentEvent);
+                }
+            }
+
+            // Check map event
+            MapEvent* mapEvent = dynamic_cast<MapEvent*>(mapItem);
+            if(mapEvent)
+            {
+                if(mapEvent->eventIsActive())
+                    mapEventFound = true;
+                if(!mIsInMapEvent && mapEvent->eventIsActive())
+                {
+                    Tool * tool = nullptr;
+
+                    ChestEvent * chestEvent = dynamic_cast<ChestEvent*>(mapEvent);
+                    if(chestEvent)
+                    {
+                        tool = dynamic_cast<Tool*>(getBag()->getShovel());
+                    }
+
+                    OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
+                    if(oreSpot)
+                    {
+                        tool = dynamic_cast<Tool*>(getBag()->getPickaxe());
+                    }
+
+                    FishingEvent * fishes = dynamic_cast<FishingEvent*>(mapEvent);
+                    if(fishes)
+                    {
+                        tool = dynamic_cast<Tool*>(getBag()->getFishingrod());
+                    }
+
+                    if(tool)
+                        emit sig_enterMapEvent(tool);
+                }
+            }
+
+            // Update Z position
+            if(y() + this->boundingRect().height() < mapItem->y() + mapItem->getZOffset())
+                zOffset = (zOffset < mapItem->zValue() - 1) ? mapItem->zValue() - 1 : zOffset ;
+            else
+                zOffset = (zOffset < mapItem->zValue() + 1) ? mapItem->zValue() + 1 : zOffset ;
         }
     }
+
+    setZValue(zOffset);
+    update();
 
     if(mapEventFound)
     {
@@ -699,18 +708,10 @@ SwordMan::SwordMan(QString name):
     mClass = eSwordman;
 
     mBoundingRect = QRect(0,0,100,100);
-    QPolygon polygon;
-    static const int points[] = {
-        50, 100,
-        25, 90,
-        30, 50,
-        30, 20,
-        70, 20,
-        70, 50,
-        80, 90
-    };
-    polygon.setPoints(7, points);
-    mShape.addPolygon(polygon);
+    mShape.addRect(QRect(mBoundingRect.width()/4, 0, mBoundingRect.width()/2, mBoundingRect.height()));
+    QPainterPath collidingShape;
+    collidingShape.addRect(QRect(mBoundingRect.width()/3, mBoundingRect.height() -10, mBoundingRect.width()/3, 5));
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 
     mGear = new Gear();
     connect(mGear, SIGNAL(sig_equipmentSet()), this, SIGNAL(sig_equipmentChanged()));
@@ -767,18 +768,10 @@ Archer::Archer(QString name):
     mClass = eArcher;
 
     mBoundingRect = QRect(0,0,100,100);
-    QPolygon polygon;
-    static const int points[] = {
-        50, 100,
-        25, 90,
-        30, 50,
-        30, 20,
-        70, 20,
-        70, 50,
-        80, 90
-    };
-    polygon.setPoints(7, points);
-    mShape.addPolygon(polygon);
+    mShape.addRect(QRect(mBoundingRect.width()/4, 0, mBoundingRect.width()/2, mBoundingRect.height()));
+    QPainterPath collidingShape;
+    collidingShape.addRect(QRect(mBoundingRect.width()/3, mBoundingRect.height() -10, mBoundingRect.width()/3, 5));
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 
     mGear = new Gear();
     connect(mGear, SIGNAL(sig_equipmentSet()), this, SIGNAL(sig_equipmentChanged()));
@@ -834,18 +827,10 @@ Wizard::Wizard(QString name):
     mSkillList[PassiveSkill::MageApprentice]->unlockSkill();
 
     mBoundingRect = QRect(0,0,100,100);
-    QPolygon polygon;
-    static const int points[] = {
-        50, 100,
-        25, 90,
-        30, 50,
-        30, 20,
-        70, 20,
-        70, 50,
-        80, 90
-    };
-    polygon.setPoints(7, points);
-    mShape.addPolygon(polygon);
+    mShape.addRect(QRect(mBoundingRect.width()/4, 0, mBoundingRect.width()/2, mBoundingRect.height()));
+    QPainterPath collidingShape;
+    collidingShape.addRect(QRect(mBoundingRect.width()/3, mBoundingRect.height() -10, mBoundingRect.width()/3, 5));
+    mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 
     mGear = new Gear();
     connect(mGear, SIGNAL(sig_equipmentSet()), this, SIGNAL(sig_equipmentChanged()));
@@ -864,6 +849,13 @@ Wizard::Wizard(QString name):
 void Wizard::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->drawPixmap(0,0, mCurrentPixmap, static_cast<int>(mNextFrame*boundingRect().width()), static_cast<int>(mImageSelected*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
+
+    // painter->setBrush(QBrush("#7700FF00"));
+    // painter->drawPath(mShape);
+
+    // painter->setBrush(QBrush("#77FF0000"));
+    // painter->drawPath(mCollisionShape->shape());
+
     Q_UNUSED(widget)
     Q_UNUSED(option)
 }

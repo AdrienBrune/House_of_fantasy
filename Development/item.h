@@ -38,7 +38,6 @@ public:
     void setShape();
     void setName(QString);
     void setweight(int);
-    void setImage(QPixmap);
     void setPrice(int);
     void setInformation(QString);
     void setHover(bool toggle);
