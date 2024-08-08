@@ -299,9 +299,12 @@ void Monster::advance(int phase)
 {
     if(!phase)
         return;
+    
+    if(!mIsInView)
+        return;
 
     // SetZValue if monster is in action stand
-    if(mAction == Action::stand && mIsInView)
+    if(mAction == Action::stand)
     {
         QList<QGraphicsItem*> itemsColliding = scene()->collidingItems(this);
         for(QGraphicsItem * i : qAsConst(itemsColliding))

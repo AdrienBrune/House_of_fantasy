@@ -383,7 +383,7 @@ void Map::removeMapElement(MapItem * item)
 void Map::unfreezeMap()
 {
     t_collisionHandler->start(TIMER_COLLISION);
-    t_monstersActions->start(DELAY_BETWEEN_ACTION/mMonsters.size());
+    t_monstersActions->start(TIMER_MONSTERS_ACTION/mMonsters.size());
     t_monsterMove->start(TIMER_MONSTERS_MOVE);
     for(Monster * monster : qAsConst(mMonsters))
     {
@@ -1164,7 +1164,7 @@ void Map::generateMonsters()
         DEBUG("GENERATED : Lao Shan Lung      [" + QString("%1").arg(1) + "]");
     }
 
-    t_monstersActions->start(DELAY_BETWEEN_ACTION/mMonsters.size());
+    t_monstersActions->start(TIMER_MONSTERS_ACTION/mMonsters.size());
 }
 
 void Map::startBushAnimation(Bush * bush)

@@ -20,29 +20,28 @@
 #define PERIODICAL_EVENTS   1000
 
 // Speed definitions
-#define SPEED_HERO          3
-#define SPEED_WOLF          1
-#define SPEEDBOOST_WOLF     5
-#define SPEED_GOBLIN        1
-#define SPEEDBOOST_GOBLIN   3
-#define SPEED_BEAR          2
-#define SPEEDBOOST_BEAR     6
-#define SPEED_TROLL         1
-#define SPEEDBOOST_TROLL    2
-#define SPEED_OGGRE         1
-#define SPEEDBOOST_OGGRE    4
-#define SPEED_LAOSHANLUNG   1
+#define SPEED_HERO              6
+#define SPEED_WOLF              1
+#define SPEEDBOOST_WOLF         6
+#define SPEED_GOBLIN            1
+#define SPEEDBOOST_GOBLIN       3
+#define SPEED_BEAR              2
+#define SPEEDBOOST_BEAR         5
+#define SPEED_TROLL             1
+#define SPEEDBOOST_TROLL        2
+#define SPEED_OGGRE             1
+#define SPEEDBOOST_OGGRE        4
+#define SPEED_LAOSHANLUNG       1
 #define SPEEDBOOST_LAOSHANLUNG  3
 
 #define MOVING_TIME_MIN 3000
 #define MOVING_TIME_MAX 10000
 
-#define TIMER_MOVE          15
-#define TIMER_MONSTERS_MOVE 30
-#define TIMER_MONSTERS_ACTION (2000/NUM_MONSTERS)
-#define TIMER_COLLISION     500
-#define DELAY_BETWEEN_ACTION 2000
-#define TIME_TO_SHOW_ITEM   1400
+#define TIMER_MOVE              30 // 33 FPS
+#define TIMER_MONSTERS_MOVE     30
+#define TIMER_MONSTERS_ACTION   1000
+#define TIMER_COLLISION         500
+#define TIME_TO_SHOW_ITEM       1400
 
 #define DISTANCE_AGGRO  700
 #define DISTANCE_SOUND  700
