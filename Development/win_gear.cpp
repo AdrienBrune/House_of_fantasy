@@ -44,7 +44,7 @@ Win_Gear::Win_Gear(QWidget *parent, Hero * hero) :
     ui->layoutStats->addWidget(mBagPayload, 4, 1);
 
     connect(mHero, SIGNAL(sig_lifeChanged()), this, SLOT(displayLifeChanged()), Qt::ConnectionType::QueuedConnection);
-    connect(mHero, SIGNAL(sig_lifeChanged()), this, SLOT(displayManaChanged()), Qt::ConnectionType::QueuedConnection);
+    connect(mHero, SIGNAL(sig_manaChanged()), this, SLOT(displayManaChanged()), Qt::ConnectionType::QueuedConnection);
     connect(mHero->getGear(), SIGNAL(sig_equipmentSet()), this, SLOT(displayDamageChanged()), Qt::ConnectionType::QueuedConnection);
     connect(mHero->getGear(), SIGNAL(sig_equipmentSet()), this, SLOT(displayHitSpeedChanged()), Qt::ConnectionType::QueuedConnection);
     connect(mHero->getGear(), SIGNAL(sig_equipmentSet()), this, SLOT(displayDefenseChanged()), Qt::ConnectionType::QueuedConnection);

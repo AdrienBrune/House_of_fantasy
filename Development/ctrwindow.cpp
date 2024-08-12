@@ -993,14 +993,14 @@ void CTRWindow::on_Skills_clicked()
 
 void CTRWindow::onPeriodicalEvents()
 {
-    static quint8 tenSeconds = 1;
+    static quint8 fiveSeconds = 1;
 
     if(mHero->getStamina().curStamina < mHero->getStamina().maxStamina)
     {
         mHero->setStamina(mHero->getStamina().curStamina + 10);
     }
     
-    if(tenSeconds >= 10)
+    if(fiveSeconds >= 5)
     {
         if(mHero->getSkillList()[PassiveSkill::LifeCollector]->isUnlock())
         {
@@ -1010,8 +1010,10 @@ void CTRWindow::onPeriodicalEvents()
         {
             mHero->setMana(mHero->getMana().curMana+1);
         }
-        tenSeconds = 1;
+        fiveSeconds = 1;
     }
+
+    fiveSeconds++;
 }
 
 void CTRWindow::onQuitGame()
