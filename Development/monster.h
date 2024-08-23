@@ -119,6 +119,7 @@ protected:
     ImageHandler mPixmap;
     int mSounds[6];
     QTimer * t_isWalking;
+    int mSkin;
 
     QList<Item*> mItems;
 };

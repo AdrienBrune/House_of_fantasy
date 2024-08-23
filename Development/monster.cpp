@@ -7,7 +7,8 @@ Monster::Monster(QGraphicsView * view):
     mHover(0),
     mStatus(none),
     mSpeed(0),
-    mAction(Action::stand)
+    mAction(Action::stand),
+    mSkin(0)
 {
     setZValue(Z_MONSTERS);
 
@@ -214,7 +215,7 @@ void Monster::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
 void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setRenderHint(QPainter::Antialiasing);
-    painter->drawPixmap(0,0, mCurrentPixmap, static_cast<int>(mNextFrame*boundingRect().width()), static_cast<int>(mHover*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
+    painter->drawPixmap(0,0, mCurrentPixmap, static_cast<int>(mNextFrame*boundingRect().width()), static_cast<int>((2*mSkin+mHover)*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
 
@@ -778,6 +779,7 @@ Goblin::Goblin(QGraphicsView * view):
     mThreatLevel = 1;
     mImage = QPixmap(":/monsters/goblin/goblin_logo.png");
     mDescription = "Le gobelin est un être incompris et sournois qui cherchera à vous faire du mal par tous les moyens";
+    mSkin = QRandomGenerator::global()->bounded(GOBLIN_SKIN_NUM);
 
     mBoundingRect = QRect(0,0,60,60);
     mShape.addEllipse(0,0,boundingRect().width(), boundingRect().height());
@@ -922,6 +924,7 @@ Bear::Bear(QGraphicsView * view):
     mThreatLevel = 3;
     mImage = QPixmap(":/monsters/bear/bear_logo.png");
     mDescription = "L'ours est un prédator puissant est dangereux, il hiberne pendant la saison hivernale";
+    mSkin = QRandomGenerator::global()->bounded(BEAR_SKIN_NUM);
 
     mBoundingRect = QRect(0,0,200,200);
     mShape.addEllipse(40,0,boundingRect().width()-80, boundingRect().height());
