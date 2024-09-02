@@ -1066,7 +1066,8 @@ Troll::Troll(QGraphicsView * view):
     mAction = Action::stand;
     mThreatLevel = 2;
     mImage = QPixmap(":/monsters/troll/troll_logo.png");
-    mDescription = "Le troll est avare et cherche à dérober les biens des humain, et ce par la force s'il le faut";
+    mDescription = "Le troll est avare et cherche à dérober les biens des humains et ce par tous les moyens";
+    mSkin = QRandomGenerator::global()->bounded(TROLL_SKIN_NUM);
 
     mBoundingRect = QRect(0,0,100,100);
     mShape.addEllipse(0,0,boundingRect().width()-25, boundingRect().height());
@@ -1212,6 +1213,7 @@ Oggre::Oggre(QGraphicsView * view):
     mThreatLevel = 4;
     mImage = QPixmap(":/monsters/oggre/oggre_logo.png");
     mDescription = "L'ogre est massif et terriblement dangereux, il vaut mieux ne pas croiser son chemin si l'on y est pas préparé";
+    mSkin = QRandomGenerator::global()->bounded(OGGRE_SKIN_NUM);
 
     mBoundingRect = QRect(0,0,350,350);
     mShape.addEllipse(QRect(100, 50, static_cast<int>(boundingRect().width()-200), static_cast<int>(boundingRect().height()-100)));

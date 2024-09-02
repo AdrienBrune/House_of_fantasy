@@ -65,6 +65,8 @@
 #define DEFAULT_SKIN_NUM    1
 #define GOBLIN_SKIN_NUM     3
 #define BEAR_SKIN_NUM       3
+#define TROLL_SKIN_NUM      3
+#define OGGRE_SKIN_NUM      3
 
 #define NUM_GROUND          220
 #define NUM_FLOWERS         20
