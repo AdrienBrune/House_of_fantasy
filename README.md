@@ -19,7 +19,7 @@
 
 ## More information
 
-<p>This games has a lot of similarities with an rpg game. The village is in a center of the map and the environment is radom. By sleeping in your house you will see that everything around will change, it is a new day afterall. So don't hesitate to sleep if you feel like everything has been done !</p>
+<p>This games has a lot of similarities with an rpg game. The village is in a center of the map and the environment is randomly generated. By sleeping in your house you will see that everything around will change, it is a new day afterall. So don't hesitate to sleep if you feel like everything has been done !</p>
 
 If you're interrested in dowloading the source code of the game, you can find the ressource package on this link :
 <ul>
