@@ -125,6 +125,53 @@ protected:
 };
 
 
+class Spider : public Monster
+{
+    Q_OBJECT
+public:
+    Spider(QGraphicsView*);
+    ~Spider();
+public:
+    void addExtraLoots();
+private:
+    void nextAction(Hero*);
+    int getSpeed();
+    int getBoostedSpeed();
+    void generateRandomLoots();
+protected:
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+    {
+        painter->setRenderHint(QPainter::Antialiasing);
+
+        QRectF rect = boundingRect();
+        
+        // Définir un pinceau et un stylo pour le dessin
+        QPen pen(Qt::black, 2);
+        QBrush brush(Qt::black);
+
+        painter->setPen(pen);
+        painter->setBrush(brush);
+
+        // Points pour dessiner la flèche
+        QPointF p1(rect.left(), rect.center().y());              // Début de la flèche (gauche)
+        QPointF p2(rect.right(), rect.center().y());             // Fin de la flèche (droite)
+        QPointF arrowLeft(p2.x() - 10, p2.y() - 10);             // Pointe en haut de la flèche
+        QPointF arrowRight(p2.x() - 10, p2.y() + 10);            // Pointe en bas de la flèche
+
+        // Dessiner la ligne principale de la flèche
+        painter->drawLine(p1, p2);
+
+        // Dessiner la tête de la flèche (deux lignes)
+        QPolygonF arrowHead;
+        arrowHead << p2 << arrowLeft << arrowRight;
+        painter->drawPolygon(arrowHead);
+
+        Q_UNUSED(widget)
+        Q_UNUSED(option)
+    }
+};
+
+
 class Wolf : public Monster
 {
     Q_OBJECT

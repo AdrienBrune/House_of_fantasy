@@ -21,6 +21,8 @@
 
 // Speed definitions
 #define SPEED_HERO              6
+#define SPEED_SPIDER            1
+#define SPEEDBOOST_SPIDER       6
 #define SPEED_WOLF              1
 #define SPEEDBOOST_WOLF         6
 #define SPEED_GOBLIN            1
@@ -58,12 +60,14 @@
 
 #define NUM_WOLFPACK        8
 #define NUM_GOBLIN          30
+#define NUM_SPIDER          100 // 20
 #define NUM_BEAR            20
 #define NUM_TROLL           20
 #define NUM_OGGRE           8
 
 #define DEFAULT_SKIN_NUM    1
 #define GOBLIN_SKIN_NUM     3
+#define SPIDER_SKIN_NUM     3
 #define BEAR_SKIN_NUM       3
 #define TROLL_SKIN_NUM      3
 #define OGGRE_SKIN_NUM      3
@@ -175,17 +179,23 @@
 #define SOUND_LAOSHANLUNG_LIGHTATTACK       48
 #define SOUND_LAOSHANLUNG_ROAR              49
 #define SOUND_LAOSHANLUNG_DIE               50
-#define SOUND_TREE_FALL                     51
-#define SOUND_ROCK_CRUSH                    52
-#define SOUND_SPELL_0                       53
-#define SOUND_SPELL_1                       54
-#define SOUND_SPELL_2                       55
-#define SOUND_SPELL_3                       56
-#define SOUND_SPELL_4                       57
-#define SOUND_SPELL_5                       58
-#define SOUND_SPELL_6                       59
-#define SOUND_SPELL_7                       60
-#define SOUND_TELEPORT                      61
+#define SOUND_SPIDER                          51
+#define SOUND_SPIDER_AGGRO                    52
+#define SOUND_SPIDER_HEAVYATTACK              53
+#define SOUND_SPIDER_LIGHTATTACK              54
+#define SOUND_SPIDER_ROAR                     55
+#define SOUND_SPIDER_DIE                      56
+#define SOUND_TREE_FALL                     57
+#define SOUND_ROCK_CRUSH                    58
+#define SOUND_SPELL_0                       59
+#define SOUND_SPELL_1                       60
+#define SOUND_SPELL_2                       61
+#define SOUND_SPELL_3                       62
+#define SOUND_SPELL_4                       63
+#define SOUND_SPELL_5                       64
+#define SOUND_SPELL_6                       65
+#define SOUND_SPELL_7                       66
+#define SOUND_TELEPORT                      67
 
 #define MUSICEVENT_START_DAY    0
 #define MUSICEVENT_CLOSE_FIGHT  1

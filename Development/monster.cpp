@@ -565,6 +565,139 @@ Monster::~Monster()
 
 
 
+Spider::Spider(QGraphicsView * view):
+    Monster(view)
+{
+    mName = "Araignée";
+    mLife = Life{100,100};
+    mMana = Mana{0,0};
+    mStamina = Stamina{400,400};
+    mDamage = 30;
+    mAction = Action::stand;
+    mThreatLevel = 1;
+    mImage = QPixmap(":/monsters/spider/spider_logo.png");
+    mSpeed = 0;
+    mDescription = "Les araignées sont vénéneuses et rapides mais en contrepartie manquent de robustesse";
+
+    mBoundingRect = QRect(0,0,100,100);
+    mShape.addEllipse(25,0,boundingRect().width()-50, boundingRect().height());
+
+    mFrames.run = 8;
+    mFrames.dead = 1;
+    mFrames.move = 8;
+    mFrames.stand = 1;
+    mFrames.skinned = 1;
+
+    mPixmap.heavyAttack = QPixmap(":/monsters/spider/spider_heavyAttack.png");
+    mPixmap.lightAttack = QPixmap(":/monsters/spider/spider_lightAttack.png");
+    mPixmap.fightImage_1 = QPixmap(":/monsters/spider/spider_fight.png");
+    mPixmap.fightImage_2 = QPixmap(":/monsters/spider/spider_fight_attacked.png");
+    mPixmap.walk = QPixmap(":/monsters/spider/spider_move.png");
+    mPixmap.run = QPixmap(":/monsters/spider/spider_run.png");
+    mPixmap.stand = QPixmap(":/monsters/spider/spider_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/spider/spider_dead.png");
+    mPixmap.skinned = QPixmap(":/monsters/spider/spider_skinned.png");
+
+    mSounds[0] = SOUND_SPIDER_HEAVYATTACK;
+    mSounds[1] = SOUND_SPIDER_LIGHTATTACK;
+    mSounds[2] = SOUND_SPIDER_ROAR;
+    mSounds[3] = SOUND_SPIDER_DIE;
+    mSounds[4] = SOUND_SPIDER;
+    mSounds[5] = SOUND_SPIDER_AGGRO;
+
+    mCurrentPixmap = mPixmap.stand;
+
+    Spider::generateRandomLoots();
+
+    mSize = boundingRect().height();
+    setTransformOriginPoint(boundingRect().center());
+    setAngle(90);
+}
+
+void Spider::addExtraLoots()
+{
+    if(QRandomGenerator::global()->bounded(4) == 0)
+    {
+        // TODO
+    }
+}
+
+void Spider::nextAction(Hero * hero)
+{
+    if(mAction == Action::dead || mAction == Action::skinned)
+        return;
+
+    if(!isInBiggerView()){
+        if(mAction!=Action::stand){
+            mAction = Action::stand;
+            mCurrentPixmap = mPixmap.stand;
+            t_animation->stop();
+            mNextFrame = 0;
+            mNumberFrame = Monster::getNumberFrame();
+        }
+        return;
+    }
+
+    Monster::chooseAction(hero);
+
+    // Action behaviour
+    switch(mAction)
+    {
+    case Action::moving:
+        mCurrentPixmap = mPixmap.walk;
+        mSpeed = getSpeed();
+        t_animation->stop();
+        t_animation->start(150);
+        break;
+    case Action::aggro:
+        mCurrentPixmap = mPixmap.run;
+        mSpeed = getBoostedSpeed();
+        t_animation->stop();
+        t_animation->start(60);
+        break;
+    case Action::stand:
+        mCurrentPixmap = mPixmap.stand;
+        t_animation->stop();
+        break;
+    default:
+        break;
+    }
+    mNextFrame = 0;
+    mNumberFrame = Monster::getNumberFrame();
+    update();
+}
+
+int Spider::getSpeed()
+{
+    return SPEED_SPIDER;
+}
+
+int Spider::getBoostedSpeed()
+{
+    return SPEEDBOOST_SPIDER;
+}
+
+void Spider::generateRandomLoots()
+{
+    while(!mItems.isEmpty())
+        delete mItems.takeLast();
+
+    // TODO
+}
+
+Spider::~Spider()
+{
+
+}
+
+
+
+
+
+
+
+
+
 
 Wolf::Wolf(QGraphicsView * view):
     Monster(view)

@@ -952,7 +952,7 @@ void Map::initMonsterConnection(Monster * monster)
 void Map::generateMonsters()
 {
     DEBUG("GENERATING : Monsters");
-    int WolfPackNumber = NUM_WOLFPACK, BearNumber = NUM_BEAR, GoblinNumber = NUM_GOBLIN, TrollNumber = NUM_TROLL, OggreNumber = NUM_OGGRE;
+    int WolfPackNumber = NUM_WOLFPACK, BearNumber = NUM_BEAR, SpiderNumber = NUM_SPIDER, GoblinNumber = NUM_GOBLIN, TrollNumber = NUM_TROLL, OggreNumber = NUM_OGGRE;
 
     int chunkSize = 500, wolfCount = 0, nTry = 0;
     QList<QGraphicsItem*> toAvoid {mVillage, mGoblinVillage};
@@ -1071,6 +1071,24 @@ void Map::generateMonsters()
         }
     }
     DEBUG("GENERATED : Bears              [" + QString("%1").arg(BearNumber) + "]");
+    emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+
+    for(int m=0;m<SpiderNumber;m++)
+    {
+        Monster * monster = new Spider(mView);
+        initMonsterConnection(monster);
+        mMonsters.append(monster);
+        mScene->addItem(monster);
+
+        monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
+        QList<QGraphicsItem*> list = mScene->collidingItems(monster);
+        while(!list.isEmpty())
+        {
+            monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
+            list = mScene->collidingItems(monster);
+        }
+    }
+    DEBUG("GENERATED : Spiders              [" + QString("%1").arg(SpiderNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     for(int m=0;m<TrollNumber;m++)
