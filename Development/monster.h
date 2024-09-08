@@ -77,6 +77,7 @@ public:
     void removeStatus(quint32);
     void setAngle(qreal);
     void rotateSymetry(qreal, qreal);
+    void setBoundingRect(QRectF);
 
     bool isStatus(quint32);
     bool isSkinned();

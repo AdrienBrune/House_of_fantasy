@@ -83,7 +83,6 @@ protected:
     int mNumberFrame;
     QPixmap mCurrentPixmap;
     QTimer * t_animation;
-    double mSize;
 };
 
 #endif // CHARACTER_H

@@ -38,9 +38,8 @@ void Monster::setAngle(qreal a)
         else
             mMove.angleUseToMove = mMove.currentangleOnMap + 2*(90 - mMove.currentangleOnMap);
 
-        QTransform matrice(1, 0, 0, -1, 0, mSize);
+        QTransform matrice(1, 0, 0, -1, 0, mBoundingRect.height());
         setTransform(matrice);
-
     }else
     {
         mMove.angleUseToMove = mMove.currentangleOnMap;
@@ -58,6 +57,12 @@ void Monster::rotateSymetry(qreal oldAngle, qreal newAngle)
     }
 }
 
+void Monster::setBoundingRect(QRectF bounding)
+{
+    mBoundingRect.setRect(bounding.x(), bounding.y(), bounding.width(), bounding.height());
+    setTransformOriginPoint(boundingRect().center());
+}
+
 bool Monster::isStatus(quint32 status)
 {
     return ((mStatus & status) == status) ? true : false ;
@@ -67,18 +72,16 @@ bool Monster::isSkinned()
 {
     if(mAction == Action::skinned)
         return true;
-    else{
+    else
         return false;
-    }
 }
 
 bool Monster::isDead()
 {
     if(mAction == Action::dead || mAction == Action::skinned)
         return true;
-    else {
+    else
         return false;
-    }
 }
 
 void Monster::killMonster()
@@ -120,11 +123,10 @@ int Monster::getExperience()
 
 QPixmap Monster::getFightImage(int which)
 {
-    if(which == 0){
+    if(which == 0)
         return mPixmap.fightImage_1;
-    }else{
+    else
         return mPixmap.fightImage_2;
-    }
 }
 
 QPixmap Monster::getHeavyAttackAnimation()
@@ -342,7 +344,7 @@ void Monster::advance(int phase)
 
 
     // Start movement
-    qreal arcLength = qSqrt(2.0)/2.0*mSize;
+    qreal arcLength = qSqrt(2.0)/2.0*mBoundingRect.height();
     qreal dy = mSpeed*(qCos(qDegreesToRadians(static_cast<qreal>(static_cast<int>(mMove.angleUseToMove)%90))) + qSin(qDegreesToRadians(static_cast<qreal>(static_cast<int>(mMove.angleUseToMove)%90))));
 
     if(mMove.angleUseToMove <= 135){
@@ -579,7 +581,7 @@ Spider::Spider(QGraphicsView * view):
     mSpeed = 0;
     mDescription = "Les araignées sont vénéneuses et rapides mais en contrepartie manquent de robustesse";
 
-    mBoundingRect = QRect(0,0,100,100);
+    setBoundingRect(QRectF(0,0,100,100));
     mShape.addEllipse(25,0,boundingRect().width()-50, boundingRect().height());
 
     mFrames.run = 8;
@@ -608,10 +610,6 @@ Spider::Spider(QGraphicsView * view):
     mCurrentPixmap = mPixmap.stand;
 
     Spider::generateRandomLoots();
-
-    mSize = boundingRect().height();
-    setTransformOriginPoint(boundingRect().center());
-    setAngle(90);
 }
 
 void Spider::addExtraLoots()
@@ -713,7 +711,7 @@ Wolf::Wolf(QGraphicsView * view):
     mSpeed = 0;
     mDescription = "Les loups sont des chasseurs agressifs chassant exclusivement en meute";
 
-    mBoundingRect = QRect(0,0,100,100);
+    setBoundingRect(QRectF(0,0,100,100));
     mShape.addEllipse(25,0,boundingRect().width()-50, boundingRect().height());
 
     mFrames.run = 14;
@@ -742,10 +740,6 @@ Wolf::Wolf(QGraphicsView * view):
     mCurrentPixmap = mPixmap.stand;
 
     Wolf::generateRandomLoots();
-
-    mSize = boundingRect().height();
-    setTransformOriginPoint(boundingRect().center());
-    setAngle(90);
 }
 
 void Wolf::addExtraLoots()
@@ -861,10 +855,6 @@ WolfAlpha::WolfAlpha(QGraphicsView * view):
     WolfAlpha::generateRandomLoots();
 
     update();
-
-    mSize = boundingRect().height();
-    setTransformOriginPoint(boundingRect().center());
-    setAngle(90);
 }
 
 WolfAlpha::~WolfAlpha()
@@ -914,7 +904,7 @@ Goblin::Goblin(QGraphicsView * view):
     mDescription = "Le gobelin est un être incompris et sournois qui cherchera à vous faire du mal par tous les moyens";
     mSkin = QRandomGenerator::global()->bounded(GOBLIN_SKIN_NUM);
 
-    mBoundingRect = QRect(0,0,60,60);
+    setBoundingRect(QRectF(0,0,60,60));
     mShape.addEllipse(0,0,boundingRect().width(), boundingRect().height());
 
     mFrames.run = 6;
@@ -943,10 +933,6 @@ Goblin::Goblin(QGraphicsView * view):
     mCurrentPixmap = mPixmap.stand;
 
     Goblin::generateRandomLoots();
-
-    mSize = boundingRect().height();
-    setTransformOriginPoint(boundingRect().center());
-    setAngle(90);
 }
 
 void Goblin::addExtraLoots()
@@ -1059,7 +1045,7 @@ Bear::Bear(QGraphicsView * view):
     mDescription = "L'ours est un prédator puissant est dangereux, il hiberne pendant la saison hivernale";
     mSkin = QRandomGenerator::global()->bounded(BEAR_SKIN_NUM);
 
-    mBoundingRect = QRect(0,0,200,200);
+    setBoundingRect(QRectF(0,0,200,100));
     mShape.addEllipse(40,0,boundingRect().width()-80, boundingRect().height());
 
     mFrames.run = 12;
@@ -1088,10 +1074,6 @@ Bear::Bear(QGraphicsView * view):
     mCurrentPixmap = mPixmap.stand;
 
     Bear::generateRandomLoots();
-
-    mSize = boundingRect().height();
-    setTransformOriginPoint(boundingRect().center());
-    setAngle(90);
 }
 
 void Bear::addExtraLoots()
@@ -1202,7 +1184,7 @@ Troll::Troll(QGraphicsView * view):
     mDescription = "Le troll est avare et cherche à dérober les biens des humains et ce par tous les moyens";
     mSkin = QRandomGenerator::global()->bounded(TROLL_SKIN_NUM);
 
-    mBoundingRect = QRect(0,0,100,100);
+    setBoundingRect(QRectF(0,0,100,100));
     mShape.addEllipse(0,0,boundingRect().width()-25, boundingRect().height());
 
     mFrames.run = 7;
@@ -1231,10 +1213,6 @@ Troll::Troll(QGraphicsView * view):
     mCurrentPixmap = mPixmap.stand;
 
     Troll::generateRandomLoots();
-
-    mSize = boundingRect().height();
-    setTransformOriginPoint(boundingRect().center());
-    setAngle(90);
 }
 
 void Troll::addExtraLoots()
@@ -1348,7 +1326,7 @@ Oggre::Oggre(QGraphicsView * view):
     mDescription = "L'ogre est massif et terriblement dangereux, il vaut mieux ne pas croiser son chemin si l'on y est pas préparé";
     mSkin = QRandomGenerator::global()->bounded(OGGRE_SKIN_NUM);
 
-    mBoundingRect = QRect(0,0,350,350);
+    setBoundingRect(QRectF(0,0,350,350));
     mShape.addEllipse(QRect(100, 50, static_cast<int>(boundingRect().width()-200), static_cast<int>(boundingRect().height()-100)));
 
     mFrames.run = 8;
@@ -1377,10 +1355,6 @@ Oggre::Oggre(QGraphicsView * view):
     mCurrentPixmap = mPixmap.stand;
 
     Oggre::generateRandomLoots();
-
-    mSize = boundingRect().height();
-    setTransformOriginPoint(boundingRect().center());
-    setAngle(90);
 }
 
 void Oggre::addExtraLoots()
@@ -1487,7 +1461,7 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mImage = QPixmap(":/monsters/laoshanlung/laoshanlung_logo.png");
     mDescription = "Créature mythique, le Lao Shun Lung est un dragon de terre colossale qui écume les plaines depuis des centaines d'années";
 
-    mBoundingRect = QRect(0,0,700,700);
+    setBoundingRect(QRectF(0,0,700,700));
     mShape.addEllipse(QRect(mBoundingRect.height()/2 - mBoundingRect.height()*4/25, mBoundingRect.width()/5, mBoundingRect.height()*4/25, mBoundingRect.width()*3/4));
 
     mFrames.run = 18;
@@ -1516,10 +1490,6 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mCurrentPixmap = mPixmap.stand;
 
     LaoShanLung::generateRandomLoots();
-
-    mSize = boundingRect().height();
-    setTransformOriginPoint(boundingRect().center());
-    setAngle(90);
 }
 
 void LaoShanLung::addExtraLoots()
