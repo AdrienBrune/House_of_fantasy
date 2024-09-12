@@ -10,19 +10,19 @@
 class ToolFunctions
 {
 public:
-    ToolFunctions();
+    ToolFunctions() = delete;
+    ToolFunctions(const ToolFunctions&) = delete;
+    ToolFunctions& operator=(const ToolFunctions&) = delete;
 public:
     static QRectF getVisibleView(QGraphicsView*);
     static QRectF getBiggerView(QGraphicsView*);
-    static qreal getAngleWithHero(QGraphicsItem *, QGraphicsItem *);
-    static qreal getRandomAngle();
-    static bool isAllowedAngle(qreal);
-    static qreal heroDistanceWith(QGraphicsItem *, QGraphicsItem *);
-    static qreal getDistanceBeetween(QGraphicsItem*, QGraphicsItem*);
-    static qreal getAngleWithVillage( QGraphicsItem *, QPointF);
+    static int getAngleBetween(QGraphicsItem *, QGraphicsItem *);
+    static int getRandomAngle();
+    static bool isOppositeDirection(int previous, int current);
+    static int correct(int angle);
+    static bool isAllowedAngle(int);
+    static int getDistanceBeetween(QGraphicsItem*, QGraphicsItem*);
     static int getNumberObstacles(QList<QGraphicsItem*>);
-    static int getNumberObstacles(QList<QGraphicsItem*>, QList<QGraphicsItem*>);
-    static bool compareObstacles(QList<QGraphicsItem*>, QList<QGraphicsItem*>);
     static QRect getSpawnChunk(QSize size, QList<QGraphicsItem*> itemsToAvoid);
 };
 
