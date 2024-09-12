@@ -29,6 +29,7 @@ SOURCES += \
         character.cpp \
         consumable.cpp \
         ctrwindow.cpp \
+        entitieshandler.cpp \
         equipment.cpp \
         frag_interface_gear.cpp \
         frag_interface_itemsorter.cpp \
@@ -83,6 +84,7 @@ HEADERS += \
         constants.h \
         consumable.h \
         ctrwindow.h \
+        entitieshandler.h \
         equipment.h \
         frag_interface_gear.h \
         frag_interface_itemsorter.h \
