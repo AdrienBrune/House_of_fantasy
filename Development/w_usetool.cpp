@@ -1,10 +1,10 @@
 #include "w_usetool.h"
 
-W_UseTool::W_UseTool(QWidget *parent, Tool * tool, Hero * hero, Village * village) :
+#include "entitieshandler.h"
+
+W_UseTool::W_UseTool(QWidget *parent, Tool * tool) :
     QWidget(parent),
-    mTool(tool),
-    mHero(hero),
-    mVillagePosition(QPointF(village->pos().x()+800, village->pos().y()+600))
+    mTool(tool)
 {
     hide();
     mExitButton = new QPushButton(this);
@@ -58,6 +58,9 @@ void W_UseTool::paintEvent(QPaintEvent *)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
+    Hero *hero = EntitesHandler::getInstance().getHero();
+    Map *map = EntitesHandler::getInstance().getMap();
+
     int w = static_cast<int>(width()-mExitButton->height());
     int h = static_cast<int>((height()-mExitButton->height()));
     QRect area = QRect((width()-w)/2,(height()-h)/2,w,h);
@@ -66,7 +69,7 @@ void W_UseTool::paintEvent(QPaintEvent *)
     if(mTool->getIdentifier() == TOOL_COMPASS)
     {
         painter.drawPixmap(area, QPixmap(":/graphicItems/compassDisplayer.png"));
-        angle = static_cast<int>(ToolFunctions::getAngleWithVillage(mHero, mVillagePosition));
+        angle = static_cast<int>(ToolFunctions::getAngleBetween(hero, map->getVillage()));
         painter.setPen(QPen(QColor("#FF0000"), 5));
         painter.drawArc(area, static_cast<int>(angle-2)*16, 2*16);
 

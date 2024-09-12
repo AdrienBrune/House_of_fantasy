@@ -14,7 +14,7 @@ class W_UseTool : public QWidget
 {
     Q_OBJECT
 public:
-    explicit W_UseTool(QWidget *parent = nullptr, Tool * tool = nullptr, Hero * hero = nullptr, Village * village = nullptr);
+    explicit W_UseTool(QWidget *parent = nullptr, Tool * tool = nullptr);
     ~W_UseTool();
 private slots:
     void refresh();
@@ -28,7 +28,6 @@ protected:
     void paintEvent(QPaintEvent*);
 private:
     Tool * mTool;
-    Hero * mHero;
     QPointF mVillagePosition;
     QPushButton * mExitButton;
 };

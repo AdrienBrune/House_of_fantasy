@@ -12,11 +12,11 @@ public:
 
     static EntitesHandler& getInstance() { return mInstance; }
 
-    void registerHero(Hero * hero) { mHero = hero; }
-    void registerMap(Map * map) { mMap = map; }
+    void registerHero(Hero * hero) { assert(hero); mHero = hero; }
+    void registerMap(Map * map) { assert(map); mMap = map; }
 
-    Hero * getHero() { return mHero; }
-    Map * getMap() { return mMap; }
+    Hero * getHero() { assert(mHero); return mHero; }
+    Map * getMap() { assert(mMap); return mMap; }
 
 private:
     EntitesHandler():

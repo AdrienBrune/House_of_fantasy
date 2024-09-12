@@ -25,7 +25,7 @@ class Win_Interface_Trading : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Win_Interface_Trading(QWidget *parent = nullptr, Hero * hero = nullptr);
+    explicit Win_Interface_Trading(QWidget *parent = nullptr);
     virtual ~Win_Interface_Trading();
 signals:
     void sig_heroBagFull();
@@ -64,7 +64,7 @@ class Win_Altar : public Win_Interface_Trading
 {
     Q_OBJECT
 public:
-    explicit Win_Altar(QWidget *parent = nullptr, Hero * hero = nullptr, Altar * altar = nullptr);
+    explicit Win_Altar(QWidget *parent = nullptr);
     ~Win_Altar();
 private slots:
     void onGiveOffering(Item*, int);
@@ -82,7 +82,7 @@ class Win_Chest : public Win_Interface_Trading
     Q_OBJECT
 
 public:
-    explicit Win_Chest(QWidget *parent = nullptr, Hero * hero = nullptr, ChestEvent * chest = nullptr);
+    explicit Win_Chest(QWidget *parent = nullptr, ChestEvent * chest = nullptr);
     ~Win_Chest();
 public slots:
     void closeChest();
@@ -99,7 +99,7 @@ class Win_BlackSmith : public Win_Interface_Trading
     Q_OBJECT
 
 public:
-    explicit Win_BlackSmith(QWidget *parent = nullptr, Hero * hero = nullptr, Blacksmith * blacksmith = nullptr);
+    explicit Win_BlackSmith(QWidget *parent = nullptr);
     ~Win_BlackSmith();
 signals:
     void sig_playSound(int);
@@ -130,7 +130,7 @@ class Win_Merchant : public Win_Interface_Trading
     Q_OBJECT
 
 public:
-    explicit Win_Merchant(QWidget *parent = nullptr, Hero * hero = nullptr, Merchant * merchant = nullptr);
+    explicit Win_Merchant(QWidget *parent = nullptr);
     ~Win_Merchant();
 private slots:
     void virtuallyBuyItemFromSeller(ItemQuickDisplayer*);
@@ -158,7 +158,7 @@ class Win_Alchemist : public Win_Interface_Trading
     Q_OBJECT
 
 public:
-    explicit Win_Alchemist(QWidget *parent = nullptr, Hero * hero = nullptr, Alchemist * alchemist = nullptr);
+    explicit Win_Alchemist(QWidget *parent = nullptr);
     ~Win_Alchemist();
 private slots:
     void virtuallyBuyItemFromSeller(ItemQuickDisplayer*);
@@ -190,7 +190,7 @@ class Win_HeroChest : public Win_Interface_Trading
     Q_OBJECT
 
 public:
-    explicit Win_HeroChest(QWidget *parent = nullptr, Hero * hero = nullptr, HeroChest * chest = nullptr);
+    explicit Win_HeroChest(QWidget *parent = nullptr);
     ~Win_HeroChest();
 public:
     void closeChest();

@@ -17,7 +17,7 @@ class Frag_Interface_Gear : public QWidget
     Q_OBJECT
 
 public:
-    explicit Frag_Interface_Gear(QWidget *parent = nullptr, Hero * hero = nullptr);
+    explicit Frag_Interface_Gear(QWidget *parent = nullptr);
     ~Frag_Interface_Gear();
 signals:
     void sig_itemClicked(ItemQuickDisplayer*);
@@ -44,7 +44,6 @@ private:
     QList<ItemQuickDisplayer*> itemsLeftSide;
     QList<ItemQuickDisplayer*> equipmentRightSide;
     int xPosSplitter;
-    Hero * mHero;
     QPointF helmetPos;
     QPointF breastplatePos;
     QPointF glovesPos;

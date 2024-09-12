@@ -16,7 +16,7 @@ class W_SpellListSelection : public QWidget
     Q_OBJECT
 
 public:
-    explicit W_SpellListSelection(QWidget * parent = nullptr, Hero * hero = nullptr);
+    explicit W_SpellListSelection(QWidget * parent = nullptr);
     ~W_SpellListSelection();
 
 signals:
@@ -26,7 +26,6 @@ public:
     void enable(bool);
 
 private:
-    Hero * mHero;
     QList<Frag_Speel*> mSpellList;
 
 private:

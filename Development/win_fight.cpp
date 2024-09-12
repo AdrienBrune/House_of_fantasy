@@ -2,6 +2,7 @@
 #include "ui_win_fight.h"
 
 #include "frag_speel.h"
+#include "entitieshandler.h"
 
 #define ACTION_COST_HEAVY_ATTACK    ((mHero->getStamina().maxStamina > 400) ? 400 : mHero->getStamina().maxStamina)
 #define ACTION_COST_LIGHT_ATTACK    100
@@ -9,9 +10,9 @@
 #define ACTION_COST_FLEE            ((mHero->getStamina().maxStamina > 200) ? 200 : mHero->getStamina().maxStamina)
 #define ACTION_COST_USE_SPELL       50
 
-Win_Fight::Win_Fight(QWidget *parent, Hero * hero, Monster * monster) :
+Win_Fight::Win_Fight(QWidget *parent, Monster * monster) :
     QWidget(parent),
-    mHero(hero),
+    mHero(nullptr),
     mMonster(monster),
     mDodgeSucces(false),
     mFleeFail(false),
@@ -20,6 +21,8 @@ Win_Fight::Win_Fight(QWidget *parent, Hero * hero, Monster * monster) :
     w_spellList(nullptr),
     ui(new Ui::Win_Fight)
 {
+    mHero = EntitesHandler::getInstance().getHero();
+
     ui->setupUi(this);
     if(parent)
         setGeometry(parent->x(), parent->y(), parent->width(), parent->height());
@@ -34,7 +37,7 @@ Win_Fight::Win_Fight(QWidget *parent, Hero * hero, Monster * monster) :
     connect(t_fightEvent, SIGNAL(timeout()), this, SLOT(onFightEvent()));
     t_fightEvent->start(10000);
 
-    hero->stopMoving();
+    mHero->stopMoving();
 
     connect(ui->button_heavyAttack, &QPushButton::clicked, this, &Win_Fight::onButtonHeavyAttackClicked);
     connect(ui->button_lightAttack, &QPushButton::clicked, this, &Win_Fight::onButtonLightAttackClicked);
@@ -144,7 +147,7 @@ void Win_Fight::initInterface()
 
     monsterUseStamina(QRandomGenerator::global()->bounded(30, 70));
 
-    w_spellList = new W_SpellListSelection(this, mHero);
+    w_spellList = new W_SpellListSelection(this);
     w_spellList->setWindowFlags(Qt::FramelessWindowHint);
     connect(w_spellList, SIGNAL(sig_spellClicked(Skill*)), this, SLOT(onUseSpell(Skill*)));
     w_spellList->setGeometry(ui->button_useSpell->x() - w_spellList->width(), ui->button_useSpell->y(), w_spellList->width(), w_spellList->height());

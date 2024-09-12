@@ -1,6 +1,7 @@
 #include "ctrwindow.h"
 #include "ui_ctrwindow.h"
 #include "win_loadinggamescreen.h"
+#include "entitieshandler.h"
 #include <QDir>
 #include <QCursor>
 
@@ -172,6 +173,9 @@ void CTRWindow::generateNewGame()
 
     w_loadingScreen->hide();
     showFullScreen();
+
+    EntitesHandler::getInstance().registerHero(mHero);
+    EntitesHandler::getInstance().registerMap(mMap);
 }
 
 void CTRWindow::closeGame()
@@ -276,7 +280,7 @@ void CTRWindow::GoToMonsterFight(Monster * monster)
 
         mSoundManager->setHeroAttack(mHero->getGear()->getWeapon());
         mSoundManager->startMusicFight(monster);
-        w_fight = new Win_Fight(this, mHero, monster);
+        w_fight = new Win_Fight(this, monster);
         connect(w_fight, SIGNAL(sig_closeWindow()), this, SLOT(hideFightWindow()));
         connect(w_fight, SIGNAL(sig_endFight(Character*)), this, SLOT(fightResult(Character*)));
         connect(w_fight, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
@@ -752,7 +756,7 @@ void CTRWindow::on_Inventory_clicked()
     hideInventaryGear();
     hideSkillWindow();
 
-    w_inventory = new Win_Inventory(this, mHero);
+    w_inventory = new Win_Inventory(this);
     connect(w_inventory, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
     connect(w_inventory, SIGNAL(sig_closeWindow()), this, SLOT(hideInventary()));
     connect(w_inventory, SIGNAL(sig_useTool(Tool*)), this, SLOT(useTool(Tool*)));
@@ -781,7 +785,7 @@ void CTRWindow::on_Gear_clicked()
     hideInventaryGear();
     hideSkillWindow();
 
-    w_gear = new Win_Gear(this, mHero);
+    w_gear = new Win_Gear(this);
     connect(w_gear, SIGNAL(sig_closeWindow()), this, SLOT(hideInventaryGear()));
     connect(w_gear, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
     connect(w_gear, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
@@ -839,7 +843,7 @@ void CTRWindow::useTool(Tool * tool)
         delete w_tool;
     w_tool = nullptr;
 
-    w_tool = new W_UseTool(this, tool, mHero, mMap->getVillage());
+    w_tool = new W_UseTool(this, tool);
     connect(w_tool->getExitButton(), SIGNAL(clicked()), this, SLOT(unuseTool()));
     w_tool->setGeometry(ui->Inventory->x()-w_tool->width()-30,30,w_tool->width(),w_tool->height());
     w_tool->displayTool();
@@ -904,11 +908,11 @@ void CTRWindow::openInterface(QGraphicsItem * item)
 {
     ChestEvent * chest = dynamic_cast<ChestEvent*>(item);
     if(chest){
-        displayInterfaceTrading(new Win_Chest(this, mHero, chest));
+        displayInterfaceTrading(new Win_Chest(this, chest));
     }
     BlacksmithHouse * blacksmith = dynamic_cast<BlacksmithHouse*>(item);
     if(blacksmith){
-        Win_BlackSmith * interface = new Win_BlackSmith(this, mHero, mMap->getVillage()->getBlacksmith());
+        Win_BlackSmith * interface = new Win_BlackSmith(this);
         connect(interface, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
         connect(interface, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
         displayInterfaceTrading(interface);
@@ -916,12 +920,12 @@ void CTRWindow::openInterface(QGraphicsItem * item)
     }
     MerchantHouse * merchant = dynamic_cast<MerchantHouse*>(item);
     if(merchant){
-        displayInterfaceTrading(new Win_Merchant(this, mHero, mMap->getVillage()->getMerchant()));
+        displayInterfaceTrading(new Win_Merchant(this));
         return;
     }
     AlchemistHouse * alchemist = dynamic_cast<AlchemistHouse*>(item);
     if(alchemist){
-        displayInterfaceTrading(new Win_Alchemist(this, mHero, mMap->getVillage()->getAlchemist()));
+        displayInterfaceTrading(new Win_Alchemist(this));
         return;
     }
     Taverne * heroHouse = dynamic_cast<Taverne*>(item);
@@ -943,7 +947,7 @@ void CTRWindow::openInterface(QGraphicsItem * item)
     HeroChest * heroChest = dynamic_cast<HeroChest*>(item);
     if(heroChest){
         mHero->freeze(true);
-        Win_HeroChest * w_chest = new Win_HeroChest(this, mHero, heroChest);
+        Win_HeroChest * w_chest = new Win_HeroChest(this);
         connect(w_chest, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
         w_chest->setGeometry((width()-w_chest->width())/2, (height()-w_chest->height())/2, w_chest->width(), w_chest->height());
         w_chest->show();
@@ -953,7 +957,7 @@ void CTRWindow::openInterface(QGraphicsItem * item)
     AltarBuilding * altar = dynamic_cast<AltarBuilding*>(item);
     if(altar)
     {
-        displayInterfaceTrading(new Win_Altar(this, mHero, mMap->getVillage()->getAltar()));
+        displayInterfaceTrading(new Win_Altar(this));
         return;
     }
 }
@@ -984,7 +988,7 @@ void CTRWindow::on_Skills_clicked()
     hideInventaryGear();
     hideSkillWindow();
 
-    w_skill = new Win_Skills(this, mHero);
+    w_skill = new Win_Skills(this);
     connect(w_skill, SIGNAL(sig_closeWindow()), this, SLOT(hideSkillWindow()));
     //connect(w_skill, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
     w_skill->setGeometry((width() - w_skill->width())/2, 0, w_skill->width(), w_skill->height());

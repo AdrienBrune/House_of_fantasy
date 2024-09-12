@@ -19,7 +19,7 @@ class Win_Gear : public QWidget
     Q_OBJECT
 
 public:
-    explicit Win_Gear(QWidget *parent = nullptr, Hero * hero = nullptr);
+    explicit Win_Gear(QWidget *parent = nullptr);
     ~Win_Gear();
 signals:
     void sig_closeWindow();
@@ -47,7 +47,6 @@ protected:
 
 private:
     Frag_Interface_Gear * mItemEquipment;
-    Hero * mHero;
     QRect mItemShownRect;
     W_ItemDisplayer * mItemToDisplay;
     int mItemSelected;

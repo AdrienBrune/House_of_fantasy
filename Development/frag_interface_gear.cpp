@@ -1,10 +1,10 @@
 #include "frag_interface_gear.h"
 #include "ui_frag_interface_gear.h"
+#include "entitieshandler.h"
 
-Frag_Interface_Gear::Frag_Interface_Gear(QWidget *parent, Hero * hero) :
+Frag_Interface_Gear::Frag_Interface_Gear(QWidget *parent) :
     QWidget(parent),
     xPosSplitter(485),
-    mHero(hero),
     ui(new Ui::Frag_interface_gear)
 {
     ui->setupUi(this);
@@ -29,6 +29,8 @@ Frag_Interface_Gear::Frag_Interface_Gear(QWidget *parent, Hero * hero) :
 
 void Frag_Interface_Gear::onItemMovedHandler(ItemQuickDisplayer * item)
 {
+    Hero * hero = EntitesHandler::getInstance().getHero();
+
     item->setZValue(0);
     if(!mScene->sceneRect().contains(item->boundingRect()))
     {
@@ -46,7 +48,7 @@ void Frag_Interface_Gear::onItemMovedHandler(ItemQuickDisplayer * item)
                 Equipment * equipment = dynamic_cast<Equipment*>(item->getItem());
                 if(equipment)
                 {
-                    if(!IS_ABLE(mHero->getHeroClass(), equipment->getUsable()))
+                    if(!IS_ABLE(hero->getHeroClass(), equipment->getUsable()))
                     {
                         item->setPos(item->getInitialPosition());
                         return;
@@ -153,8 +155,10 @@ void Frag_Interface_Gear::onItemSelected(ItemQuickDisplayer * item)
 
 void Frag_Interface_Gear::initEquipmentRightSide()
 {
-    if(mHero->getGear()->getHelmet()!=nullptr){
-        ItemQuickDisplayer * w_helmet = new ItemQuickDisplayer(mHero->getGear()->getHelmet());
+    Hero * hero = EntitesHandler::getInstance().getHero();
+
+    if(hero->getGear()->getHelmet()!=nullptr){
+        ItemQuickDisplayer * w_helmet = new ItemQuickDisplayer(hero->getGear()->getHelmet());
         mScene->addItem(w_helmet);
         w_helmet->setInitialPosition(helmetPos);
         w_helmet->setPos(helmetPos);
@@ -164,8 +168,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_helmet, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_helmet, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
-    if(mHero->getGear()->getBreastplate()!=nullptr){
-        ItemQuickDisplayer * w_breasplate = new ItemQuickDisplayer(mHero->getGear()->getBreastplate());
+    if(hero->getGear()->getBreastplate()!=nullptr){
+        ItemQuickDisplayer * w_breasplate = new ItemQuickDisplayer(hero->getGear()->getBreastplate());
         mScene->addItem(w_breasplate);
         w_breasplate->setInitialPosition(breastplatePos);
         w_breasplate->setPos(breastplatePos);
@@ -175,8 +179,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_breasplate, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_breasplate, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
-    if(mHero->getGear()->getGloves()!=nullptr){
-        ItemQuickDisplayer * w_gloves = new ItemQuickDisplayer(mHero->getGear()->getGloves());
+    if(hero->getGear()->getGloves()!=nullptr){
+        ItemQuickDisplayer * w_gloves = new ItemQuickDisplayer(hero->getGear()->getGloves());
         mScene->addItem(w_gloves);
         w_gloves->setInitialPosition(glovesPos);
         w_gloves->setPos(glovesPos);
@@ -186,8 +190,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_gloves, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_gloves, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
-    if(mHero->getGear()->getPant()!=nullptr){
-        ItemQuickDisplayer * w_pant = new ItemQuickDisplayer(mHero->getGear()->getPant());
+    if(hero->getGear()->getPant()!=nullptr){
+        ItemQuickDisplayer * w_pant = new ItemQuickDisplayer(hero->getGear()->getPant());
         mScene->addItem(w_pant);
         w_pant->setInitialPosition(pantPos);
         w_pant->setPos(pantPos);
@@ -197,8 +201,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_pant, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_pant, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
-    if(mHero->getGear()->getFootWears()!=nullptr){
-        ItemQuickDisplayer * w_footwears = new ItemQuickDisplayer(mHero->getGear()->getFootWears());
+    if(hero->getGear()->getFootWears()!=nullptr){
+        ItemQuickDisplayer * w_footwears = new ItemQuickDisplayer(hero->getGear()->getFootWears());
         mScene->addItem(w_footwears);
         w_footwears->setInitialPosition(footwearsPos);
         w_footwears->setPos(footwearsPos);
@@ -208,8 +212,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_footwears, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_footwears, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
-    if(mHero->getGear()->getAmulet()!=nullptr){
-        ItemQuickDisplayer * w_amulet = new ItemQuickDisplayer(mHero->getGear()->getAmulet());
+    if(hero->getGear()->getAmulet()!=nullptr){
+        ItemQuickDisplayer * w_amulet = new ItemQuickDisplayer(hero->getGear()->getAmulet());
         mScene->addItem(w_amulet);
         w_amulet->setInitialPosition(amuletPos);
         w_amulet->setPos(amuletPos);
@@ -219,8 +223,8 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_amulet, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_amulet, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
     }
-    if(mHero->getGear()->getWeapon()!=nullptr){
-        ItemQuickDisplayer * w_weapon = new ItemQuickDisplayer(mHero->getGear()->getWeapon());
+    if(hero->getGear()->getWeapon()!=nullptr){
+        ItemQuickDisplayer * w_weapon = new ItemQuickDisplayer(hero->getGear()->getWeapon());
         mScene->addItem(w_weapon);
         w_weapon->setInitialPosition(weaponPos);
         w_weapon->setPos(weaponPos);
@@ -260,12 +264,14 @@ void Frag_Interface_Gear::addItemLeftSide(Item * item)
 
 void Frag_Interface_Gear::addItemsLeftSide()
 {
+    Hero * hero = EntitesHandler::getInstance().getHero();
+
     QList<Item*> list;
-    for(Item * item : mHero->getBag()->getWeapons())
+    for(Item * item : hero->getBag()->getWeapons())
     {
         addItemLeftSide(item);
     }
-    for(Item * item : mHero->getBag()->getArmorPieces())
+    for(Item * item : hero->getBag()->getArmorPieces())
     {
         addItemLeftSide(item);
     }

@@ -1,13 +1,16 @@
 #include "win_skillinfo.h"
 #include "ui_win_skillinfo.h"
 
-Win_SkillInfo::Win_SkillInfo(QWidget * parent, Hero * hero, Skill * skill) :
+#include "entitieshandler.h"
+
+Win_SkillInfo::Win_SkillInfo(QWidget * parent, Skill * skill) :
     QWidget(parent),
-    mHero(hero),
     mSkill(skill),
     ui(new Ui::Win_SkillInfo)
 {
     ui->setupUi(this);
+
+    Hero * hero = EntitesHandler::getInstance().getHero();
 
     ui->skillImage->setScaledContents(true);
     ui->skillPointsCost->setText(QString("%1").arg(mSkill->getUnlockPoints()));
@@ -26,7 +29,7 @@ Win_SkillInfo::Win_SkillInfo(QWidget * parent, Hero * hero, Skill * skill) :
         ui->labelManaCost->hide();
         ui->ManaCost_logo->hide();
 
-        if(!mHero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
+        if(!hero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
         {
             if(mSkill->getIndex() == PassiveSkill::Archmage)
             {
@@ -40,12 +43,12 @@ Win_SkillInfo::Win_SkillInfo(QWidget * parent, Hero * hero, Skill * skill) :
     {
         ui->spellManaCost->setText(QString("%1").arg(spell->getManaCost()));
 
-        if(!mHero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
+        if(!hero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
         {
             ui->skillAddInfo->show();
             ui->skillAddInfo->setText("Nécéssite l'apprentissage de la compétence\n'Apprenti mage'");
         }
-        else if(!mHero->getSkillList()[PassiveSkill::Archmage]->isUnlock())
+        else if(!hero->getSkillList()[PassiveSkill::Archmage]->isUnlock())
         {
             /* Superior spells */
             if(mSkill->getIndex() > SpellSkill::PrimitiveShield)
@@ -64,7 +67,8 @@ Win_SkillInfo::~Win_SkillInfo()
 
 void Win_SkillInfo::on_buttonUnlock_clicked()
 {
-    if(mHero->learnSkill(mSkill))
+    Hero * hero = EntitesHandler::getInstance().getHero();
+    if(hero->learnSkill(mSkill))
     {
         emit sig_close();
     }
@@ -88,7 +92,8 @@ void Win_SkillInfo::paintEvent(QPaintEvent*)
     painter.setBrush(QBrush("#2c2c2c"));
     painter.drawRoundedRect(QRect(width()/50,width()/50,width() - width()/50,height() - width()/50), 10, 10);
 
-//    if(!mHero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
+//    Hero * hero = EntitesHandler::getInstance().getHero();
+//    if(!hero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
 //    {
 //        SpellSkill * spell = dynamic_cast<SpellSkill*>(mSkill);
 //        if(spell)

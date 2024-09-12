@@ -18,7 +18,7 @@ class Win_Inventory : public QWidget
     Q_OBJECT
 
 public:
-    explicit Win_Inventory(QWidget *parent = nullptr, Hero * hero = nullptr);
+    explicit Win_Inventory(QWidget *parent = nullptr);
     ~Win_Inventory();
 signals:
     void sig_closeWindow();
@@ -38,7 +38,6 @@ public:
 protected:
     void paintEvent(QPaintEvent *event);
 private:
-    Hero * mHero;
     Frag_Interface_ItemSorter * itemRowTop;
     Frag_Interface_ItemSorter * itemRowMid;
     Frag_Interface_ItemSorter * itemRowBot;

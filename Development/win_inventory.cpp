@@ -1,9 +1,10 @@
 #include "win_inventory.h"
 #include "ui_win_inventory.h"
 
-Win_Inventory::Win_Inventory(QWidget *parent, Hero * hero) :
+#include "entitieshandler.h"
+
+Win_Inventory::Win_Inventory(QWidget *parent) :
     QWidget(parent),
-    mHero(hero),
     mItemShownRect(QRect(0,0,0,0)),
     mItemToDisplay(nullptr),
     mItemSelected(0),
@@ -22,6 +23,7 @@ Win_Inventory::Win_Inventory(QWidget *parent, Hero * hero) :
     connect(mItemsContainer, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SLOT(hideItemHover(ItemQuickDisplayer*)));
     ui->layoutItems->addWidget(mItemsContainer, 0, Qt::AlignCenter);
 
+    Hero * hero = EntitesHandler::getInstance().getHero();
     Bag * bag = hero->getBag();
     QList<Weapon*> weapons = bag->getWeapons();
     for(Item * item : bag->getItems())
@@ -127,6 +129,8 @@ void Win_Inventory::hideItemHover(ItemQuickDisplayer * item)
 
 void Win_Inventory::useItem(ItemQuickDisplayer * itemDisplayer)
 {
+    Hero * hero = EntitesHandler::getInstance().getHero();
+
     /* Check usable item */
     if(!itemDisplayer->getItem()->isUsable())
         return;
@@ -149,7 +153,7 @@ void Win_Inventory::useItem(ItemQuickDisplayer * itemDisplayer)
     if(consumable)
     {
         mItemsContainer->removeQuickItemDisplayer(item);
-        mHero->useConsumable(consumable);
+        hero->useConsumable(consumable);
         return;
     }
     Tool * tool = dynamic_cast<Tool*>(item);
@@ -171,6 +175,8 @@ void Win_Inventory::useItem(ItemQuickDisplayer * itemDisplayer)
 
 void Win_Inventory::useItem(Item * item)
 {
+    Hero * hero = EntitesHandler::getInstance().getHero();
+
     mItemsContainer->unselectItems();
     mItemSelected = 0;
 
@@ -187,7 +193,7 @@ void Win_Inventory::useItem(Item * item)
     if(consumable)
     {
         mItemsContainer->removeQuickItemDisplayer(item);
-        mHero->useConsumable(consumable);
+        hero->useConsumable(consumable);
         return;
     }
     Tool * tool = dynamic_cast<Tool*>(item);

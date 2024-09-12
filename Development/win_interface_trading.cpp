@@ -6,12 +6,13 @@
 #include "qcustom_widget.h"
 #include "village.h"
 #include "w_itemdisplayer.h"
+#include "entitieshandler.h"
 
-Win_Interface_Trading::Win_Interface_Trading(QWidget *parent, Hero * hero) :
+Win_Interface_Trading::Win_Interface_Trading(QWidget *parent) :
     QWidget(parent),
-    mHero(hero)
+    mHero(nullptr)
 {
-
+    mHero = EntitesHandler::getInstance().getHero();
 }
 
 Win_Interface_Trading::~Win_Interface_Trading()
@@ -33,8 +34,8 @@ void Win_Interface_Trading::paintEvent(QPaintEvent *)
 
 
 
-Win_Chest::Win_Chest(QWidget *parent, Hero * hero, ChestEvent * chest) :
-    Win_Interface_Trading(parent, hero),
+Win_Chest::Win_Chest(QWidget *parent, ChestEvent * chest) :
+    Win_Interface_Trading(parent),
     mChest(chest),
     ui(new Ui::Win_chest)
 {
@@ -70,15 +71,17 @@ Win_Chest::~Win_Chest()
 
 #define WINDOW_OFFSET   50
 
-Win_BlackSmith::Win_BlackSmith(QWidget * parent, Hero * hero, Blacksmith * blacksmith):
-    Win_Interface_Trading(parent, hero),
-    mBlacksmith(blacksmith),
+Win_BlackSmith::Win_BlackSmith(QWidget * parent):
+    Win_Interface_Trading(parent),
+    mBlacksmith(nullptr),
     mItemSold(nullptr),
     mItemDisplayer(nullptr),
     mHoverPayment(false),
     mHoverUnknownItem(false),
     ui(new Ui::Win_Blacksmith)
 {
+    mBlacksmith = EntitesHandler::getInstance().getMap()->getVillage()->getBlacksmith();
+
     ui->setupUi(this);
     connect(ui->ItemCenter, SIGNAL(sig_hoverIn()), this, SLOT(showItem()));
     connect(ui->ItemCenter, SIGNAL(sig_hoverOut()), this, SLOT(hideItem()));
@@ -398,11 +401,12 @@ void Win_BlackSmith::closeWindow()
 
 
 
-Win_Merchant::Win_Merchant(QWidget * parent, Hero * hero, Merchant * merchant):
-    Win_Interface_Trading(parent, hero),
-    mMerchant(merchant),
+Win_Merchant::Win_Merchant(QWidget * parent):
+    Win_Interface_Trading(parent),
+    mMerchant(nullptr),
     ui(new Ui::Win_Merchant)
 {
+    mMerchant = EntitesHandler::getInstance().getMap()->getVillage()->getMerchant();
     mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/ship.png"));
     ui->setupUi(this);
     initInterface();
@@ -558,11 +562,12 @@ void Win_Merchant::closeWindow()
 
 
 
-Win_Alchemist::Win_Alchemist(QWidget * parent, Hero * hero, Alchemist * alchemist):
-    Win_Interface_Trading(parent, hero),
-    mAlchemist(alchemist),
+Win_Alchemist::Win_Alchemist(QWidget * parent):
+    Win_Interface_Trading(parent),
+    mAlchemist(nullptr),
     ui(new Ui::Win_Alchemist)
 {
+    mAlchemist = EntitesHandler::getInstance().getMap()->getVillage()->getAlchemist();
     mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/alchemist.png"));
     ui->setupUi(this);
     initInterface();
@@ -710,11 +715,12 @@ void Win_Alchemist::closeWindow()
 
 
 
-Win_HeroChest::Win_HeroChest(QWidget *parent, Hero * hero, HeroChest * chest) :
-    Win_Interface_Trading(parent, hero),
-    mChest(chest),
+Win_HeroChest::Win_HeroChest(QWidget *parent) :
+    Win_Interface_Trading(parent),
+    mChest(nullptr),
     ui(new Ui::Win_chest)
 {
+    mChest = EntitesHandler::getInstance().getMap()->getVillage()->getHeroHouse()->getChest();
     mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/chest.png"));
     ui->setupUi(this);
     mChest->openChest(true);
@@ -768,13 +774,15 @@ void Win_HeroChest::closeChest()
 
 
 
-Win_Altar::Win_Altar(QWidget *parent, Hero *hero, Altar *altar):
-    Win_Interface_Trading(parent, hero),
-    mAltar(altar)
+Win_Altar::Win_Altar(QWidget *parent):
+    Win_Interface_Trading(parent),
+    mAltar(nullptr)
 {
 #define OFFERING_SIZE       300
 #define OFFERINGS_OFFSET    (window.width()*0.15)
 #define OFFERINGS_SPACING   ((window.width()-(3*OFFERING_SIZE)-(2*OFFERINGS_OFFSET))/2)
+
+    mAltar = EntitesHandler::getInstance().getMap()->getVillage()->getAltar();
 
     setGeometry(0,0,parent->width(),parent->height());
 

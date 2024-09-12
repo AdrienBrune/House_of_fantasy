@@ -15,7 +15,7 @@ class Win_SkillInfo : public QWidget
     Q_OBJECT
 
 public:
-    explicit Win_SkillInfo(QWidget *parent = nullptr, Hero* hero = nullptr, Skill* skill = nullptr);
+    explicit Win_SkillInfo(QWidget *parent = nullptr, Skill* skill = nullptr);
     ~Win_SkillInfo();
 
 signals:
@@ -29,7 +29,6 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 private:
-    Hero * mHero;
     Skill* mSkill;
 
 private:

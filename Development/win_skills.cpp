@@ -1,13 +1,16 @@
 #include "win_skills.h"
 #include "ui_win_skills.h"
-#include "win_skillinfo.h"
 
-Win_Skills::Win_Skills(QWidget * parent, Hero * hero) :
+#include "win_skillinfo.h"
+#include "entitieshandler.h"
+
+Win_Skills::Win_Skills(QWidget * parent) :
     QWidget(parent),
-    mHero(hero),
     mPopUpSkill(nullptr),
     ui(new Ui::Win_Skills)
 {
+    Hero * hero = EntitesHandler::getInstance().getHero();
+
     ui->setupUi(this);
 
     ui->scrollAreaWidgetContents->setAutoFillBackground(false);
@@ -23,7 +26,7 @@ Win_Skills::Win_Skills(QWidget * parent, Hero * hero) :
     {
         if(IS_ABLE(hero->getHeroClass(), hero->getSkillList()[i]->getLearnable()))
         {
-            W_Skill * widget = new W_Skill(this, mHero->getPassiveSkill(i));
+            W_Skill * widget = new W_Skill(this, hero->getPassiveSkill(i));
             int size = (width())/4 - (2 * MARGIN) - ((COLUMN-1) * SPACE);
             widget->setMinimumSize(QSize(size, size*1.2));
             widget->setMaximumSize(QSize(size, size*1.2));
@@ -38,7 +41,7 @@ Win_Skills::Win_Skills(QWidget * parent, Hero * hero) :
     {
         if(IS_ABLE(hero->getHeroClass(), hero->getSpellList()[i]->getLearnable()))
         {
-            W_Skill * widget = new W_Skill(this, mHero->getSpellSkill(i));
+            W_Skill * widget = new W_Skill(this, hero->getSpellSkill(i));
             int size = (width())/4 - (2 * MARGIN) - ((COLUMN-1) * SPACE);
             widget->setMinimumSize(QSize(size, size*1.2));
             widget->setMaximumSize(QSize(size, size*1.2));
@@ -49,14 +52,14 @@ Win_Skills::Win_Skills(QWidget * parent, Hero * hero) :
         }
     }
 
-    ui->skillPoints->setText(QString("%1%2").arg("Points de compétence : ").arg(mHero->getSkillPoints()));
-    connect(mHero, SIGNAL(sig_lifeChanged()), this, SLOT(heroStatChanged()));
-    connect(mHero, SIGNAL(sig_manaChanged()), this, SLOT(heroStatChanged()));
-    connect(mHero, SIGNAL(sig_staminaMaxChanged()), this, SLOT(heroStatChanged()));
-    connect(mHero->getBag(), SIGNAL(sig_bagEvent()), this, SLOT(heroStatChanged()));
-    connect(mHero, &Hero::sig_skillPointsChanged, this, [=](){
-        ui->skillPoints->setText(QString("%1%2").arg("Points de compétence : ").arg(mHero->getSkillPoints()));
-        if(mHero->getSkillPoints() < 1)
+    ui->skillPoints->setText(QString("%1%2").arg("Points de compétence : ").arg(hero->getSkillPoints()));
+    connect(hero, SIGNAL(sig_lifeChanged()), this, SLOT(heroStatChanged()));
+    connect(hero, SIGNAL(sig_manaChanged()), this, SLOT(heroStatChanged()));
+    connect(hero, SIGNAL(sig_staminaMaxChanged()), this, SLOT(heroStatChanged()));
+    connect(hero->getBag(), SIGNAL(sig_bagEvent()), this, SLOT(heroStatChanged()));
+    connect(hero, &Hero::sig_skillPointsChanged, this, [=](){
+        ui->skillPoints->setText(QString("%1%2").arg("Points de compétence : ").arg(hero->getSkillPoints()));
+        if(hero->getSkillPoints() < 1)
         {
             ui->buttonUpLife->setEnabled(false);
             ui->buttonUpMana->setEnabled(false);
@@ -73,7 +76,7 @@ Win_Skills::Win_Skills(QWidget * parent, Hero * hero) :
     });
 
     heroStatChanged();
-    if(mHero->getSkillPoints() < 1)
+    if(hero->getSkillPoints() < 1)
     {
         ui->buttonUpLife->setEnabled(false);
         ui->buttonUpMana->setEnabled(false);
@@ -95,12 +98,14 @@ Win_Skills::~Win_Skills()
 
 void Win_Skills::heroStatChanged()
 {
-    ui->statLife->setText(QString("%1").arg(mHero->getLife().maxLife));
-    ui->statMana->setText(QString("%1").arg(mHero->getMana().maxMana));
-    ui->statStamina->setText(QString("%1").arg(mHero->getStamina().maxStamina));
-    ui->statStrength->setText(QString("%1").arg(mHero->getBag()->getPayload().max));
+    Hero * hero = EntitesHandler::getInstance().getHero();
 
-    if(mHero->getSkillPoints() < 1)
+    ui->statLife->setText(QString("%1").arg(hero->getLife().maxLife));
+    ui->statMana->setText(QString("%1").arg(hero->getMana().maxMana));
+    ui->statStamina->setText(QString("%1").arg(hero->getStamina().maxStamina));
+    ui->statStrength->setText(QString("%1").arg(hero->getBag()->getPayload().max));
+
+    if(hero->getSkillPoints() < 1)
     {
         ui->buttonUpLife->setEnabled(false);
         ui->buttonUpMana->setEnabled(false);
@@ -118,13 +123,15 @@ void Win_Skills::heroStatChanged()
 
 void Win_Skills::onResumeSkillAsked(W_Skill * skill)
 {
+    Hero * hero = EntitesHandler::getInstance().getHero();
+
     if(mPopUpSkill)
     {
         delete mPopUpSkill;
         mPopUpSkill = nullptr;
     }
 
-    mPopUpSkill = new Win_SkillInfo(this->parentWidget(), mHero, skill->getSkillAttached());
+    mPopUpSkill = new Win_SkillInfo(this->parentWidget(), skill->getSkillAttached());
     mPopUpSkill->setGeometry(this->parentWidget()->x() + (this->parentWidget()->width() - mPopUpSkill->width())/2,
                              this->parentWidget()->y() + this->parentWidget()->height() - mPopUpSkill->height() - 50,
                              mPopUpSkill->width(),
@@ -211,20 +218,24 @@ void Win_Skills::paintEvent(QPaintEvent*)
 
 void Win_Skills::on_buttonUpLife_clicked()
 {
-    mHero->learnPassiveSkill(Hero::Life);
+    Hero * hero = EntitesHandler::getInstance().getHero();
+    hero->learnPassiveSkill(Hero::Life);
 }
 
 void Win_Skills::on_buttonUpMana_clicked()
 {
-    mHero->learnPassiveSkill(Hero::Mana);
+    Hero * hero = EntitesHandler::getInstance().getHero();
+    hero->learnPassiveSkill(Hero::Mana);
 }
 
 void Win_Skills::on_buttonUpStamina_clicked()
 {
-    mHero->learnPassiveSkill(Hero::Stamina);
+    Hero * hero = EntitesHandler::getInstance().getHero();
+    hero->learnPassiveSkill(Hero::Stamina);
 }
 
 void Win_Skills::on_buttonUpStrength_clicked()
 {
-    mHero->learnPassiveSkill(Hero::Strength);
+    Hero * hero = EntitesHandler::getInstance().getHero();
+    hero->learnPassiveSkill(Hero::Strength);
 }

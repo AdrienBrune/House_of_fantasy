@@ -99,7 +99,7 @@ class Win_Fight : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Win_Fight(QWidget * parent = nullptr, Hero * hero = nullptr, Monster * monster = nullptr);
+    explicit Win_Fight(QWidget * parent = nullptr, Monster * monster = nullptr);
     ~Win_Fight();
 signals:
     void sig_playSound(int);
