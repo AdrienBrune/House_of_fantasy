@@ -64,15 +64,27 @@ void W_UseTool::paintEvent(QPaintEvent *)
     int w = static_cast<int>(width()-mExitButton->height());
     int h = static_cast<int>((height()-mExitButton->height()));
     QRect area = QRect((width()-w)/2,(height()-h)/2,w,h);
-    qreal angle;
+    QRect compassArea = QRect(area.x() + area.width()/10, area.y() + area.height()/10, area.width()*8/10, area.height()*8/10);
 
     if(mTool->getIdentifier() == TOOL_COMPASS)
     {
         painter.drawPixmap(area, QPixmap(":/graphicItems/compassDisplayer.png"));
-        angle = static_cast<int>(ToolFunctions::getAngleBetween(hero, map->getVillage()));
-        painter.setPen(QPen(QColor("#FF0000"), 5));
-        painter.drawArc(area, static_cast<int>(angle-2)*16, 2*16);
-
-    }else
+        if(!hero->isInVillage())
+        {
+            QPoint center(area.x() + area.width()/2, area.y() + area.height()/2);
+            int angle = ToolFunctions::getAngleBetween(map->getVillage(), hero);
+            int length = compassArea.width()/2;
+            int dx = static_cast<int>(center.x() + length * std::cos(qDegreesToRadians(static_cast<double>(angle))));
+            int dy = static_cast<int>(center.y() + length * std::sin(qDegreesToRadians(static_cast<double>(angle))));
+            painter.setPen(QPen(QColor("#b97474"), 2));
+            painter.drawLine(center, QPoint(dx, dy));
+        }
+        else
+        {
+            painter.setPen(QPen(QColor("#81e8ae"), 1));
+            painter.drawArc(compassArea, 0, 360*16);
+        }
+    }
+    else
         painter.drawPixmap(area, mTool->getImage());
 }

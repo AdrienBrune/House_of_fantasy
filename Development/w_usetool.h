@@ -1,5 +1,5 @@
-#ifndef W_ANIMATION_COMPASS_H
-#define W_ANIMATION_COMPASS_H
+#ifndef W_USETOOLS_H
+#define W_USETOOLS_H
 
 #include <QWidget>
 #include <QPushButton>
@@ -32,4 +32,4 @@ private:
     QPushButton * mExitButton;
 };
 
-#endif // W_ANIMATION_COMPASS_H
+#endif // W_USETOOLS_H
