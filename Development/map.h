@@ -34,6 +34,7 @@ signals:
     void sig_heroEnterVillage();
     void sig_heroEnterEvent(int);
     void sig_heroLeaveEvent(int);
+    void sig_startMapDestruction();
     void sig_generationMapComplete();
     void sig_showItemInfo(Item*);
     void sig_itemPickedInMap(Item*);
@@ -43,11 +44,12 @@ signals:
     void sig_displayMonsterData(Monster*);
     void sig_calamitySpawned();
     void sig_mapItemDestoyed(MapItem*);
+    void sig_adventurerMapUnlock();
 public slots:
     void startBushAnimation(Bush*);
     void startBushEventAnimation(BushEvent*);
     void putItemThrownInMap(Item*);
-    void unfreezeMap();
+    void unfreezeMap() { freeze(false); }
 private slots:
     void monstersActionHandler();
     void heroCollisionEventHandler();
@@ -65,13 +67,13 @@ public:
     Village_Goblin_Area * getGoblinVillage();
     void setHero(Hero*);
 public:
+    void freeze(bool enable);
     void reGenerateMap();
     void generateRandomMap();
     void generateMonsters();
     void removeMapElements();
     void removeMonsters();
     void heroThrowItemInMap(Item*);
-    void freezeMap();
     void putVillageInMap(Village * village = nullptr);
     void generateLaoShanLung();
 private:

@@ -145,7 +145,7 @@ void Map::checkItemMovedPosition(MapItem * item)
 
 void Map::itemInMapClicked(Item * item)
 {
-    if(ToolFunctions::heroDistanceWith(mHero, item) < 150){
+    if(ToolFunctions::getDistanceBeetween(mHero, item) < 150){
         disconnect(item, SIGNAL(sig_itemClicked(Item*)), this, SLOT(itemInMapClicked(Item*)));
         disconnect(item, SIGNAL(sig_showItemInfo(Item*)), this, SIGNAL(sig_showItemInfo(Item*)));
         mScene->removeItem(item);
@@ -166,7 +166,7 @@ void Map::tryToOpenChest(ChestEvent * chest)
 
 void Map::tryToStartPNGInteraction(QGraphicsItem * png)
 {
-    if(ToolFunctions::heroDistanceWith(mHero, png) < 200)
+    if(ToolFunctions::getDistanceBeetween(mHero, png) < 200)
     {
         emit sig_openInterface(png);
     }
@@ -355,14 +355,23 @@ void Map::removeMonsters()
     }
 }
 
-void Map::freezeMap()
+void Map::freeze(bool enable)
 {
-    t_monstersActions->stop();
-    t_monsterMove->stop();
-    t_collisionHandler->stop();
-    for(Monster * monster : qAsConst(mMonsters))
+    if(enable)
     {
-        monster->enableMonsterAnimation(false);
+        t_monstersActions->stop();
+        t_monsterMove->stop();
+        t_collisionHandler->stop();
+        for(Monster * monster : qAsConst(mMonsters))
+            monster->enableMonsterAnimation(false);
+    }
+    else
+    {
+        t_collisionHandler->start(TIMER_COLLISION);
+        t_monstersActions->start(TIMER_MONSTERS_ACTION/mMonsters.size());
+        t_monsterMove->start(TIMER_MONSTERS_MOVE);
+        for(Monster * monster : qAsConst(mMonsters))
+            monster->enableMonsterAnimation(true);
     }
 }
 
@@ -378,17 +387,6 @@ void Map::removeMapElement(MapItem * item)
         DEBUG_ERR("ERR : element delete not contain in map");
     }
     item->deleteLater();
-}
-
-void Map::unfreezeMap()
-{
-    t_collisionHandler->start(TIMER_COLLISION);
-    t_monstersActions->start(TIMER_MONSTERS_ACTION/mMonsters.size());
-    t_monsterMove->start(TIMER_MONSTERS_MOVE);
-    for(Monster * monster : qAsConst(mMonsters))
-    {
-        monster->enableMonsterAnimation(true);
-    }
 }
 
 void Map::generateGround()
@@ -882,12 +880,13 @@ void Map::putVillageInMap(Village * village)
             delete mVillage;
         mVillage = village;
     }
-    mVillage->setPosition(QPointF(MAP_WIDTH/2, MAP_HEIGHT/2));
+    mVillage->setPosition(QPointF(MAP_WIDTH/2 - mVillage->boundingRect().width()/2, MAP_HEIGHT/2 - mVillage->boundingRect().height()/2));
     mVillage->addInScene(mScene);
     connect(mVillage, SIGNAL(sig_replenish(QObject*)), this, SIGNAL(sig_replenish(QObject*)));
     connect(mVillage, SIGNAL(sig_villageShowInfo(QGraphicsItem*)), this, SIGNAL(sig_showPNJinfo(QGraphicsItem*)));
     connect(mVillage, SIGNAL(sig_villageInteraction(QGraphicsItem*)), this, SLOT(tryToStartPNGInteraction(QGraphicsItem*)));
     connect(mVillage, SIGNAL(sig_LaoShanLungSummoned()), this, SLOT(onLaoShanLungSummoned()));
+    connect(mVillage->getMerchant(), SIGNAL(sig_adventurerMapUnlock()), this, SIGNAL(sig_adventurerMapUnlock()));
 }
 
 void Map::putGoblinVillageInMap()
@@ -1016,7 +1015,7 @@ void Map::generateMonsters()
     DEBUG("GENERATED : Wolfs              [" + QString("%1").arg(wolfCount) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
-    for(int m=0;m<GoblinNumber;m++)
+    for(int m = 0; m < GoblinNumber; m++)
     {
         Monster * monster = new Goblin(mView);
         initMonsterConnection(monster);
@@ -1055,7 +1054,7 @@ void Map::generateMonsters()
     DEBUG("GENERATED : Goblins            [" + QString("%1").arg(GoblinNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
-    for(int m=0;m<BearNumber;m++)
+    for(int m = 0; m < BearNumber; m++)
     {
         Monster * monster = new Bear(mView);
         initMonsterConnection(monster);
@@ -1073,7 +1072,7 @@ void Map::generateMonsters()
     DEBUG("GENERATED : Bears              [" + QString("%1").arg(BearNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
-    for(int m=0;m<SpiderNumber;m++)
+    for(int m = 0; m < SpiderNumber; m++)
     {
         Monster * monster = new Spider(mView);
         initMonsterConnection(monster);
@@ -1091,7 +1090,7 @@ void Map::generateMonsters()
     DEBUG("GENERATED : Spiders              [" + QString("%1").arg(SpiderNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
-    for(int m=0;m<TrollNumber;m++)
+    for(int m = 0; m < TrollNumber; m++)
     {
         Monster * monster = new Troll(mView);
         initMonsterConnection(monster);
@@ -1130,7 +1129,7 @@ void Map::generateMonsters()
     DEBUG("GENERATED : Trolls             [" + QString("%1").arg(TrollNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
-    for(int m=0;m<OggreNumber;m++)
+    for(int m = 0; m < OggreNumber; m++)
     {
         Monster * monster = new Oggre(mView);
         initMonsterConnection(monster);
@@ -1239,6 +1238,7 @@ void Map::setHero(Hero * h)
 
 void Map::reGenerateMap()
 {
+    emit sig_startMapDestruction();
     if(mGoblinVillage!=nullptr)
         delete mGoblinVillage;
     removeMapElements();

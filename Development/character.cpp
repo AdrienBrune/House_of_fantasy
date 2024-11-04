@@ -3,9 +3,19 @@
 Character::Character():
     QObject(),
     QGraphicsPixmapItem(),
+    mName(QString()),
+    mLife({100, 100}),
+    mMana({100, 100}),
+    mStamina({100, 100}),
+    t_poisonning(nullptr),
     mBoundingRect(QRect()),
     mShape(QPainterPath()),
-    mCollisionShape(nullptr)
+    mCollisionShape(nullptr),
+    mImage(QPixmap()),
+    mNextFrame(0),
+    mNumberFrame(0),
+    mCurrentPixmap(QPixmap()),
+    t_animation(nullptr)
 {
 
 }
@@ -15,17 +25,17 @@ QString Character::getName()
     return mName;
 }
 
-Character::Life Character::getLife()
+Character::Gauge Character::getLife()
 {
     return mLife;
 }
 
-Character::Mana Character::getMana()
+Character::Gauge Character::getMana()
 {
     return mMana;
 }
 
-Character::Stamina Character::getStamina()
+Character::Gauge Character::getStamina()
 {
     return mStamina;
 }
@@ -43,54 +53,105 @@ void Character::setName(QString name)
 
 void Character::setLife(int life)
 {
-    if(life > mLife.maxLife)
-        mLife.curLife = mLife.maxLife;
+    bool changed = mLife.current != life ? true : false;
+
+    if(life > mLife.maximum)
+        mLife.current = mLife.maximum;
     else if(life < 0)
-        mLife.curLife = 0;
+        mLife.current = 0;
     else
-        mLife.curLife = life;
-    emit sig_lifeChanged();
+        mLife.current = life;
+
+    if(changed)
+        emit sig_lifeChanged();
 }
 
 void Character::setLifeMax(int life)
 {
-    mLife.maxLife = life;
+    mLife.maximum = life;
 }
 
 void Character::setMana(int mana)
 {
-    if(mana > mMana.maxMana)
-        mMana.curMana = mMana.maxMana;
+    bool changed = mLife.current != mana ? true : false;
+
+    if(mana > mMana.maximum)
+        mMana.current = mMana.maximum;
     else
-        mMana.curMana = mana;
-    emit sig_manaChanged();
+        mMana.current = mana;
+
+    if(changed)
+        emit sig_manaChanged();
 }
 
 void Character::setManaMax(int mana)
 {
-    mMana.maxMana = mana;
+    mMana.maximum = mana;
 }
 
 void Character::setStamina(int stamina)
 {
     if(stamina < 0)
-    {
-        mStamina.curStamina = 0;
-    }
-    if(stamina > mStamina.maxStamina)
-    {
-        mStamina.curStamina = mStamina.maxStamina;
-    }
+        mStamina.current = 0;
+
+    if(stamina > mStamina.maximum)
+        mStamina.current = mStamina.maximum;
     else
-    {
-        mStamina.curStamina = stamina;
-    }
+        mStamina.current = stamina;
 }
 
 void Character::setStaminaMax(int stamina)
 {
-    mStamina.maxStamina = stamina;
+    mStamina.maximum = stamina;
     emit sig_staminaMaxChanged();
+}
+
+void Character::applyStatus(eStatus status, QVariant value)
+{
+    mStatus[status] = value;
+
+    if(status == eStatus::poisoned)
+    {
+        t_poisonning = new QTimer(this);
+        connect(t_poisonning, &QTimer::timeout, this, [&]()
+        {
+            setLife(mLife.current - mLife.maximum * 0.025);
+
+            mStatus[eStatus::poisoned] = mStatus[eStatus::poisoned].toInt() - 1;
+            if(mStatus[eStatus::poisoned].toInt() < 1)
+                removeStatus(eStatus::poisoned);
+        });
+        t_poisonning->start(2000);
+    }
+
+    if(status == eStatus::heal)
+    {
+        t_healing = new QTimer(this);
+        connect(t_healing, &QTimer::timeout, this, [&]()
+        {
+            setLife(mLife.current + 1);
+        });
+        t_healing->start(1000);
+    }
+
+    emit sig_statusChanged();
+}
+
+void Character::removeStatus(eStatus status)
+{
+    mStatus.remove(status);
+
+    if(status == eStatus::poisoned)
+    {
+        if(t_poisonning)
+        {
+            t_poisonning->stop();
+            delete t_poisonning;
+            t_poisonning = nullptr;
+        }
+    }
+
+    emit sig_statusChanged();
 }
 
 QPainterPath Character::shape() const
@@ -105,7 +166,7 @@ QRectF Character::boundingRect() const
 
 bool Character::isDead()
 {
-    if(mLife.curLife <= 0)
+    if(mLife.current <= 0)
         return false;
     else {
         return true;

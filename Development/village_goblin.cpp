@@ -1,7 +1,5 @@
 #include "village_goblin.h"
 
-// TODO : 3 obstacles !!
-
 Village_Goblin::Village_Goblin():
     mImage(QPixmap(":/MapItems/village_goblin_ground.png")),
     mRoadsWeight(200)

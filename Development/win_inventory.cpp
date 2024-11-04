@@ -23,10 +23,10 @@ Win_Inventory::Win_Inventory(QWidget *parent) :
     connect(mItemsContainer, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SLOT(hideItemHover(ItemQuickDisplayer*)));
     ui->layoutItems->addWidget(mItemsContainer, 0, Qt::AlignCenter);
 
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
     Bag * bag = hero->getBag();
-    QList<Weapon*> weapons = bag->getWeapons();
-    for(Item * item : bag->getItems())
+    QList<Weapon*> weapons = bag->getItemList<Weapon*>();
+    for(Item * item : bag->getItemList<Item*>())
     {
         mItemsContainer->addItem(item);
     }
@@ -129,7 +129,7 @@ void Win_Inventory::hideItemHover(ItemQuickDisplayer * item)
 
 void Win_Inventory::useItem(ItemQuickDisplayer * itemDisplayer)
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
     /* Check usable item */
     if(!itemDisplayer->getItem()->isUsable())
@@ -175,7 +175,7 @@ void Win_Inventory::useItem(ItemQuickDisplayer * itemDisplayer)
 
 void Win_Inventory::useItem(Item * item)
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
     mItemsContainer->unselectItems();
     mItemSelected = 0;

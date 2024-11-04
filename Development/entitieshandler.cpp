@@ -1,3 +1,3 @@
 #include "entitieshandler.h"
 
-EntitesHandler EntitesHandler::mInstance;
+EntitiesHandler EntitiesHandler::mInstance;

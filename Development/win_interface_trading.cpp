@@ -12,7 +12,7 @@ Win_Interface_Trading::Win_Interface_Trading(QWidget *parent) :
     QWidget(parent),
     mHero(nullptr)
 {
-    mHero = EntitesHandler::getInstance().getHero();
+    mHero = EntitiesHandler::getInstance().getHero();
 }
 
 Win_Interface_Trading::~Win_Interface_Trading()
@@ -80,7 +80,7 @@ Win_BlackSmith::Win_BlackSmith(QWidget * parent):
     mHoverUnknownItem(false),
     ui(new Ui::Win_Blacksmith)
 {
-    mBlacksmith = EntitesHandler::getInstance().getMap()->getVillage()->getBlacksmith();
+    mBlacksmith = EntitiesHandler::getInstance().getMap()->getVillage()->getBlacksmith();
 
     ui->setupUi(this);
     connect(ui->ItemCenter, SIGNAL(sig_hoverIn()), this, SLOT(showItem()));
@@ -406,7 +406,7 @@ Win_Merchant::Win_Merchant(QWidget * parent):
     mMerchant(nullptr),
     ui(new Ui::Win_Merchant)
 {
-    mMerchant = EntitesHandler::getInstance().getMap()->getVillage()->getMerchant();
+    mMerchant = EntitiesHandler::getInstance().getMap()->getVillage()->getMerchant();
     mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/ship.png"));
     ui->setupUi(this);
     initInterface();
@@ -444,7 +444,7 @@ void Win_Merchant::initInterface()
     ui->data_info->setText("");
 
     mItemTrader->addItemsRightSide(mMerchant->getItemsToSell());
-    mItemTrader->addItemsLeftSide(mHero->getBag()->getItems());
+    mItemTrader->addItemsLeftSide(mHero->getBag()->getItemList<Item*>());
 
     ui->data_coin->setValue(mHero->getCoin());
     ui->data_coin_virtual->setValue(mHero->getCoin());
@@ -567,11 +567,13 @@ Win_Alchemist::Win_Alchemist(QWidget * parent):
     mAlchemist(nullptr),
     ui(new Ui::Win_Alchemist)
 {
-    mAlchemist = EntitesHandler::getInstance().getMap()->getVillage()->getAlchemist();
+    mAlchemist = EntitiesHandler::getInstance().getMap()->getVillage()->getAlchemist();
     mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/alchemist.png"));
     ui->setupUi(this);
+
     initInterface();
-    connect(mAlchemist, SIGNAL(sig_replenish(QObject*)), this, SLOT(closeWindow()));
+
+    connect(mAlchemist, SIGNAL(sig_addPotion(Item*)), this, SLOT(onAddItem(Item*)));
 }
 
 Win_Alchemist::~Win_Alchemist()
@@ -579,6 +581,11 @@ Win_Alchemist::~Win_Alchemist()
     delete ui;
     if(itemToDisplay!=nullptr)
         delete itemToDisplay;
+}
+
+void Win_Alchemist::onAddItem(Item * item)
+{
+    mItemTrader->addItemRightSide(item);
 }
 
 void Win_Alchemist::virtuallyBuyItemFromSeller(ItemQuickDisplayer * w_item)
@@ -617,14 +624,9 @@ void Win_Alchemist::initInterface()
     connect(mItemTrader, SIGNAL(sig_itemSwipedToRight(ItemQuickDisplayer*)), this, SLOT(virtuallySellItemToSeller(ItemQuickDisplayer*)));
     connect(mItemTrader, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(showItem(ItemQuickDisplayer*)));
 
-    addPotionPreferenciesInterface();
-}
-
-void Win_Alchemist::addPotionPreferenciesInterface()
-{
-    w_potionPreferencies = new Frag_Interface_PotionPreferencies(this, mAlchemist->getPotionPreferencies());
-    connect(w_potionPreferencies, SIGNAL(sig_potionPreferenciesChanged()), this, SLOT(potionPreferenciesChanged()));
-    ui->layout_potion_selection->addWidget(w_potionPreferencies);
+    ui->potionSlot_1->registerSlot(mAlchemist->getPotionSlots().at(0));
+    ui->potionSlot_2->registerSlot(mAlchemist->getPotionSlots().at(1));
+    ui->potionSlot_3->registerSlot(mAlchemist->getPotionSlots().at(2));
 }
 
 void Win_Alchemist::paintEvent(QPaintEvent *)
@@ -667,7 +669,7 @@ void Win_Alchemist::on_button_validate_clicked()
             emit sig_playSound(SOUND_BUY);
         closeWindow();
     }else{
-        ui->data_coin->setStyleSheet("QSpinBox{padding:2px;border:3px solid #A61919;border-radius:20px;background-color: qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #696969, stop: 1 #3A3A3A);color:#A61919;}");
+        ui->data_coin->setStyleSheet("QSpinBox{color:#A61919;border: no border;background-color:rgba(0,0,0,0);}");
         t_redBorders->start(500);
     }
 }
@@ -693,12 +695,7 @@ void Win_Alchemist::showItem(ItemQuickDisplayer * item)
 
 void Win_Alchemist::endRedBorders()
 {
-    ui->data_coin->setStyleSheet("QSpinBox{padding:2px;border:3px solid #3C3C3C;border-radius:20px;background-color: qlineargradient(x1: 0, y1: 1, x2: 1, y2: 0,stop: 0 #696969, stop: 1 #3A3A3A);color:#ffc926;}");
-}
-
-void Win_Alchemist::potionPreferenciesChanged()
-{
-    mAlchemist->setPotionPreferencies(w_potionPreferencies->getPotionPreferencies());
+    ui->data_coin->setStyleSheet("QSpinBox{color:#efef93;border: no border;background-color:rgba(0,0,0,0);}");
 }
 
 void Win_Alchemist::closeWindow()
@@ -720,7 +717,7 @@ Win_HeroChest::Win_HeroChest(QWidget *parent) :
     mChest(nullptr),
     ui(new Ui::Win_chest)
 {
-    mChest = EntitesHandler::getInstance().getMap()->getVillage()->getHeroHouse()->getChest();
+    mChest = EntitiesHandler::getInstance().getMap()->getVillage()->getHeroHouse()->getChest();
     mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/chest.png"));
     ui->setupUi(this);
     mChest->openChest(true);
@@ -737,7 +734,7 @@ void Win_HeroChest::initInterface()
 {
     ui->layout_itemTrader->addWidget(mItemTrader, 0, Qt::AlignCenter);
     mItemTrader->addItemsRightSide(mChest->getItems());
-    mItemTrader->addItemsLeftSide(mHero->getBag()->getItems());
+    mItemTrader->addItemsLeftSide(mHero->getBag()->getItemList<Item*>());
 }
 
 void Win_HeroChest::closeChest()
@@ -782,7 +779,7 @@ Win_Altar::Win_Altar(QWidget *parent):
 #define OFFERINGS_OFFSET    (window.width()*0.15)
 #define OFFERINGS_SPACING   ((window.width()-(3*OFFERING_SIZE)-(2*OFFERINGS_OFFSET))/2)
 
-    mAltar = EntitesHandler::getInstance().getMap()->getVillage()->getAltar();
+    mAltar = EntitiesHandler::getInstance().getMap()->getVillage()->getAltar();
 
     setGeometry(0,0,parent->width(),parent->height());
 

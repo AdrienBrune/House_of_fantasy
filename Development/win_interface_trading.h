@@ -12,7 +12,7 @@
 #include "village.h"
 #include "w_animation_forge.h"
 #include "w_itemdisplayer.h"
-#include "frag_interface_potionpreferencies.h"
+#include "w_potioncookingslot.h"
 
 namespace Ui {
 class Win_chest;
@@ -160,17 +160,17 @@ class Win_Alchemist : public Win_Interface_Trading
 public:
     explicit Win_Alchemist(QWidget *parent = nullptr);
     ~Win_Alchemist();
+public slots:
+    void onAddItem(Item * item);
 private slots:
     void virtuallyBuyItemFromSeller(ItemQuickDisplayer*);
     void virtuallySellItemToSeller(ItemQuickDisplayer*);
     void on_button_validate_clicked();
     void showItem(ItemQuickDisplayer*);
     void endRedBorders();
-    void potionPreferenciesChanged();
     void closeWindow();
 private:
     void initInterface();
-    void addPotionPreferenciesInterface();
     bool buyItem(Item*);
 protected:
     void paintEvent(QPaintEvent *);
@@ -180,7 +180,6 @@ private:
     Alchemist * mAlchemist;
     QTimer * t_redBorders;
 private:
-    Frag_Interface_PotionPreferencies * w_potionPreferencies;
     Ui::Win_Alchemist *ui;
 };
 

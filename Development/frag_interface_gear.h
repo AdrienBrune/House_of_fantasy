@@ -41,7 +41,7 @@ protected:
     void paintEvent(QPaintEvent *event);
 private:
     QGraphicsScene * mScene;
-    QList<ItemQuickDisplayer*> itemsLeftSide;
+    QList<ItemQuickDisplayer*> mItemsLeftSide;
     QList<ItemQuickDisplayer*> equipmentRightSide;
     int xPosSplitter;
     QPointF helmetPos;

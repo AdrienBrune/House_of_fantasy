@@ -256,7 +256,9 @@ public:
             if(item)
                 mEquipmentParts.append(item);
             else
+            {
                 DEBUG("SERIALIZED[out] : Item is not an equipment");
+            }
         }
         DEBUG("SERIALIZED[out] : Gear");
     }

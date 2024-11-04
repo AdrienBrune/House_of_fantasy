@@ -67,6 +67,8 @@ MapEvent::~MapEvent()
 FishingEvent::FishingEvent():
     MapEvent ()
 {
+    mMapItemName = "Fish event";
+
     initGraphicStuff();
 
     t_animation = new QTimer(this);

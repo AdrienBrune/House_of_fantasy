@@ -41,7 +41,7 @@
 #define STAMINA_NOT_ENOUGTH     "QProgressBar { border:2px solid #575757; border-radius:2px; background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #393939, stop: 1 #393939); }" \
                                 "QProgressBar::chunk { background-color: qlineargradient(x1: 0, y1: 1, x2: 1, y2: 1,  stop: 1 #ff0000, stop: 0 #ff7474); border-radius:2px; }"
 
-class AnimatedProgressBar : public QWidget
+class W_AnimatedProgressBar : public QWidget
 {
     Q_OBJECT
 public:
@@ -68,16 +68,33 @@ public:
     };
 
 public:
-    explicit AnimatedProgressBar(QWidget * parent = nullptr, Character * entity = nullptr, Settings = {});
-    ~AnimatedProgressBar();
+    explicit W_AnimatedProgressBar(QWidget * parent = nullptr):
+        QWidget(parent),
+        mSetting(Settings()),
+        mNotEnoughtStat(false)
+    {
+        mAnimation.blinkStatus = 0;
+        mAnimation.blink = new QTimer(this);
+        connect(mAnimation.blink, &QTimer::timeout, this, &W_AnimatedProgressBar::onAnimate);
+        mAnimation.end = new QTimer(this);
+        connect(mAnimation.end, &QTimer::timeout, this, &W_AnimatedProgressBar::onEndAnimation);
+    }
+    ~W_AnimatedProgressBar() {}
+
 public slots:
     void onStatChanged();
     void onNotEnoughtStat();
+
 private slots:
     void onAnimate();
     void onEndAnimation();
+
+public:
+    void setupUi(Character * entity = nullptr, Settings settings = {});
+
 protected:
     void paintEvent(QPaintEvent *event);
+
 private:
     Character * mEntity;
     Settings mSetting;
@@ -86,7 +103,35 @@ private:
     bool mNotEnoughtStat;
 };
 
+class W_StatusBar : public QWidget
+{
+    Q_OBJECT
+public:
+    W_StatusBar(QWidget * parent = nullptr):
+        QWidget(parent),
+        mEntity(nullptr),
+        mRightAligned(false)
+    {}
+    ~W_StatusBar() {}
 
+private slots:
+    void onUpdate() { update(); }
+
+public:
+    void setupUi(Character * entity, bool alignment = false)
+    {
+        mEntity = entity;
+        mRightAligned = alignment;
+        update();
+    }
+
+protected:
+    void paintEvent(QPaintEvent *event);
+
+private:
+    Character * mEntity;
+    bool mRightAligned;
+};
 
 
 
@@ -98,70 +143,127 @@ class Win_Fight;
 class Win_Fight : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit Win_Fight(QWidget * parent = nullptr, Monster * monster = nullptr);
     ~Win_Fight();
+
 signals:
     void sig_playSound(int);
     void sig_closeWindow();
     void sig_endFight(Character*);
+
 private slots:
     void onButtonHeavyAttackClicked();
     void onButtonLightAttackClicked();
     void onButtonFleeClicked();
     void onButtonUseSpellClicked();
 
-    void heroStaminaRecovery();
-    void monsterStaminaRecovery();
-    void monsterStaminaRecovered();
-    void useConsumable(ItemQuickDisplayer*);
-    void on_buttonPause_clicked();
-    void hideAnimation();
-    void restoreMonsterImage();
-    void onFightEvent();
+    void onMonsterLightAttack();
+    void onMonsterHeavyAttack();
+
+    void onHeroStaminaRecovery();
+    void onUseConsumable(ItemQuickDisplayer*);
+    void onHideAnimation();
     void onUseSpell(Skill*);
 
+    void onCheckFightIssue()
+    {
+        if(mHero->getLife().current <= 0)
+        {
+            endFight(mHero);
+        }
+        else if(mMonster->getLife().current <= 0)
+        {
+            endFight(mMonster);
+        }
+    }
+
 public:
-    void displayInterface();
-    void hideInterface();
+    void displayInterface()
+    {
+        QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
+        this->setGraphicsEffect(eff);
+        QPropertyAnimation *a = new QPropertyAnimation(eff,"opacity");
+        a->setDuration(500);
+        a->setStartValue(0);
+        a->setEndValue(1);
+        a->setEasingCurve(QEasingCurve::InBack);
+        a->start(QPropertyAnimation::DeleteWhenStopped);
+
+        QPropertyAnimation *b = new QPropertyAnimation(this,"geometry");
+        b->setDuration(600);
+        b->setStartValue(QRect(this->x()-this->width(),this->y(),this->width(),this->height()));
+        b->setEndValue(QRect(this->x(),this->y(),this->width(),this->height()));
+        b->start(QPropertyAnimation::DeleteWhenStopped);
+
+        showFullScreen();
+    }
+    void hideInterface()
+    {
+        mMonster->setupFight(false);
+
+        QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
+        this->setGraphicsEffect(eff);
+        QPropertyAnimation *a = new QPropertyAnimation(eff,"opacity");
+        a->setDuration(600);
+        a->setStartValue(1);
+        a->setEndValue(0);
+        a->setEasingCurve(QEasingCurve::InBack);
+        a->start(QPropertyAnimation::DeleteWhenStopped);
+
+        QTimer * timer = new QTimer(this);
+        timer->setSingleShot(true);
+        connect(timer, SIGNAL(timeout()), this, SIGNAL(sig_closeWindow()));
+        timer->start(1000);
+    }
+
 private:
     void initInterface();
-    void loadFightAnimationsPixmap();
-    bool heroUseStamina(int);
-    void monsterUseStamina(int);
-    void heroStaminaRecovered();
-    void enableButtons(bool);
     void addConsumablesOnScreen();
-    void checkFightIssue();
+    void enableButtons(bool);
     void showNotEnoughtStamina();
+    void loadFightAnimationsPixmap()
+    {
+        pMonsterLightAttack = mMonster->getLightAttackAnimation();
+        pMonsterHeavyAttack = mMonster->getHeavyAttackAnimation();
+    }
+    bool heroUseStamina(int loss)
+    {
+        if(mHero->getStamina().current - loss < 0)
+            return false;
+
+        mHero->setStamina(mHero->getStamina().current - loss);
+        return true;
+    }
+    void endFight(Character * character = nullptr)
+    {
+        mHero->setupFight(false);
+        mMonster->setupFight(false);
+        emit sig_endFight(character);
+        hideInterface();
+    }
+
 protected:
     void paintEvent(QPaintEvent *event);
 
 private:
     Hero * mHero;
     Monster * mMonster;
-    QList<ItemQuickDisplayer*> mConsumables;
-    AnimatedProgressBar * mLifeMonster;
-    AnimatedProgressBar * mLifeHero;
-    AnimatedProgressBar * mManaHero;
 
-    QTimer * t_heroStaminaRecovery;
-    QTimer * t_monsterStaminaRecovery;
-    QTimer * t_restoreMonsterImage;
     QGraphicsScene * mScenePotion;
+    QList<ItemQuickDisplayer*> mConsumables;
     QPixmap pMonsterHeavyAttack;
     QPixmap pMonsterLightAttack;
-    QTimer * t_fightEvent;
-    bool mDodgeSucces;
-    bool mFleeFail;
-    bool mBreak;
     W_Animation_Fight * w_fightAnimation;
     W_SpellListSelection * w_spellList;
 
-    // Spells effect
-private:
-    bool mPrimitiveShield;
-    uint8_t mBenedictionCounter;
+    QTimer * t_onHeroStaminaRecovery;
+    QTimer * t_monsterStaminaRecovery;
+
+    bool mDodgeSucces;
+    bool mFleeFail;
+    bool mConfused;
 
 private:
     Ui::Win_Fight *ui;

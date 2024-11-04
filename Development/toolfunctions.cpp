@@ -25,7 +25,7 @@ int ToolFunctions::getAngleBetween(QGraphicsItem * instance1, QGraphicsItem * in
                     )));
 
     if(angle < 0)   // Hero on top side
-        angle = angle + 360;
+        angle += 360;
 
     return angle;
 }
@@ -64,7 +64,7 @@ int ToolFunctions::correct(int angle)
 
 bool ToolFunctions::isAllowedAngle(int angle)
 {
-#define ANGLE_ALLOWED 90
+#define ANGLE_ALLOWED 100
     if((angle > (360 - ANGLE_ALLOWED/2) || angle < (ANGLE_ALLOWED/2))
     || (angle > (180 - ANGLE_ALLOWED/2) && angle < (180 + ANGLE_ALLOWED/2)))
     {
@@ -113,13 +113,3 @@ QRect ToolFunctions::getSpawnChunk(QSize size, QList<QGraphicsItem *> itemsToAvo
     }
     return spawn;
 }
-
-
-
-
-
-
-
-
-
-

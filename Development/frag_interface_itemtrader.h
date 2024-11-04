@@ -45,6 +45,7 @@ public:
     void removeItemRightSide(Item*);
     void removeItemLeftSide(Item*);
 private:
+    void rearangeItems();
     void moveItemLeftToRight(ItemQuickDisplayer*);
     void moveItemRightToLeft(ItemQuickDisplayer*);
 protected:
@@ -52,8 +53,8 @@ protected:
 private:
     QPixmap mPictureLeft, mPictureRight;
     QGraphicsScene * mScene;
-    QList<ItemQuickDisplayer*> itemsLeftSide;
-    QList<ItemQuickDisplayer*> itemsRightSide;
+    QList<ItemQuickDisplayer*> mItemsLeftSide;
+    QList<ItemQuickDisplayer*> mItemsRightSide;
     SizeData mSizeData;
 private:
     Ui::Frag_interface_itemTrader *ui;

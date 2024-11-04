@@ -10,7 +10,7 @@ W_SpellListSelection::W_SpellListSelection(QWidget * parent) :
 {
     ui->setupUi(this);
 
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAutoFillBackground(false);

@@ -28,30 +28,6 @@
         <property name="topMargin">
          <number>100</number>
         </property>
-        <item>
-         <widget class="QPushButton" name="buttonHelp">
-          <property name="font">
-           <font>
-            <family>Mistral</family>
-            <pointsize>10</pointsize>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QPushButton{
-	color:#3c3c3c;
-	background-color:#c6c6c6;
-	border:2px solid #3c3c3c;
-	padding:2px;
-	border-radius:4px;
-}</string>
-          </property>
-          <property name="text">
-           <string>AIDE</string>
-          </property>
-         </widget>
-        </item>
         <item alignment="Qt::AlignHCenter">
          <widget class="QPushButton" name="Skills">
           <property name="sizePolicy">
@@ -134,6 +110,63 @@ QPushButton::hover{
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="Map">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	border-image:url(:/icons/button/button_map.png);
+}
+QPushButton::hover{
+	border-image:url(:/icons/button/button_map_h.png);
+}
+QPushButton::disabled{
+	border-image:url(:/icons/button/button_map_d.png);
+}</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonQuit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton{
+	border-image:url(:/icons/button/button_quit.png);
+}
+QPushButton::hover{
+	border-image:url(:/icons/button/button_quit_h.png);
+}</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -145,26 +178,6 @@ QPushButton::hover{
            </size>
           </property>
          </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="buttonSaveGame">
-          <property name="styleSheet">
-           <string notr="true">QPushButton{
-  padding:2px;
-  border-image:url(:/graphicItems/background_itemInfo);
-  color:white;
-  border:1px solid #404040;
-}
- 
-
-QPushButton::hover{
-  background-color:#252525;
-}</string>
-          </property>
-          <property name="text">
-           <string>save quit</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </item>

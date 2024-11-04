@@ -99,6 +99,12 @@ private:
     QMediaPlayer * laoshanlungDie;
     QMediaPlayer * spell;
     QMediaPlayer * teleport;
+    QMediaPlayer * spiderSound;
+    QMediaPlayer * spiderAggroSound;
+    QMediaPlayer * spiderHeavyAttack;
+    QMediaPlayer * spiderLightAttack;
+    QMediaPlayer * spiderRoar;
+    QMediaPlayer * spiderDie;
 
     QTimer * t_delayVillage;
     QTimer * t_delayEvent;

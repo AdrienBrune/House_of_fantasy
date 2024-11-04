@@ -1,6 +1,8 @@
 #include "frag_stats_displayer.h"
 #include "ui_frag_stats_displayer.h"
 
+#include <QDebug>
+
 Frag_Stats_Displayer::Frag_Stats_Displayer(QWidget *parent, QString name, QPixmap image, int current, int maximum, int mode) :
     QWidget(parent),
     ui(new Ui::Frag_Stats_Displayer)

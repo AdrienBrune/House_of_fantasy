@@ -277,6 +277,30 @@ SoundManager::SoundManager(QWidget * parent):
     teleport->setMedia(QUrl("qrc:/audio/sounds/sound_teleport.wav"));
     teleport->setVolume(25);
 
+    spiderSound = new QMediaPlayer(this);
+    spiderSound->setMedia(QUrl("qrc:/audio/sounds/sound_spider.wav"));
+    spiderSound->setVolume(15);
+
+    spiderAggroSound = new QMediaPlayer(this);
+    spiderAggroSound->setMedia(QUrl("qrc:/audio/sounds/sound_spider_aggro.wav"));
+    spiderAggroSound->setVolume(5);
+
+    spiderHeavyAttack = new QMediaPlayer(this);
+    spiderHeavyAttack->setMedia(QUrl("qrc:/audio/sounds/sound_spider_heavy_attack.wav"));
+    spiderHeavyAttack->setVolume(15);
+
+    spiderLightAttack = new QMediaPlayer(this);
+    spiderLightAttack->setMedia(QUrl("qrc:/audio/sounds/sound_spider_light_attack.wav"));
+    spiderLightAttack->setVolume(15);
+
+    spiderRoar = new QMediaPlayer(this);
+    spiderRoar->setMedia(QUrl("qrc:/audio/sounds/sound_spider_aggro.wav"));
+    spiderRoar->setVolume(10);
+
+    spiderDie = new QMediaPlayer(this);
+    spiderDie->setMedia(QUrl("qrc:/audio/sounds/sound_spider_aggro.wav"));
+    spiderDie->setVolume(25);
+
     playMusic(music_world);
 }
 
@@ -518,6 +542,25 @@ void SoundManager::playSound(int sound)
     case SOUND_TELEPORT:
         teleport->play();
         break;
+
+    case SOUND_SPIDER :
+        spiderSound->play();
+        break;
+    case SOUND_SPIDER_AGGRO :
+        spiderAggroSound->play();
+        break;
+    case SOUND_SPIDER_HEAVYATTACK :
+        spiderHeavyAttack->play();
+        break;
+    case SOUND_SPIDER_LIGHTATTACK :
+        spiderLightAttack->play();
+        break;
+    case SOUND_SPIDER_ROAR :
+        spiderRoar->play();
+        break;
+    case SOUND_SPIDER_DIE :
+        spiderDie->play();
+        break;  
     }
 }
 

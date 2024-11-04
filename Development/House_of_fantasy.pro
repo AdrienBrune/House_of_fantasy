@@ -34,11 +34,9 @@ SOURCES += \
         frag_interface_gear.cpp \
         frag_interface_itemsorter.cpp \
         frag_interface_itemtrader.cpp \
-        frag_interface_potionpreferencies.cpp \
         frag_speel.cpp \
         frag_save.cpp \
         frag_stats_displayer.cpp \
-        helpdialog.cpp \
         hero.cpp \
         item.cpp \
         itemgenerator.cpp \
@@ -48,11 +46,13 @@ SOURCES += \
         mapitem.cpp \
         material.cpp \
         monster.cpp \
+        monsterfightview.cpp \
         skill.cpp \
         soundmanager.cpp \
         toolfunctions.cpp \
         village.cpp \
         village_goblin.cpp \
+        w_potioncookingslot.cpp \
         w_animation_exploration.cpp \
         w_animation_fight.cpp \
         w_animation_forge.cpp \
@@ -89,11 +89,9 @@ HEADERS += \
         frag_interface_gear.h \
         frag_interface_itemsorter.h \
         frag_interface_itemtrader.h \
-        frag_interface_potionpreferencies.h \
         frag_speel.h \
         frag_save.h \
         frag_stats_displayer.h \
-        helpdialog.h \
         hero.h \
         item.h \
         itemgenerator.h \
@@ -102,12 +100,14 @@ HEADERS += \
         mapitem.h \
         material.h \
         monster.h \
+        monsterfightview.h \
         qcustom_widget.h \
         skill.h \
         soundmanager.h \
         toolfunctions.h \
         village.h \
         village_goblin.h \
+        w_potioncookingslot.h \
         w_animation_exploration.h \
         w_animation_fight.h \
         w_animation_forge.h \
@@ -139,11 +139,9 @@ FORMS += \
         frag_interface_gear.ui \
         frag_interface_itemsorter.ui \
         frag_interface_itemtrader.ui \
-        frag_interface_potionpreferencies.ui \
         frag_speel.ui \
         frag_stats_displayer.ui \
         frag_save.ui \
-        helpdialog.ui \
         w_animationspell.ui \
         w_interface_herostats.ui \
         w_messagelogger.ui \

@@ -98,9 +98,9 @@
             </widget>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="layout_monster2">
+            <layout class="QVBoxLayout" name="layout_monster2" stretch="1,1,1,2">
              <property name="spacing">
-              <number>5</number>
+              <number>15</number>
              </property>
              <item>
               <spacer name="verticalSpacer_5">
@@ -116,100 +116,36 @@
               </spacer>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="layout_monsterLife">
-               <property name="spacing">
-                <number>0</number>
+              <widget class="W_StatusBar" name="monsterStatus" native="true">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>30</height>
+                </size>
                </property>
-              </layout>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>30</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout">
-               <property name="spacing">
-                <number>5</number>
+              <widget class="W_AnimatedProgressBar" name="monsterLife" native="true">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
                </property>
-               <property name="leftMargin">
-                <number>0</number>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>25</height>
+                </size>
                </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>50</number>
-               </property>
-               <item>
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLabel" name="statusConfused">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>30</width>
-                   <height>30</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>30</width>
-                   <height>30</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QLabel{
-	border-image:url(:/icons/logo_confused.png);
-}</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="statusPoisoned">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>30</width>
-                   <height>30</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>30</width>
-                   <height>30</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QLabel{
-	border-image:url(:/icons/logo_poisoned.png);
-}</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              </widget>
              </item>
              <item>
               <spacer name="verticalSpacer_4">
@@ -245,14 +181,8 @@
            <property name="bottomMargin">
             <number>30</number>
            </property>
-           <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-            <widget class="QLabel" name="image_fight">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
+           <item>
+            <widget class="MonsterFightView" name="fight_view" native="true">
              <property name="minimumSize">
               <size>
                <width>800</width>
@@ -265,15 +195,6 @@
                <height>400</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true"/>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
             </widget>
            </item>
           </layout>
@@ -281,7 +202,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,0,0,0">
+        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,0,0">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -297,42 +218,6 @@
          <property name="bottomMargin">
           <number>20</number>
          </property>
-         <item alignment="Qt::AlignRight">
-          <widget class="QPushButton" name="buttonPause">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>40</width>
-             <height>40</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>40</width>
-             <height>40</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QPushButton{
-	border-radius:20px;
-background-color:grey;
-}</string>
-           </property>
-           <property name="text">
-            <string>||</string>
-           </property>
-          </widget>
-         </item>
          <item>
           <spacer name="verticalSpacer_3">
            <property name="orientation">
@@ -649,7 +534,7 @@ QProgressBar::chunk {
           </spacer>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,3">
            <property name="spacing">
             <number>0</number>
            </property>
@@ -684,7 +569,7 @@ QProgressBar::chunk {
             </widget>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout" stretch="2,0,0,0,1">
+            <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,1,1,2">
              <property name="spacing">
               <number>8</number>
              </property>
@@ -705,70 +590,52 @@ QProgressBar::chunk {
               </spacer>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="layout_heroLife">
-               <property name="spacing">
-                <number>0</number>
+              <widget class="W_AnimatedProgressBar" name="heroLife" native="true">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
                </property>
-              </layout>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>25</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="layout_heroMana"/>
+              <widget class="W_AnimatedProgressBar" name="heroMana" native="true">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>12</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>12</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_7">
-               <property name="spacing">
-                <number>5</number>
+              <widget class="W_StatusBar" name="heroStatus" native="true">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>30</height>
+                </size>
                </property>
-               <property name="topMargin">
-                <number>0</number>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>30</height>
+                </size>
                </property>
-               <property name="rightMargin">
-                <number>20</number>
-               </property>
-               <item>
-                <spacer name="horizontalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLabel" name="statusHeroGodBenediction">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>30</width>
-                   <height>30</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>30</width>
-                   <height>30</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QLabel{
-	border-image:url(:/icons/logo_godBenediction.png);
-}</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              </widget>
              </item>
              <item>
               <spacer name="verticalSpacer_2">
@@ -884,6 +751,26 @@ QGraphicsView QScrollBar::sub-line:horizontal {
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MonsterFightView</class>
+   <extends>QWidget</extends>
+   <header>monsterfightview.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>W_AnimatedProgressBar</class>
+   <extends>QWidget</extends>
+   <header>win_fight.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>W_StatusBar</class>
+   <extends>QWidget</extends>
+   <header>win_fight.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

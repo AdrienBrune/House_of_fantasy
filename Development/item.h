@@ -7,6 +7,7 @@
 #include <QtDebug>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
+#include <QRandomGenerator>
 #include <QPainterPath>
 #include "constants.h"
 
@@ -197,6 +198,40 @@ public:
     ~Knife();
 public :
     bool use();
+};
+
+class Monster;
+class MapEvent;
+
+class MapScroll : public Tool
+{
+    Q_OBJECT
+public:
+    typedef struct
+    {
+        QTimer timer;
+        QVector<QVector<bool>> fogMatrix;
+        QList<Monster*> monsters;
+        QList<MapEvent*> mapEvent;
+    }Map_Discovery;
+public:
+    MapScroll();
+    ~MapScroll();
+signals:
+    void sig_update();
+public slots:
+    void init();
+private slots:
+    void updateDiscovery();
+public :
+    bool use();
+    void discoveryMode(bool enable) { enable ? mMapDiscovery.timer.start() : mMapDiscovery.timer.stop(); }
+    const Map_Discovery & getDiscoveryData() const { return mMapDiscovery; }
+    bool getFilter(QString key) { return mFilter[key]; }
+    void setFilter(QString key, bool enable) { mFilter[key] = enable; }
+private:
+    Map_Discovery mMapDiscovery;
+    QMap<QString, bool> mFilter;
 };
 
 #endif // ITEM_H

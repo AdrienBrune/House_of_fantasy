@@ -35,10 +35,7 @@ Frag_Interface_ItemTrader::Frag_Interface_ItemTrader(QWidget *parent, QPixmap pi
 void Frag_Interface_ItemTrader::onItemMovedHandler(ItemQuickDisplayer * item)
 {
     item->setZValue(0);
-    if(!mScene->sceneRect().contains(item->boundingRect()))
-    {
-        item->setPos(item->getInitialPosition());
-    }else
+    if(mScene->sceneRect().contains(item->boundingRect()))
     {
         if(static_cast<int>(item->getInitialPosition().x()) < mSizeData.xPosSplitter)
         {
@@ -46,20 +43,21 @@ void Frag_Interface_ItemTrader::onItemMovedHandler(ItemQuickDisplayer * item)
                {
                    moveItemLeftToRight(item);
                    emit sig_itemSwipedToRight(item);
-               }else{
+               }else
                    item->setPos(item->getInitialPosition());
-               }
-        }else
+        }
+        else
         {
             if(item->x() < mSizeData.xPosSplitter)
             {
                 moveItemRightToLeft(item);
                 emit sig_itemSwipedToLeft(item);
-            }else{
+            }else
                 item->setPos(item->getInitialPosition());
-            }
         }
     }
+    else
+        item->setPos(item->getInitialPosition());
 }
 
 void Frag_Interface_ItemTrader::onItemSelected(ItemQuickDisplayer * item)
@@ -100,7 +98,7 @@ void Frag_Interface_ItemTrader::setSceneDeep(int deep)
 void Frag_Interface_ItemTrader::addItemLeftSide(Item * item)
 {
     ItemQuickDisplayer * w_item = new ItemQuickDisplayer(item);
-    itemsLeftSide.append(w_item);
+    mItemsLeftSide.append(w_item);
     mScene->addItem(w_item);
 
     int vOffset = mSizeData.verticalOffset, hOffset = mSizeData.horizontalOffset;
@@ -112,11 +110,11 @@ void Frag_Interface_ItemTrader::addItemLeftSide(Item * item)
     while(!w_item->collidingItems().isEmpty())
     {
         hOffset += static_cast<int>(w_item->boundingRect().width()) + 5;
-        if(hOffset >= mSizeData.xPosSplitter-50-mSizeData.horizontalOffset)
+        if(hOffset >= mSizeData.xPosSplitter - 50 - mSizeData.horizontalOffset)
         {
             hOffset = mSizeData.horizontalOffset;
             vOffset += static_cast<int>(w_item->boundingRect().height()) + 5;
-            if(vOffset+105 > mScene->sceneRect().height())
+            if(vOffset + 105 > mScene->sceneRect().height())
             {
                 setSceneDeep(static_cast<int>(vOffset + w_item->boundingRect().height() + mSizeData.verticalOffset));
                 ui->graphicsView->setSceneRect(mScene->sceneRect());
@@ -126,16 +124,19 @@ void Frag_Interface_ItemTrader::addItemLeftSide(Item * item)
     }
     w_item->setInitialPosition(w_item->pos());
     ui->graphicsView->centerOn(w_item->pos());
+
+    rearangeItems();
 }
 
 void Frag_Interface_ItemTrader::addItemRightSide(Item * item)
 {
     ItemQuickDisplayer * w_item = new ItemQuickDisplayer(item);
 
-    itemsRightSide.append(w_item);
+    mItemsRightSide.append(w_item);
     mScene->addItem(w_item);
 
-    int vOffset = mSizeData.verticalOffset, hOffset = mSizeData.xPosSplitter+50+mSizeData.horizontalOffset;
+    int vOffset = mSizeData.verticalOffset;
+    int hOffset = mSizeData.xPosSplitter + 50 + mSizeData.horizontalOffset;
     w_item->setPos(hOffset, vOffset);
     connect(w_item, SIGNAL(sig_itemMoved(ItemQuickDisplayer*)), this, SLOT(onItemMovedHandler(ItemQuickDisplayer*)));
     connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
@@ -144,11 +145,11 @@ void Frag_Interface_ItemTrader::addItemRightSide(Item * item)
     while(!w_item->collidingItems().isEmpty())
     {
         hOffset += static_cast<int>(w_item->boundingRect().width()) + 5;
-        if(hOffset >= mSizeData.xPosSplitter+mSizeData.horizontalOffset+mSizeData.numberRows*(100+5)-5)
+        if(hOffset >= mSizeData.xPosSplitter + mSizeData.horizontalOffset + mSizeData.numberRows*(100 + 5) - 5)
         {
-            hOffset = mSizeData.xPosSplitter+50+mSizeData.horizontalOffset;
+            hOffset = mSizeData.xPosSplitter + 50 + mSizeData.horizontalOffset;
             vOffset += static_cast<int>(w_item->boundingRect().height()) + 5;
-            if(vOffset+105 > mScene->sceneRect().height())
+            if(vOffset + 105 > mScene->sceneRect().height())
             {
                 setSceneDeep(static_cast<int>(vOffset + w_item->boundingRect().height() + mSizeData.verticalOffset));
                 ui->graphicsView->setSceneRect(mScene->sceneRect());
@@ -157,6 +158,8 @@ void Frag_Interface_ItemTrader::addItemRightSide(Item * item)
         w_item->setPos(hOffset, vOffset);
     }
     w_item->setInitialPosition(w_item->pos());
+
+    rearangeItems();
 }
 
 void Frag_Interface_ItemTrader::addItemsLeftSide(QList<Item *> items)
@@ -213,34 +216,87 @@ QList<Item *> Frag_Interface_ItemTrader::getItemsRightSide()
 
 void Frag_Interface_ItemTrader::removeItemRightSide(Item * itemToRemove)
 {
-    for(ItemQuickDisplayer * item : qAsConst(itemsRightSide))
+    for(ItemQuickDisplayer * item : qAsConst(mItemsRightSide))
     {
         if(item->getItem() == itemToRemove)
         {
             mScene->removeItem(item);
-            itemsRightSide.removeOne(item);
+            mItemsRightSide.removeOne(item);
             delete item;
         }
     }
+    rearangeItems();
 }
 
 void Frag_Interface_ItemTrader::removeItemLeftSide(Item * itemToRemove)
 {
-    for(ItemQuickDisplayer * item : qAsConst(itemsLeftSide))
+    for(ItemQuickDisplayer * item : qAsConst(mItemsLeftSide))
     {
         if(item->getItem() == itemToRemove)
         {
             mScene->removeItem(item);
-            itemsLeftSide.removeOne(item);
+            mItemsLeftSide.removeOne(item);
             delete item;
         }
+    }
+    rearangeItems();
+}
+
+void Frag_Interface_ItemTrader::rearangeItems()
+{
+    for(ItemQuickDisplayer * item : mItemsLeftSide)
+    {
+        int vOffset = mSizeData.verticalOffset;
+        int hOffset = mSizeData.horizontalOffset;
+        item->setPos(hOffset, vOffset);
+
+        while(!item->collidingItems().isEmpty())
+        {
+            hOffset += static_cast<int>(item->boundingRect().width()) + 5;
+            if(hOffset >= mSizeData.horizontalOffset + mSizeData.numberRows*(100 + 5) - 5)
+            {
+                hOffset = mSizeData.horizontalOffset;
+                vOffset += static_cast<int>(item->boundingRect().height()) + 5;
+                if(vOffset + 105 > mScene->height())
+                {
+                    setSceneDeep(static_cast<int>(vOffset + item->boundingRect().height() + mSizeData.verticalOffset));
+                    ui->graphicsView->setSceneRect(mScene->sceneRect());
+                }
+            }
+            item->setPos(hOffset, vOffset);
+        }
+        item->setInitialPosition(item->pos());
+    }
+
+    for(ItemQuickDisplayer * item : mItemsRightSide)
+    {
+        int vOffset = mSizeData.verticalOffset;
+        int hOffset = mSizeData.xPosSplitter + 50 + mSizeData.horizontalOffset;
+        item->setPos(hOffset, vOffset);
+
+        while(!item->collidingItems().isEmpty())
+        {
+            hOffset += static_cast<int>(item->boundingRect().width()) + 5;
+            if(hOffset >= mSizeData.xPosSplitter + 50 + mSizeData.horizontalOffset + mSizeData.numberRows*(100 + 5) - 5)
+            {
+                hOffset = mSizeData.xPosSplitter + 50 + mSizeData.horizontalOffset;
+                vOffset += static_cast<int>(item->boundingRect().height()) + 5;
+                if(vOffset + 105 > mScene->height())
+                {
+                    setSceneDeep(static_cast<int>(vOffset + item->boundingRect().height() + mSizeData.verticalOffset));
+                    ui->graphicsView->setSceneRect(mScene->sceneRect());
+                }
+            }
+            item->setPos(hOffset, vOffset);
+        }
+        item->setInitialPosition(item->pos());
     }
 }
 
 void Frag_Interface_ItemTrader::moveItemLeftToRight(ItemQuickDisplayer * w_item)
 {
-    itemsLeftSide.removeOne(w_item);
-    itemsRightSide.append(w_item);
+    mItemsLeftSide.removeOne(w_item);
+    mItemsRightSide.append(w_item);
 
     int vOffset = mSizeData.verticalOffset, hOffset = mSizeData.xPosSplitter+50+mSizeData.horizontalOffset;
     w_item->setPos(hOffset, vOffset);
@@ -248,11 +304,12 @@ void Frag_Interface_ItemTrader::moveItemLeftToRight(ItemQuickDisplayer * w_item)
     while(!w_item->collidingItems().isEmpty())
     {
         hOffset += static_cast<int>(w_item->boundingRect().width()) + 5;
-        if(hOffset >= mSizeData.xPosSplitter+50+mSizeData.horizontalOffset + mSizeData.numberRows*(100+5)-5)
+        if(hOffset >= mSizeData.xPosSplitter + 50 + mSizeData.horizontalOffset + mSizeData.numberRows*(100 + 5) - 5)
         {
-            hOffset = mSizeData.xPosSplitter+50+mSizeData.horizontalOffset;
+            hOffset = mSizeData.xPosSplitter + 50 + mSizeData.horizontalOffset;
             vOffset += static_cast<int>(w_item->boundingRect().height()) + 5;
-            if(vOffset+105 > mScene->height()){
+            if(vOffset+105 > mScene->height())
+            {
                 setSceneDeep(static_cast<int>(vOffset + w_item->boundingRect().height() + mSizeData.verticalOffset));
                 ui->graphicsView->setSceneRect(mScene->sceneRect());
             }
@@ -260,12 +317,14 @@ void Frag_Interface_ItemTrader::moveItemLeftToRight(ItemQuickDisplayer * w_item)
         w_item->setPos(hOffset, vOffset);
     }
     w_item->setInitialPosition(w_item->pos());
+
+    rearangeItems();
 }
 
 void Frag_Interface_ItemTrader::moveItemRightToLeft(ItemQuickDisplayer * w_item)
 {
-    itemsRightSide.removeOne(w_item);
-    itemsLeftSide.append(w_item);
+    mItemsRightSide.removeOne(w_item);
+    mItemsLeftSide.append(w_item);
 
     int vOffset = mSizeData.verticalOffset, hOffset = mSizeData.horizontalOffset;
     w_item->setPos(hOffset, vOffset);
@@ -273,11 +332,12 @@ void Frag_Interface_ItemTrader::moveItemRightToLeft(ItemQuickDisplayer * w_item)
     while(!w_item->collidingItems().isEmpty())
     {
         hOffset += static_cast<int>(w_item->boundingRect().width()) + 5;
-        if(hOffset >= mSizeData.horizontalOffset+mSizeData.numberRows*(100+5)-5)
+        if(hOffset >= mSizeData.horizontalOffset + mSizeData.numberRows*(100 + 5) - 5)
         {
             hOffset = mSizeData.horizontalOffset;
             vOffset += static_cast<int>(w_item->boundingRect().height()) + 5;
-            if(vOffset+105 > mScene->height()){
+            if(vOffset+105 > mScene->height())
+            {
                 setSceneDeep(static_cast<int>(vOffset + w_item->boundingRect().height() + mSizeData.verticalOffset));
                 ui->graphicsView->setSceneRect(mScene->sceneRect());
             }
@@ -285,6 +345,8 @@ void Frag_Interface_ItemTrader::moveItemRightToLeft(ItemQuickDisplayer * w_item)
         w_item->setPos(hOffset, vOffset);
     }
     w_item->setInitialPosition(w_item->pos());
+
+    rearangeItems();
 }
 
 void Frag_Interface_ItemTrader::paintEvent(QPaintEvent *)
@@ -302,13 +364,13 @@ void Frag_Interface_ItemTrader::paintEvent(QPaintEvent *)
 
 Frag_Interface_ItemTrader::~Frag_Interface_ItemTrader()
 {
-    while(!itemsLeftSide.isEmpty())
+    while(!mItemsLeftSide.isEmpty())
     {
-        delete itemsLeftSide.takeLast();
+        delete mItemsLeftSide.takeLast();
     }
-    while(!itemsRightSide.isEmpty())
+    while(!mItemsRightSide.isEmpty())
     {
-        delete itemsRightSide.takeLast();
+        delete mItemsRightSide.takeLast();
     }
 }
 

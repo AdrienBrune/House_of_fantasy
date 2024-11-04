@@ -9,7 +9,7 @@ Win_Skills::Win_Skills(QWidget * parent) :
     mPopUpSkill(nullptr),
     ui(new Ui::Win_Skills)
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
     ui->setupUi(this);
 
@@ -98,11 +98,11 @@ Win_Skills::~Win_Skills()
 
 void Win_Skills::heroStatChanged()
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
-    ui->statLife->setText(QString("%1").arg(hero->getLife().maxLife));
-    ui->statMana->setText(QString("%1").arg(hero->getMana().maxMana));
-    ui->statStamina->setText(QString("%1").arg(hero->getStamina().maxStamina));
+    ui->statLife->setText(QString("%1").arg(hero->getLife().maximum));
+    ui->statMana->setText(QString("%1").arg(hero->getMana().maximum));
+    ui->statStamina->setText(QString("%1").arg(hero->getStamina().maximum));
     ui->statStrength->setText(QString("%1").arg(hero->getBag()->getPayload().max));
 
     if(hero->getSkillPoints() < 1)
@@ -123,8 +123,6 @@ void Win_Skills::heroStatChanged()
 
 void Win_Skills::onResumeSkillAsked(W_Skill * skill)
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
-
     if(mPopUpSkill)
     {
         delete mPopUpSkill;
@@ -218,24 +216,24 @@ void Win_Skills::paintEvent(QPaintEvent*)
 
 void Win_Skills::on_buttonUpLife_clicked()
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
-    hero->learnPassiveSkill(Hero::Life);
+    Hero * hero = EntitiesHandler::getInstance().getHero();
+    hero->learnPassiveSkill(Hero::life);
 }
 
 void Win_Skills::on_buttonUpMana_clicked()
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
-    hero->learnPassiveSkill(Hero::Mana);
+    Hero * hero = EntitiesHandler::getInstance().getHero();
+    hero->learnPassiveSkill(Hero::mana);
 }
 
 void Win_Skills::on_buttonUpStamina_clicked()
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
-    hero->learnPassiveSkill(Hero::Stamina);
+    Hero * hero = EntitiesHandler::getInstance().getHero();
+    hero->learnPassiveSkill(Hero::stamina);
 }
 
 void Win_Skills::on_buttonUpStrength_clicked()
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
     hero->learnPassiveSkill(Hero::Strength);
 }

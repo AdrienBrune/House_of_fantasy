@@ -28,13 +28,13 @@ CTRWindow::CTRWindow(QWidget *parent) :
     w_trading(nullptr),
     w_skill(nullptr),
     w_tool(nullptr),
+    w_map(nullptr),
     w_quickItemDrawer(nullptr),
     w_messageLogger(nullptr),
     w_night(nullptr),
     ui(new Ui::CTRWindow)
 {
     ui->setupUi(this);
-    setButtonsEnable(true);
 
     gItemGenerator = new ItemGenerator();
 
@@ -103,15 +103,16 @@ void CTRWindow::generateNewGame()
     mMap = new Map(this, ui->graphicsView);
     t_unfreezeMap = new QTimer(this);
     t_unfreezeMap->setSingleShot(true);
-    connect(mMap, SIGNAL(sig_monsterEncountered(Monster*)), this, SLOT(GoToMonsterFight(Monster*)));
-    connect(t_unfreezeMap, SIGNAL(timeout()), mMap, SLOT(unfreezeMap()));
-    connect(mMap, SIGNAL(sig_replenish(QObject*)), this, SLOT(showReplenish(QObject*)));
-    connect(mMap, SIGNAL(sig_showPNJinfo(QGraphicsItem*)), this, SLOT(showPNJinfo(QGraphicsItem*)));
-    connect(mMap, SIGNAL(sig_openInterface(QGraphicsItem*)), this, SLOT(openInterface(QGraphicsItem*)));
-    connect(mMap, SIGNAL(sig_showItemInfo(Item*)), this, SLOT(showItemOnGround(Item*)));
-    connect(mMap, SIGNAL(sig_itemPickedInMap(Item*)), this, SLOT(showItemPicked(Item*)));
-    connect(mMap, SIGNAL(sig_displayMonsterData(Monster*)), this, SLOT(displayMonsterData(Monster*)));
-    connect(mMap, SIGNAL(sig_calamitySpawned()), this, SLOT(displayCalamitySpawned()));
+    connect(mMap, &Map::sig_monsterEncountered, this, &CTRWindow::GoToMonsterFight);
+    connect(t_unfreezeMap, &QTimer::timeout, mMap, &Map::unfreezeMap);
+    connect(mMap, &Map::sig_replenish, this, &CTRWindow::showReplenish);
+    connect(mMap, &Map::sig_showPNJinfo, this, &CTRWindow::showPNJinfo);
+    connect(mMap, &Map::sig_openInterface, this, &CTRWindow::openInterface);
+    connect(mMap, &Map::sig_showItemInfo, this, &CTRWindow::showItemOnGround);
+    connect(mMap, &Map::sig_itemPickedInMap, this, &CTRWindow::showItemPicked);
+    connect(mMap, &Map::sig_displayMonsterData, this, &CTRWindow::displayMonsterData);
+    connect(mMap, &Map::sig_calamitySpawned, this, &CTRWindow::displayCalamitySpawned);
+    connect(mMap, &Map::sig_adventurerMapUnlock, this, [this](){ setButtonsEnable(true); });
     ui->graphicsView->setScene(mMap->getScene());
     ui->graphicsView->setRenderHint(QPainter::Antialiasing);
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -135,12 +136,19 @@ void CTRWindow::generateNewGame()
     mHero = mCurrentSave->getHero();
     mMap->setHero(mHero);
     mHero->setPos(mHero->getLocation() != QPointF(0,0) ? mHero->getLocation() : QPointF(mMap->getVillage()->pos().x()+500, mMap->getVillage()->pos().y()+800));
+    mHero->getAdventurerMap().map.init();
     connect(mHero, SIGNAL(sig_bagFull()), this, SLOT(showBagFull()));
     connect(mHero, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
     connect(mHero, SIGNAL(sig_enterMapEvent(Tool*)), this, SLOT(showQuickToolDrawer(Tool*)));
     connect(mHero, SIGNAL(sig_leaveMapEvent()), this, SLOT(hideQuickToolDrawer()));
+    connect(mHero, SIGNAL(sig_ThrowItem(Item*)), this, SLOT(unuseToolIfThrown(Item*)));
+    connect(mHero, SIGNAL(sig_SellItem(Item*)), this, SLOT(unuseToolIfThrown(Item*)));
     DEBUG("GENERATED : Hero");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+
+    // // HERO ITEMS
+    // for(MapScroll * mapScroll : mHero->getBag()->getItemList<MapScroll*>())
+    //     mapScroll->init();
 
     // HERO INTERFACE
     w_heroStats = new W_HeroStats(this, mHero);
@@ -174,12 +182,69 @@ void CTRWindow::generateNewGame()
     w_loadingScreen->hide();
     showFullScreen();
 
-    EntitesHandler::getInstance().registerHero(mHero);
-    EntitesHandler::getInstance().registerMap(mMap);
+    EntitiesHandler::getInstance().registerHero(mHero);
+    EntitiesHandler::getInstance().registerMap(mMap);
+    EntitiesHandler::getInstance().registerView(ui->graphicsView);
+
+    setButtonsEnable(true);
 }
 
 void CTRWindow::closeGame()
 {
+    if(w_heroStats)
+        delete w_heroStats;
+    w_heroStats = nullptr;
+
+    if(w_explorationLoading)
+        delete w_explorationLoading;
+    w_explorationLoading = nullptr;
+
+    if(w_inventory)
+        delete w_inventory;
+    w_inventory = nullptr;
+
+    if(w_gear)
+        delete w_gear;
+    w_gear = nullptr;
+
+    if(w_trading)
+        delete w_trading;
+    w_trading = nullptr;
+
+    if(w_fight)
+        delete w_fight;
+    w_fight = nullptr;
+
+    if(w_skill)
+        delete w_skill;
+    w_skill = nullptr;
+
+    if(w_tool)
+    {
+        w_tool->hideTool();
+        delete w_tool;
+    }
+    w_tool = nullptr;
+
+    if(w_map)
+    {
+        w_map->hideTool();
+        delete w_map;
+    }
+    w_map = nullptr;
+
+    if(w_quickItemDrawer)
+        delete w_quickItemDrawer;
+    w_quickItemDrawer = nullptr;
+
+    if(w_messageLogger)
+        delete w_messageLogger;
+    w_messageLogger = nullptr;
+
+    if(w_night)
+        delete w_night;
+    w_night = nullptr;
+
     if(mMap)
         delete mMap;
     mMap = nullptr;
@@ -259,7 +324,7 @@ void CTRWindow::GoToMonsterFight(Monster * monster)
         mHero->freeze(true);
 
         // Close all interfaces
-        if(w_trading != nullptr)
+        if(w_trading)
         {
             Win_Chest * chest = dynamic_cast<Win_Chest*>(w_trading);
             if(chest)
@@ -285,7 +350,7 @@ void CTRWindow::GoToMonsterFight(Monster * monster)
         connect(w_fight, SIGNAL(sig_endFight(Character*)), this, SLOT(fightResult(Character*)));
         connect(w_fight, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
         w_fight->displayInterface();
-        mMap->freezeMap();
+        mMap->freeze(true);
     }
 }
 
@@ -293,29 +358,33 @@ void CTRWindow::fightResult(Character* entityKilled)
 {
     mHero->freeze(false);
     mSoundManager->endMusicFight();
+
     if(entityKilled)
     {
         Hero * hero = dynamic_cast<Hero*>(entityKilled);
         if(hero){
+            // TODO : Game Over
             DEBUG("Le Hero a été tué - GAME OVER");
         }
         Monster* monster = dynamic_cast<Monster*>(entityKilled);
         if(monster){
             mSoundManager->playSound(monster->getSoundIndexFor(DIE));
             monster->killMonster();
-            mMap->unfreezeMap();
+            mMap->freeze(false);
             if(mHero->addExperience(monster->getExperience()))
             {
                 ShowPopUpInfo(ML_SHOW_LEVEL_UP(mHero));
             }
-            if(mHero->getLife().curLife < 30)
+            if(mHero->getLife().current < 30)
                 mSoundManager->startMusicEvent(MUSICEVENT_CLOSE_FIGHT);
         }
         mHero->checkMapInteractions();
-    }else
+    }
+    else
     {
         t_unfreezeMap->start(2000);
     }
+
     if(w_messageLogger)
             w_messageLogger->setVisible(true);
 }
@@ -385,7 +454,7 @@ void CTRWindow::keyPressEvent(QKeyEvent *event)
 {
     if( (event->key() == Qt::Key::Key_F) && !event->isAutoRepeat() && !mHero->isFreeze())
     {
-        if(w_explorationLoading != nullptr)
+        if(w_explorationLoading)
             delete w_explorationLoading;
         w_explorationLoading = new W_Animation_exploration(this);
         connect(w_explorationLoading, SIGNAL(sig_explorationCompleted()), this, SLOT(explorationCompleted()));
@@ -445,7 +514,7 @@ void CTRWindow::keyReleaseEvent(QKeyEvent *event)
     if( (event->key() == Qt::Key::Key_F) && !event->isAutoRepeat())
     {
         heroIsSearching = false;
-        if(w_explorationLoading != nullptr)
+        if(w_explorationLoading)
             delete w_explorationLoading;
         w_explorationLoading = nullptr;
 
@@ -453,7 +522,7 @@ void CTRWindow::keyReleaseEvent(QKeyEvent *event)
 
     }else if(event->key() == Qt::Key::Key_Escape)
     {
-        if(w_trading != nullptr)
+        if(w_trading)
         {
             Win_Chest * chest = dynamic_cast<Win_Chest*>(w_trading);
             if(chest)
@@ -516,7 +585,7 @@ void CTRWindow::keyReleaseEvent(QKeyEvent *event)
 
 void CTRWindow::explorationCompleted()
 {
-    if(w_explorationLoading != nullptr)
+    if(w_explorationLoading)
         delete w_explorationLoading;
     w_explorationLoading = nullptr;
     heroIsSearching = false;
@@ -577,7 +646,7 @@ void CTRWindow::explorationCompleted()
                     ChestBurried * chestBurried = dynamic_cast<ChestBurried*>(chestEvent);
                     if(chestBurried)
                     {
-                        if(w_tool != nullptr)
+                        if(w_tool)
                         {
                             if(w_tool->getTool()->getIdentifier() == TOOL_SHOVEL)
                             {
@@ -599,7 +668,7 @@ void CTRWindow::explorationCompleted()
                 OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
                 if(oreSpot)
                 {
-                    if(w_tool != nullptr)
+                    if(w_tool)
                     {
                         if(w_tool->getTool()->getIdentifier() == TOOL_PICKAXE)
                         {
@@ -642,7 +711,7 @@ void CTRWindow::explorationCompleted()
                 FishingEvent * fishes = dynamic_cast<FishingEvent*>(mapEvent);
                 if(fishes)
                 {
-                    if(w_tool != nullptr)
+                    if(w_tool)
                     {
                         if(w_tool->getTool()->getIdentifier() == TOOL_FISHINGROD)
                         {
@@ -709,7 +778,7 @@ void CTRWindow::explorationCompleted()
                 continue;
             }
 
-            if(w_tool != nullptr)
+            if(w_tool)
             {
                 if(monsterDead->isDead() && !monsterDead->isSkinned())
                 {
@@ -757,6 +826,7 @@ void CTRWindow::on_Inventory_clicked()
     hideSkillWindow();
 
     w_inventory = new Win_Inventory(this);
+    connect(w_inventory, SIGNAL(sig_itemThrown(Item*)), this, SLOT(unuseToolIfThrown(Item*)));
     connect(w_inventory, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
     connect(w_inventory, SIGNAL(sig_closeWindow()), this, SLOT(hideInventary()));
     connect(w_inventory, SIGNAL(sig_useTool(Tool*)), this, SLOT(useTool(Tool*)));
@@ -801,6 +871,27 @@ void CTRWindow::hideInventaryGear()
     setButtonsEnable(true);
 }
 
+void CTRWindow::on_Map_clicked()
+{
+    if(!mHero)
+        return;
+
+    if(!mHero->getAdventurerMap().unlocked)
+        return;
+
+    hideInventary();
+    hideInventaryGear();
+    hideSkillWindow();
+
+    if(w_map)
+    {
+        unuseMapTool();
+        return;
+    }  
+
+    useTool(&mHero->getAdventurerMap().map);
+}
+
 void CTRWindow::hideFightWindow()
 {
     if(w_fight!=nullptr)
@@ -810,7 +901,7 @@ void CTRWindow::hideFightWindow()
 
 void CTRWindow::hideSkillWindow()
 {
-    if(w_skill != nullptr)
+    if(w_skill)
         delete w_skill;
     w_skill = nullptr;
     setButtonsEnable(true);
@@ -839,13 +930,43 @@ void CTRWindow::showReplenish(QObject * shop)
 
 void CTRWindow::useTool(Tool * tool)
 {
-    if(w_tool != nullptr)
+    // Map Scroll specific
+    MapScroll * mapScroll = dynamic_cast<MapScroll*>(tool);
+    if(mapScroll)
+    {
+        if(w_map)
+        {
+            w_map->hideTool();
+            delete w_map;
+        }
+        w_map = nullptr;
+        
+        w_map = new W_UseToolMap(this, tool);
+
+        connect(w_map->getExitButton(), &QPushButton::clicked, this, &CTRWindow::unuseMapTool);
+        w_map->setGeometry(20, height() - w_map->height() - 20, w_map->width(), w_map->height());
+        w_map->displayTool();
+
+        return;
+    }
+
+    // Other tools
+    if(w_tool)
+    {
+        w_tool->hideTool();
         delete w_tool;
+    }
     w_tool = nullptr;
 
-    w_tool = new W_UseTool(this, tool);
-    connect(w_tool->getExitButton(), SIGNAL(clicked()), this, SLOT(unuseTool()));
-    w_tool->setGeometry(ui->Inventory->x()-w_tool->width()-30,30,w_tool->width(),w_tool->height());
+    Compass * compass = dynamic_cast<Compass*>(tool);
+    if(compass)
+        w_tool = new W_UseToolCompass(this, tool);
+
+    if(!w_tool)
+        w_tool = new W_UseTool(this, tool);
+
+    connect(w_tool->getExitButton(), &QPushButton::clicked, this, &CTRWindow::unuseTool);
+    w_tool->setGeometry(ui->Inventory->x()-w_tool->width()-30, 30, w_tool->width(), w_tool->height());
     w_tool->displayTool();
 }
 
@@ -858,11 +979,38 @@ void CTRWindow::useScroll(Scroll* scroll)
     mHero->useScroll(scroll);
 }
 
+void CTRWindow::unuseToolIfThrown(Item * item)
+{
+    if(!item)
+        return;
+
+    if(!w_tool)
+        return;
+
+    Tool * tool = dynamic_cast<Tool*>(item);
+    if(tool)
+        if(w_tool->getTool() == tool)
+            unuseTool();
+}
+
 void CTRWindow::unuseTool()
 {
-    if(w_tool != nullptr)
+    if(w_tool)
+    {
+        w_tool->hideTool();
         delete w_tool;
+    }
     w_tool = nullptr;
+}
+
+void CTRWindow::unuseMapTool()
+{
+    if(w_map)
+    {
+        w_map->hideTool();
+        delete w_map;
+    }
+    w_map = nullptr;
 }
 
 void CTRWindow::setButtonsEnable(bool toggle)
@@ -870,13 +1018,7 @@ void CTRWindow::setButtonsEnable(bool toggle)
     ui->Inventory->setEnabled(toggle);
     ui->Gear->setEnabled(toggle);
     ui->Skills->setEnabled(toggle);
-}
-
-void CTRWindow::on_buttonHelp_clicked()
-{
-    HelpDialog * helpDialog = new HelpDialog(this);
-    helpDialog->setGeometry((width()-helpDialog->width())/2,0,helpDialog->width(),helpDialog->height());
-    helpDialog->displayWindow();
+    ui->Map->setEnabled(toggle ? (mHero->getAdventurerMap().unlocked ? toggle : false) : toggle);
 }
 
 void CTRWindow::showBagFull()
@@ -931,6 +1073,8 @@ void CTRWindow::openInterface(QGraphicsItem * item)
     Taverne * heroHouse = dynamic_cast<Taverne*>(item);
     if(heroHouse){
         mHero->freeze(true);
+        unuseMapTool();
+        mHero->getAdventurerMap().map.init();
         if(w_night)
             delete w_night;
         w_night = new W_Animation_Night(this);
@@ -999,20 +1143,20 @@ void CTRWindow::onPeriodicalEvents()
 {
     static quint8 fiveSeconds = 1;
 
-    if(mHero->getStamina().curStamina < mHero->getStamina().maxStamina)
+    if(mHero->getStamina().current < mHero->getStamina().maximum)
     {
-        mHero->setStamina(mHero->getStamina().curStamina + 10);
+        mHero->setStamina(mHero->getStamina().current + 10);
     }
     
     if(fiveSeconds >= 5)
     {
         if(mHero->getSkillList()[PassiveSkill::LifeCollector]->isUnlock())
         {
-            mHero->setLife(mHero->getLife().curLife+1);
+            mHero->setLife(mHero->getLife().current+1);
         }
         if(mHero->getSkillList()[PassiveSkill::ManaCollector]->isUnlock())
         {
-            mHero->setMana(mHero->getMana().curMana+1);
+            mHero->setMana(mHero->getMana().current+1);
         }
         fiveSeconds = 1;
     }
@@ -1028,8 +1172,21 @@ void CTRWindow::onQuitGame()
     close();
 }
 
-void CTRWindow::on_buttonSaveGame_clicked()
+void CTRWindow::on_buttonQuit_clicked()
 {
+    mHero->freeze(true);
+    mMap->freeze(true);
+
+    mHero->stopMoving();
+
+    ConfirmationDialog dialog(this);
+    if(dialog.exec() == QDialog::Rejected)
+    {
+        mHero->freeze(false);
+        mMap->freeze(false);
+        return;
+    }  
+
     /* Copy map chest to save */
     HeroChest * chest = new HeroChest();
     for(Item * item : mMap->getVillage()->getHeroHouse()->getChest()->getItems())
@@ -1079,5 +1236,3 @@ void CTRWindow::hideQuickToolDrawer()
         w_quickItemDrawer = nullptr;
     }
 }
-
-

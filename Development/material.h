@@ -93,6 +93,20 @@ public:
     ~WolfMeat();
 };
 
+class Mandibles : public MonsterMaterial
+{
+public:
+    Mandibles();
+    ~Mandibles();
+};
+
+class PoisonPouch : public MonsterMaterial
+{
+public:
+    PoisonPouch();
+    ~PoisonPouch();
+};
+
 class GoblinEar : public MonsterMaterial
 {
 public:

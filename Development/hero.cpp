@@ -5,11 +5,13 @@ bool gEnableMovementWithMouseClic = false;
 
 Hero::Hero():
     Character (),
+    mBag(nullptr),
+    mGear(nullptr),
     mIsInVillage(false),
     mFreeze(false),
     mSkillPoints(0),
     mIsInMapEvent(false)
-{    
+{
     setZValue(Z_HERO);
     mNextFrame = 0;
     mMoveHandler.t_move = new QTimer(this);
@@ -21,6 +23,8 @@ Hero::Hero():
     t_movement = new QTimer(this);
     connect(t_movement, SIGNAL(timeout()), this, SLOT(nextMovement()));
     t_movement->setInterval(100);
+
+    mAdventurerMap.unlocked = false;
 }
 
 void Hero::nextMovement()
@@ -172,6 +176,7 @@ void Hero::startMovingTo(int x, int y)
 
 void Hero::stopMoving()
 {
+    mMoveHandler.movementMask = 0;
     mMoveHandler.t_move->stop();
     mMoveHandler.destPos = QPointF(x(),y());
     mImageSelected = HERO_STAND;
@@ -196,7 +201,7 @@ bool Hero::isInVillage()
 
 bool Hero::isDead()
 {
-    if(mLife.curLife <= 0){
+    if(mLife.current <= 0){
         return true;
     }else{
         return false;
@@ -472,17 +477,17 @@ void Hero::useConsumable(Consumable * item)
     PotionLife * potionLife = dynamic_cast<PotionLife*>(item);
     if(potionLife)
     {
-        setLife(getLife().curLife+potionLife->getCapacity());
+        setLife(getLife().current+potionLife->getCapacity());
     }
     PotionMana * potionMana = dynamic_cast<PotionMana*>(item);
     if(potionMana)
     {
-        setMana(getMana().curMana+potionMana->getCapacity());
+        setMana(getMana().current+potionMana->getCapacity());
     }
     PotionStamina * potionStamina = dynamic_cast<PotionStamina*>(item);
     if(potionStamina)
     {
-        setStaminaMax(getStamina().maxStamina+potionStamina->getCapacity());
+        setStaminaMax(getStamina().maximum+potionStamina->getCapacity());
     }
     PotionStrenght * potionStrength = dynamic_cast<PotionStrenght*>(item);
     if(potionStrength)
@@ -497,21 +502,21 @@ void Hero::useConsumable(Consumable * item)
     RedFish * redFish = dynamic_cast<RedFish*>(item);
     if(redFish)
     {
-        setLife(getLife().curLife+redFish->getCapacity());
+        setLife(getLife().current+redFish->getCapacity());
     }
     CommonFish * fish = dynamic_cast<CommonFish*>(item);
     if(fish)
     {
-        setLife(getLife().curLife+fish->getCapacity());
+        setLife(getLife().current+fish->getCapacity());
     }
     Yellowfish * yellowFish = dynamic_cast<Yellowfish*>(item);
     if(yellowFish)
     {
-        setLife(getLife().curLife+yellowFish->getCapacity());    }
+        setLife(getLife().current+yellowFish->getCapacity());    }
     BlueFish * blueFish = dynamic_cast<BlueFish*>(item);
     if(blueFish)
     {
-        setMana(getMana().curMana+blueFish->getCapacity());
+        setMana(getMana().current+blueFish->getCapacity());
     }
 
     mBag->removeItem(item);
@@ -541,11 +546,6 @@ bool Hero::takeItem(Item * item)
     }
 }
 
-void Hero::throwItem(Item * item)
-{
-    mBag->removeItem(item);
-}
-
 qreal Hero::calculateDamage()
 {
     return (1+(mExperience.level*0.05))*mGear->damageStat();
@@ -562,11 +562,44 @@ int Hero::getAttackSpeed()
 
 void Hero::takeDamage(int damage)
 {
-    if(QRandomGenerator::global()->bounded(100) > mGear->dodgingStat()){
-        setLife(getLife().curLife - static_cast<int>((1.0 - static_cast<qreal>(mGear->defenseStat())/HERO_DEFENSE_MAX)*static_cast<qreal>(damage)));
-    }else{
-        emit sig_dodge();
+    float innateRobustnessCoef = 1.0;
+
+    // Benediction : if counters remain, not damages applied
+    if(isApplied(eStatus::benediction))
+    {
+        if(mStatus[eStatus::benediction].toInt() > 0)
+        {
+            mStatus[eStatus::benediction] = mStatus[eStatus::benediction].toInt() - 1;
+            return;
+        }
+        else
+            removeStatus(eStatus::benediction);
     }
+
+    // Innate Robustness : -15% damage reduction if skill obtained
+    if(getSkillList()[PassiveSkill::InnateRobustness]->isUnlock())
+        innateRobustnessCoef = 0.85; // -15% dmg
+
+    // Primitive Shield : -20% damage reduction if counter remains
+    if(isApplied(eStatus::shield))
+    {
+        if(mStatus[eStatus::shield].toInt() > 0)
+        {
+            mStatus[eStatus::shield] = mStatus[eStatus::shield].toInt() - 1;
+            innateRobustnessCoef *= 0.8; // -20% dmg
+        }
+        else
+            removeStatus(eStatus::shield);
+    }
+
+    damage *= innateRobustnessCoef;
+
+    if(QRandomGenerator::global()->bounded(100) > mGear->dodgingStat())
+    {
+        setLife(getLife().current - static_cast<int>((1.0 - static_cast<qreal>(mGear->defenseStat())/HERO_DEFENSE_MAX)*static_cast<qreal>(damage)));
+    }
+    else
+        emit sig_dodge();
 }
 
 void Hero::addCoin(int coin)
@@ -645,18 +678,18 @@ bool Hero::learnPassiveSkill(int index)
 
     switch(index)
     {
-        case Life:
-            setLifeMax(mLife.maxLife + mHeroList[mClass].steps.life);
-            setLife(mLife.curLife + mHeroList[mClass].steps.life);
+        case life:
+            setLifeMax(mLife.maximum + mHeroList[mClass].steps.life);
+            setLife(mLife.current + mHeroList[mClass].steps.life);
             break;
 
-        case Mana:
-            setManaMax(mMana.maxMana + mHeroList[mClass].steps.mana);
-            setMana(mMana.curMana + mHeroList[mClass].steps.mana);
+        case mana:
+            setManaMax(mMana.maximum + mHeroList[mClass].steps.mana);
+            setMana(mMana.current + mHeroList[mClass].steps.mana);
             break;
 
-        case Stamina:
-            setStaminaMax(mStamina.maxStamina + mHeroList[mClass].steps.stamina);
+        case stamina:
+            setStaminaMax(mStamina.maximum + mHeroList[mClass].steps.stamina);
             break;
 
         case Strength:
@@ -746,11 +779,6 @@ SwordMan::~SwordMan()
         delete mSpellList[i];
 }
 
-int SwordMan::getHeroClass()
-{
-    return mClass;
-}
-
 
 
 
@@ -806,11 +834,6 @@ Archer::~Archer()
         delete mSpellList[i];
 }
 
-int Archer::getHeroClass()
-{
-    return mClass;
-}
-
 
 
 
@@ -864,10 +887,5 @@ Wizard::~Wizard()
         delete mSkillList[i];
     for(int i=0; i<SpellSkill::NbSpells; i++)
         delete mSpellList[i];
-}
-
-int Wizard::getHeroClass()
-{
-    return mClass;
 }
 

@@ -29,13 +29,6 @@ public:
     Item * takeItem(Item*);
     Item * getItem(quint32);
     QList<Item*> getItems();
-    QList<Consumable*> getConsumables();
-    QList<Weapon*> getWeapons();
-    QList<ArmorPiece*> getArmorPieces();
-    QList<MonsterMaterial*> getMonsterMaterials();
-    QList<Material*> getMaterials();
-    QList<Tool*> getTools();
-    QList<Scroll*> getScrolls();
     Payload getPayload();
     Item * getShovel();
     Item * getPickaxe();
@@ -44,6 +37,18 @@ public:
     int getQuantityOf(Item*);
     int getQuantityOf(quint32);
     Item * takeItemWithIdentifier(quint32);
+    template<typename T>
+    QList<T> getItemList() const
+    {
+        QList<T> filteredItems;
+        for(Item* item : mItems)
+        {
+            T castedItem = dynamic_cast<T>(item);
+            if(castedItem)
+                filteredItems.append(castedItem);
+        }
+        return filteredItems;
+    }
 public:
     void serialize(QDataStream& stream)const
     {

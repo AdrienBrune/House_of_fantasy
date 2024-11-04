@@ -4,33 +4,37 @@
 #include "character.h"
 #include "map.h"
 
-class EntitesHandler
+class EntitiesHandler
 {
 public:
-    EntitesHandler(const EntitesHandler&) = delete;
-    EntitesHandler& operator=(const EntitesHandler&) = delete;
+    EntitiesHandler(const EntitiesHandler&) = delete;
+    EntitiesHandler& operator=(const EntitiesHandler&) = delete;
 
-    static EntitesHandler& getInstance() { return mInstance; }
+    static EntitiesHandler& getInstance() { return mInstance; }
 
     void registerHero(Hero * hero) { assert(hero); mHero = hero; }
     void registerMap(Map * map) { assert(map); mMap = map; }
+    void registerView(QGraphicsView * view) { assert(view); mView = view; }
 
     Hero * getHero() { assert(mHero); return mHero; }
     Map * getMap() { assert(mMap); return mMap; }
+    QGraphicsView * getView() { return mView; }
 
 private:
-    EntitesHandler():
+    EntitiesHandler():
         mHero(nullptr),
-        mMap(nullptr)
+        mMap(nullptr),
+        mView(nullptr)
     {}
-    ~EntitesHandler() = default;
+    ~EntitiesHandler() = default;
 
 private:
     Hero * mHero;
     Map * mMap;
+    QGraphicsView * mView;
 
 private:
-    static EntitesHandler mInstance;
+    static EntitiesHandler mInstance;
 };
 
 #endif // ENTITIESHANDLER_H

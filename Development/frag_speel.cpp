@@ -1,6 +1,8 @@
 #include "frag_speel.h"
 #include "ui_frag_speel.h"
 
+#include <QDebug>
+
 Frag_Speel::Frag_Speel(QWidget * parent, Skill * skill) :
     QPushButton(parent),
     mSpell(skill),

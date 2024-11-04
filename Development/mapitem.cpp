@@ -36,7 +36,6 @@ QPixmap MapItem::getImage()
     return mImage.copy(static_cast<int>(mImageSelected*boundingRect().width()), 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
 }
 
-
 QString MapItem::invocName()
 {
     return mMapItemName;

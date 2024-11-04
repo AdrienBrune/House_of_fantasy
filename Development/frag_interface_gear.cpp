@@ -29,7 +29,7 @@ Frag_Interface_Gear::Frag_Interface_Gear(QWidget *parent) :
 
 void Frag_Interface_Gear::onItemMovedHandler(ItemQuickDisplayer * item)
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
     item->setZValue(0);
     if(!mScene->sceneRect().contains(item->boundingRect()))
@@ -122,7 +122,7 @@ void Frag_Interface_Gear::onItemMovedHandler(ItemQuickDisplayer * item)
                     else
                     {
                         equipmentRightSide.append(item);
-                        itemsLeftSide.removeOne(item);
+                        mItemsLeftSide.removeOne(item);
                         emit sig_equipItem(item->getItem());
                     }
                 }
@@ -155,7 +155,7 @@ void Frag_Interface_Gear::onItemSelected(ItemQuickDisplayer * item)
 
 void Frag_Interface_Gear::initEquipmentRightSide()
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
     if(hero->getGear()->getHelmet()!=nullptr){
         ItemQuickDisplayer * w_helmet = new ItemQuickDisplayer(hero->getGear()->getHelmet());
@@ -239,7 +239,7 @@ void Frag_Interface_Gear::initEquipmentRightSide()
 void Frag_Interface_Gear::addItemLeftSide(Item * item)
 {
     ItemQuickDisplayer * w_item = new ItemQuickDisplayer(item);
-    itemsLeftSide.append(w_item);
+    mItemsLeftSide.append(w_item);
     mScene->addItem(w_item);
 
     int vOffset = 10, hOffset = 10;
@@ -264,14 +264,14 @@ void Frag_Interface_Gear::addItemLeftSide(Item * item)
 
 void Frag_Interface_Gear::addItemsLeftSide()
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
     QList<Item*> list;
-    for(Item * item : hero->getBag()->getWeapons())
+    for(Item * item : hero->getBag()->getItemList<Weapon*>())
     {
         addItemLeftSide(item);
     }
-    for(Item * item : hero->getBag()->getArmorPieces())
+    for(Item * item : hero->getBag()->getItemList<ArmorPiece*>())
     {
         addItemLeftSide(item);
     }
@@ -296,7 +296,7 @@ QList<Item *> Frag_Interface_Gear::getItemsLeftSide()
 
 void Frag_Interface_Gear::unselectItems()
 {
-    for(ItemQuickDisplayer * item : itemsLeftSide)
+    for(ItemQuickDisplayer * item : mItemsLeftSide)
     {
         item->setItemSelected(false);
     }
@@ -308,7 +308,7 @@ void Frag_Interface_Gear::unselectItems()
 
 ItemQuickDisplayer *Frag_Interface_Gear::getSelectedItem()
 {
-    for(ItemQuickDisplayer * item : itemsLeftSide)
+    for(ItemQuickDisplayer * item : mItemsLeftSide)
     {
         if(item->isItemSelected())
             return item;
@@ -325,7 +325,7 @@ ItemQuickDisplayer *Frag_Interface_Gear::getSelectedItem()
 void Frag_Interface_Gear::swapItemFromRightToLeft(ItemQuickDisplayer * w_item)
 {
     equipmentRightSide.removeOne(w_item);
-    itemsLeftSide.append(w_item);
+    mItemsLeftSide.append(w_item);
 
     int vOffset = 10, hOffset = 10;
     w_item->setPos(vOffset, hOffset);

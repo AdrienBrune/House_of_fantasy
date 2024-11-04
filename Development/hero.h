@@ -26,9 +26,9 @@ public:
         eNbHeroClasses
     };
     enum SkillStepEnum{
-        Life,
-        Mana,
-        Stamina,
+        life,
+        mana,
+        stamina,
         Strength,
         NbSkillSteps
     };
@@ -58,6 +58,11 @@ public:
         int pointsToLevelUp;
     };
 
+    struct AdventurerMap{
+        MapScroll map;
+        bool unlocked;
+    };
+
 public:
     Hero();
     virtual ~Hero();
@@ -72,6 +77,7 @@ signals:
     void sig_heroMoved();
     void sig_showHeroData();
     void sig_ThrowItem(Item*);
+    void sig_SellItem(Item*);
     void sig_dodge();
     void sig_playSound(int);
     void sig_enterMapEvent(Tool * tool);
@@ -84,6 +90,7 @@ public:
     QPointF getLocation();
     Bag * getBag();
     Gear * getGear();
+    AdventurerMap & getAdventurerMap() { return mAdventurerMap; }
     int getCoin();
     Experience getExperience();
     int getSkillPoints();
@@ -91,18 +98,19 @@ public:
     Skill* getSpellSkill(int index);
     PassiveSkill ** getSkillList();
     SpellSkill ** getSpellList();
-    virtual int getHeroClass()=0;
+    virtual int getHeroClass() { return mClass; };
 
     void setLocation(QPointF);
     void setGear(Gear*);
     void setCoin(int);
     void setIsInVillage(bool);
     void setSkillPoints(int);
+
 public:
+    void unlockAdventurerMap() { mAdventurerMap.unlocked = true; }
     void useConsumable(Consumable*);
     void useScroll(Scroll*);
     bool takeItem(Item*);
-    void throwItem(Item*);
     qreal calculateDamage();
     int getAttackSpeed();
     void takeDamage(int);
@@ -121,9 +129,82 @@ public:
     void freeze(bool);
     bool isFreeze();
     void checkMapInteractions();
+    void setupFight(bool setup) override
+    {
+        if(setup) // Enter fight
+        {
+            if(getSkillList()[PassiveSkill::GodBenediction]->isUnlock())
+                setup ? applyStatus(Character::eStatus::heal) : removeStatus(Character::eStatus::heal);
+        }
+        else // Leave fight
+        {
+            removeStatus(Character::eStatus::shield);
+            removeStatus(Character::eStatus::benediction);
+            removeStatus(Character::eStatus::confused);
+            removeStatus(Character::eStatus::poisoned);
+            removeStatus(Character::eStatus::heal);
+        }
+    }
+
 public:
-    virtual void serialize(QDataStream& stream)const=0;
-    virtual void deserialize(QDataStream& stream)=0;
+    virtual void serialize(QDataStream& stream) const
+    {
+        stream << mClass
+               << mName
+               << mMoveHandler.lastPos
+               << mLife.current << mLife.maximum
+               << mMana.current << mMana.maximum
+               << mStamina.current << mStamina.maximum
+               << mCoin
+               << mExperience.level << mExperience.points << mExperience.pointsToLevelUp
+               << mSkillPoints;
+        for(int i = 0; i < PassiveSkill::NbSkills; i++)
+        {
+            stream << mSkillList[i]->isUnlock();
+        }
+        for(int i = 0; i < SpellSkill::NbSpells; i++)
+        {
+            stream << mSpellList[i]->isUnlock();
+        }
+        stream << mAdventurerMap.unlocked;
+        mBag->serialize(stream);
+        mGear->serialize(stream);
+
+        DEBUG("SERIALIZED[in] : Hero");
+    }
+    virtual void deserialize(QDataStream& stream)
+    {
+        QPointF location(0,0);
+        stream >> mName
+               >> location
+               >> mLife.current >> mLife.maximum
+               >> mMana.current >> mMana.maximum
+               >> mStamina.current >> mStamina.maximum
+               >> mCoin
+               >> mExperience.level >> mExperience.points >> mExperience.pointsToLevelUp
+               >> mSkillPoints;
+        for(int i = 0; i < PassiveSkill::NbSkills; i++)
+        {
+            bool isUnlock = false;
+            stream >> isUnlock;
+            if(isUnlock)
+                mSkillList[i]->unlockSkill();
+        }
+        for(int i = 0; i < SpellSkill::NbSpells; i++)
+        {
+            bool isUnlock = false;
+            stream >> isUnlock;
+            if(isUnlock)
+                mSpellList[i]->unlockSkill();
+        }
+        stream >> mAdventurerMap.unlocked;
+        mBag->deserialize(stream);
+        mGear->deserialize(stream);
+
+        setLocation(location);
+
+        DEBUG("SERIALIZED[out] : Hero");
+    }
     friend QDataStream& operator<<(QDataStream& stream, const Hero& object)
     {
         object.serialize(stream);
@@ -134,13 +215,17 @@ public:
         object.deserialize(stream);
         return stream;
     }
+
 public:
     static Hero * getInstance(Hero::HeroClasses);
+
 public:
     HeroMovementHandler mMoveHandler;
+
 protected:
     Bag * mBag;
     Gear * mGear;
+    AdventurerMap mAdventurerMap;
     int mCoin;
     Experience mExperience;
     int mImageSelected;
@@ -180,6 +265,7 @@ protected:
         new SpellSkill( SpellSkill::Benediction, ABLE(eWizard), "Bénédiction", 5, "Sort permettant d’encaisser les trois prochaines attaques sans dégâts", false, QPixmap(":/icons/skill/spell60.png"), QPixmap(":/icons/skill/spell61.png"), 100, 3, "Tours d'invincibilité" ),
         new SpellSkill( SpellSkill::Confusion, ABLE(eWizard), "Confusion", 10, "Réduit drastiquement le taux d’attaque de l’ennemi", false, QPixmap(":/icons/skill/spell70.png"), QPixmap(":/icons/skill/spell71.png"), 60, 70, "Taux de réussite" )
     };
+
 public:
     QTimer * t_movement;
 };
@@ -194,66 +280,17 @@ public:
     ~SwordMan();
 
 public:
-    int getHeroClass();
-
-public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 public:
-    void serialize(QDataStream& stream)const
+    void serialize(QDataStream& stream) const override
     {
-        stream << mClass
-               << mName
-               << mMoveHandler.lastPos
-               << mLife.curLife << mLife.maxLife
-               << mMana.curMana << mMana.maxMana
-               << mStamina.curStamina << mStamina.maxStamina
-               << mCoin
-               << mExperience.level << mExperience.points << mExperience.pointsToLevelUp
-               << mSkillPoints;
-        for(int i = 0; i < PassiveSkill::NbSkills; i++)
-        {
-            stream << mSkillList[i]->isUnlock();
-        }
-        for(int i = 0; i < SpellSkill::NbSpells; i++)
-        {
-            stream << mSpellList[i]->isUnlock();
-        }
-        mBag->serialize(stream);
-        mGear->serialize(stream);
-
+        Hero::serialize(stream);
         DEBUG("SERIALIZED[in]  : Swordman");
     }
-    void deserialize(QDataStream& stream)
+    void deserialize(QDataStream& stream) override
     {
-        QPointF location(0,0);
-        stream >> mName
-               >> location
-               >> mLife.curLife >> mLife.maxLife
-               >> mMana.curMana >> mMana.maxMana
-               >> mStamina.curStamina >> mStamina.maxStamina
-               >> mCoin
-               >> mExperience.level >> mExperience.points >> mExperience.pointsToLevelUp
-               >> mSkillPoints;
-        for(int i = 0; i < PassiveSkill::NbSkills; i++)
-        {
-            bool isUnlock = false;
-            stream >> isUnlock;
-            if(isUnlock)
-                mSkillList[i]->unlockSkill();
-        }
-        for(int i = 0; i < SpellSkill::NbSpells; i++)
-        {
-            bool isUnlock = false;
-            stream >> isUnlock;
-            if(isUnlock)
-                mSpellList[i]->unlockSkill();
-        }
-        mBag->deserialize(stream);
-        mGear->deserialize(stream);
-
-        setLocation(location);
-
+        Hero::deserialize(stream);
         DEBUG("SERIALIZED[out] : Swordman");
     }
 };
@@ -268,67 +305,18 @@ public:
     ~Archer();
 
 public:
-    int getHeroClass();
-
-public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 public:
 
-    void serialize(QDataStream& stream)const
+    void serialize(QDataStream& stream) const override
     {
-        stream << mClass
-               << mName
-               << mMoveHandler.lastPos
-               << mLife.curLife << mLife.maxLife
-               << mMana.curMana << mMana.maxMana
-               << mStamina.curStamina << mStamina.maxStamina
-               << mCoin
-               << mExperience.level << mExperience.points << mExperience.pointsToLevelUp
-               << mSkillPoints;
-        for(int i = 0; i < PassiveSkill::NbSkills; i++)
-        {
-            stream << mSkillList[i]->isUnlock();
-        }
-        for(int i = 0; i < SpellSkill::NbSpells; i++)
-        {
-            stream << mSpellList[i]->isUnlock();
-        }
-        mBag->serialize(stream);
-        mGear->serialize(stream);
-
+        Hero::serialize(stream);
         DEBUG("SERIALIZED[in]  : Archer");
     }
-    void deserialize(QDataStream& stream)
+    void deserialize(QDataStream& stream) override
     {
-        QPointF location(0,0);
-        stream >> mName
-               >> location
-               >> mLife.curLife >> mLife.maxLife
-               >> mMana.curMana >> mMana.maxMana
-               >> mStamina.curStamina >> mStamina.maxStamina
-               >> mCoin
-               >> mExperience.level >> mExperience.points >> mExperience.pointsToLevelUp
-               >> mSkillPoints;
-        for(int i = 0; i < PassiveSkill::NbSkills; i++)
-        {
-            bool isUnlock = false;
-            stream >> isUnlock;
-            if(isUnlock)
-                mSkillList[i]->unlockSkill();
-        }
-        for(int i = 0; i < SpellSkill::NbSpells; i++)
-        {
-            bool isUnlock = false;
-            stream >> isUnlock;
-            if(isUnlock)
-                mSpellList[i]->unlockSkill();
-        }
-        mBag->deserialize(stream);
-        mGear->deserialize(stream);
-
-        setLocation(location);
-
+        Hero::deserialize(stream);
         DEBUG("SERIALIZED[out] : Archer");
     }
 };
@@ -347,67 +335,18 @@ public:
     ~Wizard();
 
 public:
-    int getHeroClass();
-
-public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 public:
 
-    void serialize(QDataStream& stream)const
+    void serialize(QDataStream& stream) const override
     {
-        stream << mClass
-               << mName
-               << mMoveHandler.lastPos
-               << mLife.curLife << mLife.maxLife
-               << mMana.curMana << mMana.maxMana
-               << mStamina.curStamina << mStamina.maxStamina
-               << mCoin
-               << mExperience.level << mExperience.points << mExperience.pointsToLevelUp
-               << mSkillPoints;
-        for(int i = 0; i < PassiveSkill::NbSkills; i++)
-        {
-            stream << mSkillList[i]->isUnlock();
-        }
-        for(int i = 0; i < SpellSkill::NbSpells; i++)
-        {
-            stream << mSpellList[i]->isUnlock();
-        }
-        mBag->serialize(stream);
-        mGear->serialize(stream);
-
+        Hero::serialize(stream);
         DEBUG("SERIALIZED[in]  : Wizard");
     }
-    void deserialize(QDataStream& stream)
+    void deserialize(QDataStream& stream) override
     {
-        QPointF location(0,0);
-        stream >> mName
-               >> location
-               >> mLife.curLife >> mLife.maxLife
-               >> mMana.curMana >> mMana.maxMana
-               >> mStamina.curStamina >> mStamina.maxStamina
-               >> mCoin
-               >> mExperience.level >> mExperience.points >> mExperience.pointsToLevelUp
-               >> mSkillPoints;
-        for(int i = 0; i < PassiveSkill::NbSkills; i++)
-        {
-            bool isUnlock = false;
-            stream >> isUnlock;
-            if(isUnlock)
-                mSkillList[i]->unlockSkill();
-        }
-        for(int i = 0; i < SpellSkill::NbSpells; i++)
-        {
-            bool isUnlock = false;
-            stream >> isUnlock;
-            if(isUnlock)
-                mSpellList[i]->unlockSkill();
-        }
-        mBag->deserialize(stream);
-        mGear->deserialize(stream);
-
-        setLocation(location);
-
+        Hero::deserialize(stream);
         DEBUG("SERIALIZED[out] : Wizard");
     }
 };

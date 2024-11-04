@@ -151,6 +151,33 @@ WolfMeat::~WolfMeat()
 
 }
 
+Mandibles::Mandibles():
+    MonsterMaterial ("Mandibules d'araignée", QPixmap(":/monsters/spider/mandibles.png"), 8, 2)
+{
+    mIdentifier = MONSTERMATERIAL_MANDIBLES;
+    setInformation("Mandibules d'araignée avec lequelles elles dechirent leur proie.");
+    Item::setShape();
+}
+
+Mandibles::~Mandibles()
+{
+
+}
+
+PoisonPouch::PoisonPouch():
+    MonsterMaterial ("Poche de poison", QPixmap(":/monsters/spider/poison_pouch.png"), 4, 10)
+{
+    mIdentifier = MONSTERMATERIAL_POISON_POUCH;
+    setInformation("Venin d'araignée très toxique.");
+    Item::setShape();
+}
+
+PoisonPouch::~PoisonPouch()
+{
+
+}
+
+
 GoblinEar::GoblinEar():
     MonsterMaterial ("Oreille de gobelin", QPixmap(":/monsters/goblin/goblin_ear.png"), 3, 2)
 {
@@ -256,7 +283,7 @@ OggreSkull::~OggreSkull()
 }
 
 WolfAlphaPelt::WolfAlphaPelt():
-    MonsterMaterial("Fourrure\nde loup Alpha", QPixmap(":/monsters/wolf/wolfAlpha_pelt.png"), 10, 13)
+    MonsterMaterial("Fourrure\nde loup Alpha", QPixmap(":/monsters/wolfAlpha/wolfAlpha_pelt.png"), 10, 13)
 {
     mIdentifier = MONSTERMATERIAL_WOLFALPHA_PELT;
     setInformation("Fourrure de loup alpha. C'est une ressource très recherchée par les marchants.");

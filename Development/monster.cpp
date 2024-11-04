@@ -1,16 +1,37 @@
 #include "monster.h"
 
+#include <QVector2D>
+#include "monsterfightview.h"
+
+int mSounds[6];
+QTimer * t_isWalking;
+int mSkin;
+
+QList<Item*> mItems;
+
 Monster::Monster(QGraphicsView * view):
     Character (),
     mView(view),
     mIsInView(true),
     mHover(0),
-    mStatus(none),
+    mDamage(0),
+    mThreatLevel(0),
+    mExperience(0),
+    mDescription(QString()),
     mSpeed(0),
     mAction(Action::stand),
-    mSkin(0)
+    mFrames(FramesAvailable()),
+    mMove(MovementHandler()),
+    mPixmap(ImageHandler()),
+    t_isWalking(nullptr),
+    mSkin(0),
+    mItems(QList<Item*>()),
+    mFightView(nullptr)
 {
     setZValue(Z_MONSTERS);
+
+    mNextFrame = 0;
+    mNumberFrame = 1;
 
     t_animation = new QTimer(this);
     connect(t_animation, SIGNAL(timeout()), this, SLOT(setNextFrame()));
@@ -19,41 +40,34 @@ Monster::Monster(QGraphicsView * view):
     t_isWalking = new QTimer(this);
     t_isWalking->setSingleShot(true);
 
-    mNextFrame = 0;
-    mNumberFrame = 1;
+    connect(&t_fight, &QTimer::timeout, this, &Monster::onStaminaRecovery);
 
-    mMove.posBeforeCollision = QPointF(-1,-1);
-    mMove.collision << false << false;
-    mMove.currentangleOnMap = 90;
-    mMove.angleOnMap = 90;
+    mMana = Gauge{0,0};
+    mStamina = Gauge{100,100};
 }
 
-void Monster::setAngle(qreal a)
+void Monster::setAngle(int angle)
 {
-    mMove.currentangleOnMap = static_cast<int>(a);
-    if(mMove.currentangleOnMap < 180)
+    if(angle > 90 && angle < 270)
     {
-        if(mMove.currentangleOnMap > 90)
-            mMove.angleUseToMove = (180 - mMove.currentangleOnMap);
-        else
-            mMove.angleUseToMove = mMove.currentangleOnMap + 2*(90 - mMove.currentangleOnMap);
-
         QTransform matrice(1, 0, 0, -1, 0, mBoundingRect.height());
         setTransform(matrice);
-    }else
+    }
+    else
     {
-        mMove.angleUseToMove = mMove.currentangleOnMap;
         setTransform(QTransform());
     }
-    setRotation(mMove.angleUseToMove);
+
+    setRotation(static_cast<qreal>(ToolFunctions::correct(angle)));
+    mMove.currentAngle = angle;
 }
 
-void Monster::rotateSymetry(qreal oldAngle, qreal newAngle)
+void Monster::setTargetAngle(int angle)
 {
-    if(!(static_cast<int>(oldAngle) < 180 && static_cast<int>(newAngle) < 180) && !(static_cast<int>(oldAngle) > 180 && static_cast<int>(newAngle) > 180))
+    mMove.targetAngle = angle;
+    if(ToolFunctions::isOppositeDirection(mMove.currentAngle, mMove.targetAngle))
     {
-        mMove.currentangleOnMap = (static_cast<int>(oldAngle) + 180) % 360;
-        setAngle(mMove.currentangleOnMap);
+        setAngle((mMove.currentAngle + 180) % 360);
     }
 }
 
@@ -61,11 +75,7 @@ void Monster::setBoundingRect(QRectF bounding)
 {
     mBoundingRect.setRect(bounding.x(), bounding.y(), bounding.width(), bounding.height());
     setTransformOriginPoint(boundingRect().center());
-}
-
-bool Monster::isStatus(quint32 status)
-{
-    return ((mStatus & status) == status) ? true : false ;
+    mShape.addEllipse(0,0,boundingRect().width(), boundingRect().height());
 }
 
 bool Monster::isSkinned()
@@ -96,16 +106,6 @@ int Monster::getDamage()
     return mDamage;
 }
 
-quint32 Monster::getStatus()
-{
-    return mStatus;
-}
-
-qreal Monster::getAngle()
-{
-    return mMove.angleOnMap;
-}
-
 int Monster::getThreatLevel()
 {
     return mThreatLevel;
@@ -119,14 +119,6 @@ Monster::Action Monster::getAction()
 int Monster::getExperience()
 {
     return 5*mThreatLevel;
-}
-
-QPixmap Monster::getFightImage(int which)
-{
-    if(which == 0)
-        return mPixmap.fightImage_1;
-    else
-        return mPixmap.fightImage_2;
 }
 
 QPixmap Monster::getHeavyAttackAnimation()
@@ -154,6 +146,11 @@ Monster::ImageHandler Monster::getImageHandler()
     return mPixmap;
 }
 
+IMonsterFightView * Monster::getFightView()
+{
+    return mFightView;
+}
+
 void Monster::setDamage(int damage)
 {
     mDamage = damage;
@@ -172,25 +169,15 @@ QList<Item *> Monster::skinMonster()
     return itemList;
 }
 
-void Monster::addStatus(quint32 status)
-{
-    mStatus |= status;
-}
-
-void Monster::removeStatus(quint32 status)
-{
-    mStatus &= ~status;
-}
-
 void Monster::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton && mAction!=Action::skinned)
     {
        emit sig_showMonsterData(this);
        event->accept();
-    }else{
-        event->ignore();
     }
+    else
+        event->ignore();
 }
 
 void Monster::hoverEnterEvent(QGraphicsSceneHoverEvent * event)
@@ -217,9 +204,11 @@ void Monster::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
 void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setRenderHint(QPainter::Antialiasing);
-    painter->drawPixmap(0,0, mCurrentPixmap, static_cast<int>(mNextFrame*boundingRect().width()), static_cast<int>((2*mSkin+mHover)*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
+    painter->drawPixmap(0,0, mCurrentPixmap, static_cast<int>(mNextFrame*boundingRect().width()), static_cast<int>((2*(isSkinned() ? 0 : mSkin)+mHover)*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
+
+    // DEBUG - to comment
 
     // painter->setBrush(QBrush("#7700FF00"));
     // painter->drawPath(mShape);
@@ -229,72 +218,112 @@ void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     //     painter->setBrush(QBrush("#77FF0000"));
     //     painter->drawPath(mCollisionShape->shape());
     // }
+
+    // QRectF rect = boundingRect();
+    // QPen pen(Qt::black, 2);
+    // QBrush brush(Qt::black);
+
+    // painter->setPen(pen);
+    // painter->drawRect(rect);
+    // painter->setBrush(brush);
+
+    // QPointF p1(rect.left(), rect.center().y());
+    // QPointF p2(rect.right(), rect.center().y());
+    // QPointF arrowLeft(p2.x() - 10, p2.y() - 10);
+    // QPointF arrowRight(p2.x() - 10, p2.y() + 10);
+    // painter->drawLine(p1, p2);
+    // QPolygonF arrowHead;
+    // arrowHead << p2 << arrowLeft << arrowRight;
+    // painter->drawPolygon(arrowHead);
+    // QPointF p3(rect.center().x(), rect.bottom());
+    // QPointF p4(rect.center().x(), rect.top());
+    // QPointF arrowTopLeft(p4.x() - 10, p4.y() + 10);
+    // QPointF arrowTopRight(p4.x() + 10, p4.y() + 10);
+
+    // QPen pen2(Qt::red, 2);
+    // QBrush brush2(Qt::red);
+    // painter->setPen(pen2);
+    // painter->setBrush(brush2);
+    // painter->drawLine(p3, p4);
+    // QPolygonF arrowHeadUp;
+    // arrowHeadUp << p4 << arrowTopLeft << arrowTopRight;
+    // painter->drawPolygon(arrowHeadUp);
+
+    Q_UNUSED(widget)
+    Q_UNUSED(option)
+}
+
+void Monster::onStaminaRecovery()
+{
+#define HEAVY_ATTACK 0
+#define LIGHT_ATTACK 1
+
+    setStamina(mStamina.current + 5);
+    if(mStamina.current == mStamina.maximum)
+    {
+        quint8 action = QRandomGenerator::global()->bounded(3);
+        switch(action)
+        {
+            case HEAVY_ATTACK:
+            case LIGHT_ATTACK:
+                setStamina(action == HEAVY_ATTACK ? mStamina.current - 80 : mStamina.current - 50);
+                if(isApplied(eStatus::confused))
+                {
+                    mStatus[eStatus::confused] = mStatus[eStatus::confused].toInt() - 1;
+                    if(mStatus[eStatus::confused].toInt() < 1)
+                        removeStatus(eStatus::confused);
+                    
+                    if(!QRandomGenerator().global()->bounded(3)) // 33% chance to waste the attack
+                        return;
+                }
+                action == HEAVY_ATTACK ? emit sig_heavyAttack() : emit sig_lightAttack();
+            break;
+
+            default:
+                setStamina(mStamina.current - 30);
+                emit sig_monsterSound(getSoundIndexFor(ROAR));
+            break;
+        }
+    }
 }
 
 void Monster::chooseAction(Hero * hero)
 {
-    qreal angle = ToolFunctions::getAngleWithHero(hero, this);
-    qreal distanceWithHero = ToolFunctions::heroDistanceWith(hero, this);
+    int angle = ToolFunctions::getAngleBetween(hero, this);
+    int distanceWithHero = ToolFunctions::getDistanceBeetween(hero, this);
+
+    // Monster rush on Hero
     if(distanceWithHero < DISTANCE_AGGRO && ToolFunctions::isAllowedAngle(angle) && !hero->isInVillage())
     {
-        t_isWalking->stop();
-
+        t_isWalking->stop(); // Cut walking action to set running action
+        
+        mAction = Action::aggro;
         emit sig_monsterSound(getSoundIndexFor(AGGRO));
 
-        // Set angle only if the monster is not colliding with the new angle
-        qreal save = getAngle();
-        mMove.angleOnMap = angle;
+        setTargetAngle(angle);
+        return;
+    }
 
-        mAction = Action::aggro;
+    if(t_isWalking->isActive())
+        return; // Action in progress
 
-        QList<QGraphicsItem*> collisionBefore = this->collidingItems();
-        rotateSymetry(save, mMove.angleOnMap);
-
-        if(static_cast<int>(save) != static_cast<int>(mMove.angleOnMap))
-        {
-            QList<QGraphicsItem*> collisionAfter = this->collidingItems();
-            if(ToolFunctions::getNumberObstacles(collisionBefore) < ToolFunctions::getNumberObstacles(collisionAfter))
-            {
-                mMove.angleOnMap = save;
-                setAngle(save);
-            }
-        }
-
-    }else
+    // Monster choose new action (walk, stand, ...)
+    switch(QRandomGenerator::global()->bounded(3))
     {
-        if(t_isWalking->isActive())
-            return;
-
-        if(QRandomGenerator::global()->bounded(3) == 0)
-        {
-            // Set angle only if the monster is not colliding with the new angle
-            qreal save = getAngle();
-            mMove.angleOnMap = ToolFunctions::getRandomAngle();
-
+        case 0: // 33%
             mAction = Action::moving;
             t_isWalking->start(QRandomGenerator::global()->bounded(MOVING_TIME_MIN, MOVING_TIME_MAX));
-
             if(distanceWithHero < DISTANCE_SOUND)
                 emit sig_monsterSound(getSoundIndexFor(SOUND));
 
-            QList<QGraphicsItem*> collisionBefore = this->collidingItems();
-            rotateSymetry(save, mMove.angleOnMap);
+            angle = ToolFunctions::getRandomAngle();
+            setTargetAngle(angle);
+        break;
 
-            if(static_cast<int>(save) != static_cast<int>(mMove.angleOnMap))
-            {
-                QList<QGraphicsItem*> collisionAfter = this->collidingItems();
-                if(ToolFunctions::getNumberObstacles(collisionBefore) < ToolFunctions::getNumberObstacles(collisionAfter))
-                {
-                    mMove.angleOnMap = save;
-                    setAngle(save);
-                }
-            }
-
-        }else
-        {
+        default:// 66%
             mAction = Monster::Action::stand;
             setZValue(Z_MONSTERS);
-        }
+        break;
     }
 }
 
@@ -306,7 +335,7 @@ void Monster::advance(int phase)
     if(!mIsInView)
         return;
 
-    // SetZValue if monster is in action stand
+    // SetZValue if monster is standing
     if(mAction == Action::stand)
     {
         QList<QGraphicsItem*> itemsColliding = scene()->collidingItems(this);
@@ -327,165 +356,174 @@ void Monster::advance(int phase)
     if(mAction == Action::dead || mAction == Action::skinned || (mAction == Action::stand && !mIsInView))
         return;
 
-
     // Set new angle
-    if(abs(mMove.currentangleOnMap - mMove.angleOnMap) <= 1)
-    {
-        mMove.currentangleOnMap = mMove.angleOnMap;
+    int angle = (mMove.currentAngle + 90) % 360;
+    int targetAngle = (mMove.targetAngle + 90) % 360;
 
-    }else
-    {
-        if(mMove.currentangleOnMap < mMove.angleOnMap)
-            mMove.currentangleOnMap++;
-        else
-            mMove.currentangleOnMap--;
-    }
-    setAngle(mMove.currentangleOnMap);
+    if(angle != targetAngle)
+        angle < targetAngle ? angle ++ : angle--;
 
+    setAngle((angle + 270) % 360);
+
+    // Compute collision
+    doCollision();
 
     // Start movement
-    qreal arcLength = qSqrt(2.0)/2.0*mBoundingRect.height();
-    qreal dy = mSpeed*(qCos(qDegreesToRadians(static_cast<qreal>(static_cast<int>(mMove.angleUseToMove)%90))) + qSin(qDegreesToRadians(static_cast<qreal>(static_cast<int>(mMove.angleUseToMove)%90))));
+    qreal dx = static_cast<qreal>(mSpeed) * qCos(qDegreesToRadians(static_cast<double>(mMove.currentAngle)));
+    qreal dy = static_cast<qreal>(mSpeed) * qSin(qDegreesToRadians(static_cast<double>(mMove.currentAngle)));
 
-    if(mMove.angleUseToMove <= 135){
-        setPos(mapToParent( arcLength*(qSqrt(2.0)/2.0 + qSin(qDegreesToRadians(mMove.angleUseToMove-45.0))),
-                           arcLength*(qSqrt(2.0)/2.0 + qCos(qDegreesToRadians(mMove.angleUseToMove-45.0))) - dy
-                           ));
-    }else{
-        setPos(mapToParent(arcLength*(qSqrt(2.0)/2.0 - qSin(qDegreesToRadians(static_cast<qreal>(-mMove.angleUseToMove+135.0)))),
-                           arcLength*(qSqrt(2.0)/2.0 + qCos(qDegreesToRadians(static_cast<qreal>(-mMove.angleUseToMove+135.0)))) - dy
-                           ));
-    }
+    dx = (dx > 0) ? ceil(dx) : -ceil(abs(dx));
+    dy = (dy > 0) ? ceil(dy) : -ceil(abs(dy));
 
-    doCollision();
+    setPos(x() + dx, y() + dy);
 }
 
 
 void Monster::doCollision()
 {
     int zOffset;
-
-    // Refresh data
-    mMove.collision.first() = mMove.collision.last();
-    mMove.collision.last() = false;
-
-    // Check for collision with specific items
     QList<QGraphicsItem*> itemsColliding = scene()->collidingItems(this);
+
+    // Set Z value when monster interaction
     zOffset = itemsColliding.isEmpty() ? Z_MONSTERS : Z_GROUND_FOREGROUND ;
     for(QGraphicsItem * item : qAsConst(itemsColliding))
     {
-        Village * village = dynamic_cast<Village*>(item);
-        if(village){
-            if(!mMove.collision.last()){
-                mMove.collision.last() = true;
-                // Specific collision with village
-                mAction = Action::moving;
-                mCurrentPixmap = mPixmap.walk;
-                mSpeed = getSpeed();
-                mNumberFrame = getNumberFrame();
-                t_animation->stop();
-                t_animation->start(200);
-            }
-            continue;
-        }
         Monster * monster = dynamic_cast<Monster*>(item);
-        if(monster){
-            // Set Z value to establish depth
+        if(monster)
+        {
             if(pos().y()+boundingRect().height() > monster->y()+monster->boundingRect().height())
                 zOffset = Z_MONSTER_FOREGROUND;
             else
                 zOffset = Z_MONSTER_BACKGROUND;
-
-            continue;
         }
-    }
-
-    if(mThreatLevel >= 10)
-    {
-        // MapItem destruction
-        for(QGraphicsItem * item : qAsConst(itemsColliding))
-        {
-            MapItem * mapItem = dynamic_cast<MapItem*>(item);
-            if(mapItem)
-            {
-                if(mapItem->isDestroyed())
-                    continue;
-                Tree * tree = dynamic_cast<Tree*>(mapItem);
-                if(tree)
-                {
-                    tree->destructIt();
-                    continue;
-                }
-                Rock * rock = dynamic_cast<Rock*>(mapItem);
-                if(rock)
-                {
-                    rock->destructIt();
-                    continue;
-                }
-            }
-        }
-    }
-
-    // Check for collision with items
-    if(itemsColliding.length() != 0)
-    {
-        if(ToolFunctions::getNumberObstacles(itemsColliding) != 0)
-            mMove.collision.last() = true;
-    }
-
-    // If collision detected - Avoid next collision
-    if(!mMove.collision.last())
-    {
-        mMove.posBeforeCollision = pos();
-
-    }else if(mMove.collision.first() == false && mMove.collision.last() == true)
-    {
-        setAngle((static_cast<int>(mMove.currentangleOnMap)+180)%360);
-        mMove.angleOnMap = mMove.currentangleOnMap;
-        if(mMove.posBeforeCollision != QPointF(-1,-1))
-            setPos(mMove.posBeforeCollision);
     }
 
     // Process map items which are not obstacles
-    for(QGraphicsItem * i : qAsConst(itemsColliding))
+    for(QGraphicsItem * item : qAsConst(itemsColliding))
     {
-        MapItem * item = dynamic_cast<MapItem*>(i);
-        if(item){
-            if(!item->isObstacle())
+        MapItem * mapitem = dynamic_cast<MapItem*>(item);
+        if(mapitem)
+        {
+            if(!mapitem->isObstacle())
             {
                 // Update Z position
-                if(y() + this->boundingRect().height() < item->y() + item->getZOffset())
-                    zOffset = (zOffset < item->zValue() - 1) ? item->zValue() - 1 : zOffset ;
+                if(y() + this->boundingRect().height() < mapitem->y() + mapitem->getZOffset())
+                    zOffset = (zOffset < mapitem->zValue() - 1) ? mapitem->zValue() - 1 : zOffset ;
                 else
-                    zOffset = (zOffset < item->zValue() + 1) ? item->zValue() + 1 : zOffset ;
+                    zOffset = (zOffset < mapitem->zValue() + 1) ? mapitem->zValue() + 1 : zOffset ;
 
-                Bush * bush = dynamic_cast<Bush*>(item);
-                BushEventCoin * bushEventCoin = dynamic_cast<BushEventCoin*>(item);
-                BushEventEquipment * bushEventEquipment = dynamic_cast<BushEventEquipment*>(item);
-                if(bush){
-                    if(isInView()){
-                        if(!bush->isAnimated()){
+                Bush * bush = dynamic_cast<Bush*>(mapitem);
+                if(bush)
+                {
+                    if(isInView())
+                    {
+                        if(!bush->isAnimated())
                             emit sig_movedInBush(bush);
-                        }
+
                         continue;
                     }
-                }else if(bushEventCoin){
-                    if(isInView()){
-                        if(!bushEventCoin->isAnimated()){
+                }
+                BushEventCoin * bushEventCoin = dynamic_cast<BushEventCoin*>(mapitem);
+                if(bushEventCoin)
+                {
+                    if(isInView())
+                    {
+                        if(!bushEventCoin->isAnimated())
                             emit sig_movedInBushEvent(bushEventCoin);
-                        }
+
                         continue;
                     }
-                }else if(bushEventEquipment){
-                    if(isInView()){
-                        if(!bushEventEquipment->isAnimated()){
+                }
+                BushEventEquipment * bushEventEquipment = dynamic_cast<BushEventEquipment*>(mapitem);
+                if(bushEventEquipment)
+                {
+                    if(isInView())
+                    {
+                        if(!bushEventEquipment->isAnimated())
                             emit sig_movedInBushEvent(bushEventEquipment);
-                        }
+
                         continue;
                     }
                 }
             }
         }
+    }
+
+    // Create obstacle list
+    QList<QGraphicsItem*> obstacles;
+    for(QGraphicsItem * item : qAsConst(itemsColliding))
+    {
+        MapItem * mapitem = dynamic_cast<MapItem*>(item);
+        if(mapitem)
+        {
+            if(mapitem->isObstacle())
+                obstacles.append(mapitem);
+        }
+        Village * village = dynamic_cast<Village*>(item);
+        if(village)
+        {
+            obstacles.append(village);
+        }
+    }
+
+    // Remove old obstacles
+    for(Obstacle & obstacle : mMove.obstacles)
+    {
+        for(QGraphicsItem * currentObstacle : qAsConst(obstacles))
+        {
+            if(currentObstacle == obstacle.item)
+            {
+                obstacle.vanishing = VANISHING_COUNTERS; // Reset disparition counters
+                continue;
+            }
+        }
+        if(!obstacle.vanishing--)
+            mMove.obstacles.removeOne(obstacle);
+    }
+
+    // Add new obstacles
+    bool isNew;
+    for(QGraphicsItem * currentObstacle : qAsConst(obstacles))
+    {
+        isNew = true;
+        for(Obstacle & obstacle : mMove.obstacles)
+        {
+            if(currentObstacle == obstacle.item)
+            {
+                isNew = false;
+                break;
+            }
+        }
+
+        if(isNew)
+        {
+            Obstacle add;
+            add.vanishing = VANISHING_COUNTERS;
+            add.item = currentObstacle;
+            mMove.obstacles.append(add);
+        }
+    }
+
+    // Try to avoid collisions
+    if(!mMove.obstacles.isEmpty())
+    {
+        int angle;
+        QVector2D vectorSum(0, 0);
+        for(Obstacle & obstacle : mMove.obstacles)
+        {
+            angle = ToolFunctions::getAngleBetween(this, obstacle.item);
+            QVector2D vectorObstacle( qCos(qDegreesToRadians(static_cast<double>(angle))),
+                                      qSin(qDegreesToRadians(static_cast<double>(angle))));
+            vectorSum += vectorObstacle;
+        }
+
+        vectorSum.normalize();
+
+        angle = static_cast<int>(qRadiansToDegrees(qAtan2(vectorSum.y(), vectorSum.x())));
+        if(angle < 0)
+            angle += 360;
+
+        setTargetAngle(angle);
     }
 
     setZValue(zOffset);
@@ -555,6 +593,8 @@ Monster::~Monster()
 {
     while(!mItems.isEmpty())
         delete mItems.takeLast();
+    if(mFightView)
+        delete mFightView;
 }
 
 
@@ -571,18 +611,15 @@ Spider::Spider(QGraphicsView * view):
     Monster(view)
 {
     mName = "Araignée";
-    mLife = Life{100,100};
-    mMana = Mana{0,0};
-    mStamina = Stamina{400,400};
+    mLife = Gauge{100,100};
     mDamage = 30;
     mAction = Action::stand;
     mThreatLevel = 1;
     mImage = QPixmap(":/monsters/spider/spider_logo.png");
-    mSpeed = 0;
-    mDescription = "Les araignées sont vénéneuses et rapides mais en contrepartie manquent de robustesse";
+    mDescription = "Les araignées sont dangereuses mais aussi fragiles";
+    mSkin = QRandomGenerator::global()->bounded(SPIDER_SKIN_NUM);
 
-    setBoundingRect(QRectF(0,0,100,100));
-    mShape.addEllipse(25,0,boundingRect().width()-50, boundingRect().height());
+    setBoundingRect(QRectF(0,0,100,80));
 
     mFrames.run = 8;
     mFrames.dead = 1;
@@ -592,10 +629,8 @@ Spider::Spider(QGraphicsView * view):
 
     mPixmap.heavyAttack = QPixmap(":/monsters/spider/spider_heavyAttack.png");
     mPixmap.lightAttack = QPixmap(":/monsters/spider/spider_lightAttack.png");
-    mPixmap.fightImage_1 = QPixmap(":/monsters/spider/spider_fight.png");
-    mPixmap.fightImage_2 = QPixmap(":/monsters/spider/spider_fight_attacked.png");
     mPixmap.walk = QPixmap(":/monsters/spider/spider_move.png");
-    mPixmap.run = QPixmap(":/monsters/spider/spider_run.png");
+    mPixmap.run = QPixmap(":/monsters/spider/spider_move.png");
     mPixmap.stand = QPixmap(":/monsters/spider/spider_stand.png");
     mPixmap.dead = QPixmap(":/monsters/spider/spider_dead.png");
     mPixmap.skinned = QPixmap(":/monsters/spider/spider_skinned.png");
@@ -607,16 +642,19 @@ Spider::Spider(QGraphicsView * view):
     mSounds[4] = SOUND_SPIDER;
     mSounds[5] = SOUND_SPIDER_AGGRO;
 
-    mCurrentPixmap = mPixmap.stand;
+    mFightView = new SpiderFightView();
 
     Spider::generateRandomLoots();
+
+    mCurrentPixmap = mPixmap.stand;
 }
 
 void Spider::addExtraLoots()
 {
     if(QRandomGenerator::global()->bounded(4) == 0)
     {
-        // TODO
+        mItems.append(new PoisonPouch);
+        mItems.append(new PoisonPouch);
     }
 }
 
@@ -680,7 +718,9 @@ void Spider::generateRandomLoots()
     while(!mItems.isEmpty())
         delete mItems.takeLast();
 
-    // TODO
+    mItems.append(new Mandibles);
+    if(QRandomGenerator::global()->bounded(8) == 0)
+        mItems.append(new PoisonPouch);
 }
 
 Spider::~Spider()
@@ -701,18 +741,14 @@ Wolf::Wolf(QGraphicsView * view):
     Monster(view)
 {
     mName = "Loup";
-    mLife = Life{600,600};
-    mMana = Mana{0,0};
-    mStamina = Stamina{100,100};
+    mLife = Gauge{600,600};
     mDamage = 15;
     mAction = Action::stand;
     mThreatLevel = 2;
     mImage = QPixmap(":/monsters/wolf/wolf_logo.png");
-    mSpeed = 0;
     mDescription = "Les loups sont des chasseurs agressifs chassant exclusivement en meute";
 
-    setBoundingRect(QRectF(0,0,100,100));
-    mShape.addEllipse(25,0,boundingRect().width()-50, boundingRect().height());
+    setBoundingRect(QRectF(0,0,100,70));
 
     mFrames.run = 14;
     mFrames.dead = 1;
@@ -722,8 +758,6 @@ Wolf::Wolf(QGraphicsView * view):
 
     mPixmap.heavyAttack = QPixmap(":/monsters/wolf/wolf_heavyAttack.png");
     mPixmap.lightAttack = QPixmap(":/monsters/wolf/wolf_lightAttack.png");
-    mPixmap.fightImage_1 = QPixmap(":/monsters/wolf/wolf_fight.png");
-    mPixmap.fightImage_2 = QPixmap(":/monsters/wolf/wolf_fight_attacked.png");
     mPixmap.walk = QPixmap(":/monsters/wolf/wolf_move.png");
     mPixmap.run = QPixmap(":/monsters/wolf/wolf_run.png");
     mPixmap.stand = QPixmap(":/monsters/wolf/wolf_stand.png");
@@ -737,9 +771,11 @@ Wolf::Wolf(QGraphicsView * view):
     mSounds[4] = SOUND_WOLF;
     mSounds[5] = SOUND_WOLF_AGGRO;
 
-    mCurrentPixmap = mPixmap.stand;
+    mFightView = new WolfFightView();
 
     Wolf::generateRandomLoots();
+
+    mCurrentPixmap = mPixmap.stand;
 }
 
 void Wolf::addExtraLoots()
@@ -814,12 +850,12 @@ void Wolf::generateRandomLoots()
 
     mItems.append(new WolfMeat);
     mItems.append(new WolfFang);
-    if(QRandomGenerator::global()->bounded(2) == 0){
+    if(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new WolfPelt);
-    }
-    while(QRandomGenerator::global()->bounded(2) == 0){
+
+    while(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new WolfFang);
-    }
+
 }
 
 Wolf::~Wolf()
@@ -831,30 +867,25 @@ WolfAlpha::WolfAlpha(QGraphicsView * view):
     Wolf(view)
 {
     mName = "Loup Alpha";
-    mLife = Life{1000,1000};
+    mLife = Gauge{1000,1000};
     mDamage = 18;
     mThreatLevel = 3;
-    mImage = QPixmap(":/monsters/wolf/wolfAlpha_logo.png");
+    mImage = QPixmap(":/monsters/wolfAlpha/wolfAlpha_logo.png");
     mDescription = "Les loups alpha sont des meneurs par nature, s'ils ont pu se hisser à la tête de leur meute, c'est bien par leur férocité sans égale";
 
-    QPainterPath path;
-    mBoundingRect = QRect(0,0,120,120);
-    path.addEllipse(25,0,boundingRect().width()-50, boundingRect().height());
-    mShape = path;
+    setBoundingRect(QRectF(0,0,120,80));
 
-    mPixmap.fightImage_1 = QPixmap(":/monsters/wolf/wolfAlpha_fight.png");
-    mPixmap.fightImage_2 = QPixmap(":/monsters/wolf/wolfAlpha_fight_attacked.png");
-    mPixmap.walk = QPixmap(":/monsters/wolf/wolfAlpha_move.png");
-    mPixmap.run = QPixmap(":/monsters/wolf/wolfAlpha_run.png");
-    mPixmap.stand = QPixmap(":/monsters/wolf/wolfAlpha_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/wolf/wolfAlpha_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/wolf/wolfAlpha_skinned.png");
+    mPixmap.walk = QPixmap(":/monsters/wolfAlpha/wolfAlpha_move.png");
+    mPixmap.run = QPixmap(":/monsters/wolfAlpha/wolfAlpha_run.png");
+    mPixmap.stand = QPixmap(":/monsters/wolfAlpha/wolfAlpha_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/wolfAlpha/wolfAlpha_dead.png");
+    mPixmap.skinned = QPixmap(":/monsters/wolfAlpha/wolfAlpha_skinned.png");
 
-    mCurrentPixmap = mPixmap.stand;
+    mFightView = new WolfAlphaFightView();
 
     WolfAlpha::generateRandomLoots();
 
-    update();
+    mCurrentPixmap = mPixmap.stand;
 }
 
 WolfAlpha::~WolfAlpha()
@@ -874,12 +905,12 @@ void WolfAlpha::generateRandomLoots()
 
     mItems.append(new WolfMeat);
     mItems.append(new WolfFang);
-    if(QRandomGenerator::global()->bounded(2) == 0){
+    if(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new WolfAlphaPelt);
-    }
-    while(QRandomGenerator::global()->bounded(2) == 0){
+
+    while(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new WolfFang);
-    }
+
 }
 
 
@@ -894,9 +925,7 @@ Goblin::Goblin(QGraphicsView * view):
     Monster(view)
 {
     mName = "Gobelin";
-    mLife = Life{400,400};
-    mMana = Mana{0,0};
-    mStamina = Stamina{100,100};
+    mLife = Gauge{400,400};
     mDamage = 8;
     mAction = Action::stand;
     mThreatLevel = 1;
@@ -905,7 +934,6 @@ Goblin::Goblin(QGraphicsView * view):
     mSkin = QRandomGenerator::global()->bounded(GOBLIN_SKIN_NUM);
 
     setBoundingRect(QRectF(0,0,60,60));
-    mShape.addEllipse(0,0,boundingRect().width(), boundingRect().height());
 
     mFrames.run = 6;
     mFrames.dead = 1;
@@ -915,8 +943,6 @@ Goblin::Goblin(QGraphicsView * view):
 
     mPixmap.heavyAttack = QPixmap(":/monsters/ressources/goblin/goblin_heavyAttack.png");
     mPixmap.lightAttack = QPixmap(":/monsters/goblin/goblin_lightAttack.png");
-    mPixmap.fightImage_1 = QPixmap(":/monsters/goblin/goblin_fight.png");
-    mPixmap.fightImage_2 = QPixmap(":/monsters/goblin/goblin_fight_attacked.png");
     mPixmap.walk = QPixmap(":/monsters/goblin/goblin_move.png");
     mPixmap.run = QPixmap(":/monsters/goblin/goblin_run.png");
     mPixmap.stand = QPixmap(":/monsters/goblin/goblin_stand.png");
@@ -930,9 +956,11 @@ Goblin::Goblin(QGraphicsView * view):
     mSounds[4] = SOUND_GOBLIN;
     mSounds[5] = SOUND_GOBLIN_AGGRO;
 
-    mCurrentPixmap = mPixmap.stand;
+    mFightView = new GobelinFightView();
 
     Goblin::generateRandomLoots();
+
+    mCurrentPixmap = mPixmap.stand;
 }
 
 void Goblin::addExtraLoots()
@@ -1005,15 +1033,15 @@ void Goblin::generateRandomLoots()
         delete mItems.takeLast();
 
     mItems.append(new GoblinEar);
-    if(QRandomGenerator::global()->bounded(2) == 0){
+    if(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new GoblinEar);
-    }
-    if(QRandomGenerator::global()->bounded(2) == 0){
+
+    if(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new GoblinBones);
-    }
-    if(QRandomGenerator::global()->bounded(10) == 0){
+
+    if(QRandomGenerator::global()->bounded(10) == 0)
         mItems.append(new Amulet("Amulette\nde shaman",QPixmap(":/equipment/amulet_7.png"),8,2,5,8,"Amulette mystérieuse confectionnée par un gobelin."));
-    }
+
 }
 
 Goblin::~Goblin()
@@ -1035,9 +1063,7 @@ Bear::Bear(QGraphicsView * view):
     Monster(view)
 {
     mName = "Ours";
-    mLife = Life{1300,1300};
-    mMana = Mana{0,0};
-    mStamina = Stamina{100,100};
+    mLife = Gauge{1300,1300};
     mDamage = 20;
     mAction = Action::stand;
     mThreatLevel = 3;
@@ -1045,8 +1071,7 @@ Bear::Bear(QGraphicsView * view):
     mDescription = "L'ours est un prédator puissant est dangereux, il hiberne pendant la saison hivernale";
     mSkin = QRandomGenerator::global()->bounded(BEAR_SKIN_NUM);
 
-    setBoundingRect(QRectF(0,0,200,100));
-    mShape.addEllipse(40,0,boundingRect().width()-80, boundingRect().height());
+    setBoundingRect(QRectF(0,0,300,200));
 
     mFrames.run = 12;
     mFrames.dead = 1;
@@ -1056,8 +1081,6 @@ Bear::Bear(QGraphicsView * view):
 
     mPixmap.heavyAttack = QPixmap(":/monsters/bear/bear_heavyAttack.png");
     mPixmap.lightAttack = QPixmap(":/monsters/bear/bear_lightAttack.png");
-    mPixmap.fightImage_1 = QPixmap(":/monsters/bear/bear_fight.png");
-    mPixmap.fightImage_2 = QPixmap(":/monsters/bear/bear_fight_attacked.png");
     mPixmap.walk = QPixmap(":/monsters/bear/bear_move.png");
     mPixmap.run = QPixmap(":/monsters/bear/bear_run.png");
     mPixmap.stand = QPixmap(":/monsters/bear/bear_stand.png");
@@ -1071,9 +1094,11 @@ Bear::Bear(QGraphicsView * view):
     mSounds[4] = SOUND_BEAR;
     mSounds[5] = SOUND_BEAR_AGGRO;
 
-    mCurrentPixmap = mPixmap.stand;
+    mFightView = new BearFightView();
 
     Bear::generateRandomLoots();
+
+    mCurrentPixmap = mPixmap.stand;
 }
 
 void Bear::addExtraLoots()
@@ -1147,12 +1172,12 @@ void Bear::generateRandomLoots()
         delete mItems.takeLast();
 
     mItems.append(new BearMeat);
-    if(QRandomGenerator::global()->bounded(2) == 0){
+    if(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new BearPelt);
-    }
-    while(QRandomGenerator::global()->bounded(2) == 0){
+
+    while(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new BearClaw);
-    }
+
 }
 
 
@@ -1174,9 +1199,7 @@ Troll::Troll(QGraphicsView * view):
     Monster(view)
 {
     mName = "Troll";
-    mLife = Life{800,800};
-    mMana = Mana{0,0};
-    mStamina = Stamina{100,100};
+    mLife = Gauge{800,800};
     mDamage = 14;
     mAction = Action::stand;
     mThreatLevel = 2;
@@ -1185,7 +1208,6 @@ Troll::Troll(QGraphicsView * view):
     mSkin = QRandomGenerator::global()->bounded(TROLL_SKIN_NUM);
 
     setBoundingRect(QRectF(0,0,100,100));
-    mShape.addEllipse(0,0,boundingRect().width()-25, boundingRect().height());
 
     mFrames.run = 7;
     mFrames.dead = 1;
@@ -1195,8 +1217,6 @@ Troll::Troll(QGraphicsView * view):
 
     mPixmap.heavyAttack = QPixmap(":/monsters/troll/troll_heavyAttack.png");
     mPixmap.lightAttack = QPixmap(":/monsters/troll/troll_lightAttack.png");
-    mPixmap.fightImage_1 = QPixmap(":/monsters/troll/troll_fight.png");
-    mPixmap.fightImage_2 = QPixmap(":/monsters/troll/troll_fight_attacked.png");
     mPixmap.walk = QPixmap(":/monsters/troll/troll_move.png");
     mPixmap.run = QPixmap(":/monsters/troll/troll_run.png");
     mPixmap.stand = QPixmap(":/monsters/troll/troll_stand.png");
@@ -1210,9 +1230,11 @@ Troll::Troll(QGraphicsView * view):
     mSounds[4] = SOUND_TROLL;
     mSounds[5] = SOUND_TROLL_AGGRO;
 
-    mCurrentPixmap = mPixmap.stand;
+    mFightView = new TrollFightView();
 
     Troll::generateRandomLoots();
+
+    mCurrentPixmap = mPixmap.stand;
 }
 
 void Troll::addExtraLoots()
@@ -1286,12 +1308,12 @@ void Troll::generateRandomLoots()
         delete mItems.takeLast();
 
     mItems.append(new TrollMeat);
-    if(QRandomGenerator::global()->bounded(2) == 0){
+    if(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new TrollSkull);
-    }
-    if(QRandomGenerator::global()->bounded(6) == 0){
+
+    if(QRandomGenerator::global()->bounded(6) == 0)
         mItems.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
-    }
+
 }
 
 
@@ -1316,9 +1338,7 @@ Oggre::Oggre(QGraphicsView * view):
     Monster(view)
 {
     mName = "Ogre";
-    mLife = Life{2500,2500};
-    mMana = Mana{0,0};
-    mStamina = Stamina{100,100};
+    mLife = Gauge{2500,2500};
     mDamage = 30;
     mAction = Action::stand;
     mThreatLevel = 4;
@@ -1326,8 +1346,7 @@ Oggre::Oggre(QGraphicsView * view):
     mDescription = "L'ogre est massif et terriblement dangereux, il vaut mieux ne pas croiser son chemin si l'on y est pas préparé";
     mSkin = QRandomGenerator::global()->bounded(OGGRE_SKIN_NUM);
 
-    setBoundingRect(QRectF(0,0,350,350));
-    mShape.addEllipse(QRect(100, 50, static_cast<int>(boundingRect().width()-200), static_cast<int>(boundingRect().height()-100)));
+    setBoundingRect(QRectF(0,0,300,300));
 
     mFrames.run = 8;
     mFrames.dead = 1;
@@ -1337,8 +1356,6 @@ Oggre::Oggre(QGraphicsView * view):
 
     mPixmap.heavyAttack = QPixmap(":/monsters/oggre/oggre_heavyAttack.png");
     mPixmap.lightAttack = QPixmap(":/monsters/oggre/oggre_lightAttack.png");
-    mPixmap.fightImage_1 = QPixmap(":/monsters/oggre/oggre_fight.png");
-    mPixmap.fightImage_2 = QPixmap(":/monsters/oggre/oggre_fight_attacked.png");
     mPixmap.walk = QPixmap(":/monsters/oggre/oggre_move.png");
     mPixmap.run = QPixmap(":/monsters/oggre/oggre_run.png");
     mPixmap.stand = QPixmap(":/monsters/oggre/oggre_stand.png");
@@ -1352,17 +1369,17 @@ Oggre::Oggre(QGraphicsView * view):
     mSounds[4] = SOUND_OGGRE;
     mSounds[5] = SOUND_OGGRE_AGGRO;
 
-    mCurrentPixmap = mPixmap.stand;
+    mFightView = new OggreFightView();
 
     Oggre::generateRandomLoots();
+
+    mCurrentPixmap = mPixmap.stand;
 }
 
 void Oggre::addExtraLoots()
 {
     if(QRandomGenerator::global()->bounded(4) == 0)
-    {
         mItems.append(new OggreSkull);
-    }
 }
 
 void Oggre::nextAction(Hero * hero)
@@ -1425,12 +1442,11 @@ void Oggre::generateRandomLoots()
     while(!mItems.isEmpty())
         delete mItems.takeLast();
 
-    if(QRandomGenerator::global()->bounded(2) == 0){
+    if(QRandomGenerator::global()->bounded(2) == 0)
         mItems.append(new OggreSkull);
-    }
-    if(QRandomGenerator::global()->bounded(3) == 0){
+
+    if(QRandomGenerator::global()->bounded(3) == 0)
         mItems.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
-    }
 }
 
 
@@ -1452,17 +1468,14 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     Monster(view)
 {
     mName = "Lao Shan Lung";
-    mLife = Life{10000,10000};
-    mMana = Mana{0,0};
-    mStamina = Stamina{100,100};
+    mLife = Gauge{10000,10000};
     mDamage = 50;
     mAction = Action::stand;
     mThreatLevel = 10;
     mImage = QPixmap(":/monsters/laoshanlung/laoshanlung_logo.png");
     mDescription = "Créature mythique, le Lao Shun Lung est un dragon de terre colossale qui écume les plaines depuis des centaines d'années";
 
-    setBoundingRect(QRectF(0,0,700,700));
-    mShape.addEllipse(QRect(mBoundingRect.height()/2 - mBoundingRect.height()*4/25, mBoundingRect.width()/5, mBoundingRect.height()*4/25, mBoundingRect.width()*3/4));
+    setBoundingRect(QRectF(0,0,700,450));
 
     mFrames.run = 18;
     mFrames.dead = 1;
@@ -1472,8 +1485,6 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
 
     mPixmap.heavyAttack = QPixmap(":/monsters/laoshanlung/laoshanlung_heavyAttack.png");
     mPixmap.lightAttack = QPixmap(":/monsters/laoshanlung/laoshanlung_lightAttack.png");
-    mPixmap.fightImage_1 = QPixmap(":/monsters/laoshanlung/laoshanlung_fight.png");
-    mPixmap.fightImage_2 = QPixmap(":/monsters/laoshanlung/laoshanlung_fight_attacked.png");
     mPixmap.walk = QPixmap(":/monsters/laoshanlung/laoshanlung_move.png");
     mPixmap.run = mPixmap.walk;
     mPixmap.stand = QPixmap(":/monsters/laoshanlung/laoshanlung_stand.png");
@@ -1487,9 +1498,11 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mSounds[4] = SOUND_LAOSHANLUNG;
     mSounds[5] = SOUND_LAOSHANLUNG_AGGRO;
 
-    mCurrentPixmap = mPixmap.stand;
+    mFightView = new LaoShanLungFightView();
 
     LaoShanLung::generateRandomLoots();
+
+    mCurrentPixmap = mPixmap.stand;
 }
 
 void LaoShanLung::addExtraLoots()
@@ -1561,6 +1574,35 @@ void LaoShanLung::generateRandomLoots()
         delete mItems.takeLast();
 
     mItems.append(new LaoshanlungHeart);
+}
+
+void LaoShanLung::doCollision()
+{
+    Monster::doCollision();
+
+    // MapItem destruction
+    QList<QGraphicsItem*> itemsColliding = scene()->collidingItems(this);
+    for(QGraphicsItem * item : qAsConst(itemsColliding))
+    {
+        MapItem * mapItem = dynamic_cast<MapItem*>(item);
+        if(mapItem)
+        {
+            if(mapItem->isDestroyed())
+                continue;
+            Tree * tree = dynamic_cast<Tree*>(mapItem);
+            if(tree)
+            {
+                tree->destructIt();
+                continue;
+            }
+            Rock * rock = dynamic_cast<Rock*>(mapItem);
+            if(rock)
+            {
+                rock->destructIt();
+                continue;
+            }
+        }
+    }
 }
 
 LaoShanLung::~LaoShanLung()

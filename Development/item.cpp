@@ -2,8 +2,11 @@
 #include "material.h"
 #include "equipment.h"
 #include "consumable.h"
+#include "toolfunctions.h"
+#include "entitieshandler.h"
 #include <QRandomGenerator>
 #include <QDebug>
+#include "mapevent.h"
 
 quint32 Item::sNbInstances = 0;
 
@@ -72,6 +75,8 @@ void Item::setShape()
 {
     QGraphicsPixmapItem * tmp = new QGraphicsPixmapItem(this);
     tmp->setPixmap(mImage.scaled(static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height())));
+    if(mImage.isNull())
+        qDebug() << getName() << " item null ici !!!";
     mShape = tmp->shape();
     delete tmp;
 }
@@ -194,6 +199,9 @@ Item *Item::getInstance(quint32 identifier)
 
     case TOOL_SHOVEL:
         return new Shovel();
+    
+    case TOOL_MAPSCROLL:
+        return new MapScroll();
 
     case BAGCOIN:
         return new BagCoin(0);
@@ -266,6 +274,12 @@ Item *Item::getInstance(quint32 identifier)
 
     case ORE_RUBIS:
         return new EmeraldOre();
+
+    case MONSTERMATERIAL_POISON_POUCH:
+        return new PoisonPouch();
+
+    case MONSTERMATERIAL_MANDIBLES:
+        return new Mandibles();
 
     case MONSTERMATERIAL_WOLF_PELT:
         return new WolfPelt();
@@ -507,6 +521,102 @@ bool Knife::use()
     return true;
 }
 
+MapScroll::MapScroll():
+    Tool("Carte", QPixmap(":/tools/map_scroll.png"), 2, 50)
+{
+    mIdentifier = TOOL_MAPSCROLL;
+    setInformation("Carte du monde, idéal pour les voyageurs.");
+    Item::setShape();
+
+    init();
+}
+
+MapScroll::~MapScroll()
+{
+
+}
+
+bool MapScroll::use()
+{
+    return true;
+}
+
+void MapScroll::init()
+{
+    mMapDiscovery.timer.stop();
+    disconnect(&mMapDiscovery.timer, &QTimer::timeout, this, &MapScroll::updateDiscovery);
+    while(!mMapDiscovery.monsters.isEmpty())
+        mMapDiscovery.monsters.takeLast();
+    while(!mMapDiscovery.mapEvent.isEmpty())
+        mMapDiscovery.mapEvent.takeLast();
+
+    ToolFunctions::matrix2DResize(mMapDiscovery.fogMatrix, 100, 100);
+    ToolFunctions::matrix2DInit(mMapDiscovery.fogMatrix, false);
+    mMapDiscovery.timer.setInterval(1000);
+    connect(&mMapDiscovery.timer, &QTimer::timeout, this, &MapScroll::updateDiscovery);
+}
+
+void MapScroll::updateDiscovery()
+{
+    Map *map = EntitiesHandler::getInstance().getMap();
+    Hero *hero = EntitiesHandler::getInstance().getHero();
+
+    // Update fog
+    int xSplit = mMapDiscovery.fogMatrix[0].size();
+    int ySplit = mMapDiscovery.fogMatrix.size();
+    int heroCellX = static_cast<int>((hero->pos().x() + hero->boundingRect().width()/2) / (map->getScene()->sceneRect().size().width() / xSplit));
+    int heroCellY = static_cast<int>((hero->pos().y() + hero->boundingRect().height()/2) / (map->getScene()->sceneRect().size().height() / ySplit));
+
+    if(heroCellX > xSplit)
+    {
+        qDebug() << "erreur calcul X";
+        return;
+    }
+    if(heroCellY > ySplit)
+    {
+        qDebug() << "erreur calcul Y";
+        return;
+    }
+
+    int discoveryRadius = 0.06 * xSplit;
+    for(int row = heroCellY - discoveryRadius; row <= heroCellY + discoveryRadius; row++)
+    {
+        for(int col = heroCellX - discoveryRadius; col <= heroCellX + discoveryRadius; col++)
+        {
+            if(row >= 0 && row < ySplit && col >= 0 && col < xSplit)
+                mMapDiscovery.fogMatrix[row][col] = true;
+        }
+    }
+
+    // Update monster list
+    QGraphicsView * view = EntitiesHandler::getInstance().getView();
+    QList<QGraphicsItem*> list = view->scene()->items(ToolFunctions::getVisibleView(view));
+    for(QGraphicsItem * object : qAsConst(list))
+    {
+        Monster * monster = dynamic_cast<Monster*>(object);
+        if(monster)
+        {
+            if(mMapDiscovery.monsters.contains(monster))
+                continue;
+
+            mMapDiscovery.monsters.append(monster);
+        }
+        MapEvent * mapEvent = dynamic_cast<MapEvent*>(object);
+        if(mapEvent)
+        {
+            BushEvent * bush = dynamic_cast<BushEvent*>(mapEvent);
+            if(bush)
+                continue;
+
+            if(mMapDiscovery.mapEvent.contains(mapEvent))
+                continue;
+
+            mMapDiscovery.mapEvent.append(mapEvent);
+        }
+    }
+
+    emit sig_update();
+}
 
 
 

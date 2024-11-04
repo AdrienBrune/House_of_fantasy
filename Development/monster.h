@@ -4,38 +4,49 @@
 #include "character.h"
 #include "village.h"
 
+#define VANISHING_COUNTERS 10
+
+class IMonsterFightView;
+
 class Monster : public Character
 {
     Q_OBJECT
 
 public:
-    struct MovementHandler
+    struct Obstacle
     {
-        QPointF posBeforeCollision;
-        QVector<bool> collision;
-        qreal angleOnMap;
-        qreal currentangleOnMap;
-        qreal angleUseToMove;
+        int vanishing = VANISHING_COUNTERS;
+        QGraphicsItem* item;
+
+        bool operator==(const Obstacle& other) const {
+        return this->item == other.item;
+    }
     };
 
-    struct ImageHandler{
-        QPixmap fightImage_1;
-        QPixmap fightImage_2;
-        QPixmap walk;
-        QPixmap run;
-        QPixmap stand;
-        QPixmap dead;
-        QPixmap skinned;
-        QPixmap heavyAttack;
-        QPixmap lightAttack;
+    struct MovementHandler
+    {
+        QList<Obstacle> obstacles;
+        int currentAngle = 0;
+        int targetAngle = 0;
+    };
+
+    struct ImageHandler
+    {
+        QPixmap walk = QPixmap();
+        QPixmap run = QPixmap();
+        QPixmap stand = QPixmap();
+        QPixmap dead = QPixmap();
+        QPixmap skinned = QPixmap();
+        QPixmap heavyAttack = QPixmap();
+        QPixmap lightAttack = QPixmap();
     };
 
     struct FramesAvailable{
-        int stand;
-        int move;
-        int run;
-        int dead;
-        int skinned;
+        int stand = 0;
+        int move = 0;
+        int run = 0;
+        int dead = 0;
+        int skinned = 0;
     };
 
     enum class Action {
@@ -47,68 +58,87 @@ public:
         NbActions
     };
 
-    enum Status{
-        none = 0, poisoned = 0x01, confused = 0x02, NbStatus
-    };
-
 public:
     Monster(QGraphicsView*);
     virtual ~Monster();
+
 signals:
     void sig_monsterEncountered(Monster*);
     void sig_showMonsterData(Monster*);
     void sig_monsterSound(int);
+    void sig_heavyAttack();
+    void sig_lightAttack();
+
 public:
     int getDamage();
-    quint32 getStatus();
-    qreal getAngle();
     int getThreatLevel();
     Action getAction();
     int getExperience();
-    QPixmap getFightImage(int);
     QPixmap getHeavyAttackAnimation();
     QPixmap getLightAttackAnimation();
     int getSoundIndexFor(int);
     QString getDescription();
     ImageHandler getImageHandler();
+    IMonsterFightView *getFightView();
+
     void setDamage(int);
     QList<Item*> skinMonster();
-    void addStatus(quint32);
-    void removeStatus(quint32);
-    void setAngle(qreal);
-    void rotateSymetry(qreal, qreal);
+    void setAngle(int);
+    void setTargetAngle(int);
     void setBoundingRect(QRectF);
 
-    bool isStatus(quint32);
     bool isSkinned();
-    bool isDead();
+    bool isDead() override;
     void killMonster();
     bool isInView();
     bool isInBiggerView();
     void enableMonsterAnimation(bool);
+    void setupFight(bool setup) override
+    {
+        if(setup) // Enter fight
+        {
+            setStamina(QRandomGenerator::global()->bounded(60, 80));
+            t_fight.start(500);
+        }
+        else // Leave fight
+        {
+            t_fight.stop();
+            removeStatus(eStatus::shield);
+            removeStatus(eStatus::benediction);
+            removeStatus(eStatus::confused);
+            removeStatus(eStatus::poisoned);
+            removeStatus(eStatus::heal);
+        }
+    }
+
 public:
     virtual void nextAction(Hero*)=0;
     virtual void addExtraLoots()=0;
+
 protected:
     int getNumberFrame();
     void chooseAction(Hero*);
     void advance(int);
-    void doCollision();
+    virtual void doCollision();
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+private slots:
+    void onStaminaRecovery();
+
 private:
     virtual int getSpeed()=0;
     virtual int getBoostedSpeed()=0;
     virtual void generateRandomLoots()=0;
+
 protected:
     QGraphicsView * mView;
     bool mIsInView;
     int mHover;
 
     int mDamage;
-    quint32 mStatus;
     int mThreatLevel;
     int mExperience;
     QString mDescription;
@@ -118,11 +148,14 @@ protected:
     FramesAvailable mFrames;
     MovementHandler mMove;
     ImageHandler mPixmap;
-    int mSounds[6];
+    int mSounds[6] = {0,0,0,0,0,0};
     QTimer * t_isWalking;
     int mSkin;
 
     QList<Item*> mItems;
+
+    IMonsterFightView * mFightView;
+    QTimer t_fight;
 };
 
 
@@ -139,37 +172,6 @@ private:
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();
-protected:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-    {
-        painter->setRenderHint(QPainter::Antialiasing);
-
-        QRectF rect = boundingRect();
-        
-        // Définir un pinceau et un stylo pour le dessin
-        QPen pen(Qt::black, 2);
-        QBrush brush(Qt::black);
-
-        painter->setPen(pen);
-        painter->setBrush(brush);
-
-        // Points pour dessiner la flèche
-        QPointF p1(rect.left(), rect.center().y());              // Début de la flèche (gauche)
-        QPointF p2(rect.right(), rect.center().y());             // Fin de la flèche (droite)
-        QPointF arrowLeft(p2.x() - 10, p2.y() - 10);             // Pointe en haut de la flèche
-        QPointF arrowRight(p2.x() - 10, p2.y() + 10);            // Pointe en bas de la flèche
-
-        // Dessiner la ligne principale de la flèche
-        painter->drawLine(p1, p2);
-
-        // Dessiner la tête de la flèche (deux lignes)
-        QPolygonF arrowHead;
-        arrowHead << p2 << arrowLeft << arrowRight;
-        painter->drawPolygon(arrowHead);
-
-        Q_UNUSED(widget)
-        Q_UNUSED(option)
-    }
 };
 
 
@@ -278,6 +280,8 @@ private:
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();
+protected:
+    void doCollision() override;
 };
 
 

@@ -10,7 +10,7 @@ Win_SkillInfo::Win_SkillInfo(QWidget * parent, Skill * skill) :
 {
     ui->setupUi(this);
 
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
 
     ui->skillImage->setScaledContents(true);
     ui->skillPointsCost->setText(QString("%1").arg(mSkill->getUnlockPoints()));
@@ -67,7 +67,7 @@ Win_SkillInfo::~Win_SkillInfo()
 
 void Win_SkillInfo::on_buttonUnlock_clicked()
 {
-    Hero * hero = EntitesHandler::getInstance().getHero();
+    Hero * hero = EntitiesHandler::getInstance().getHero();
     if(hero->learnSkill(mSkill))
     {
         emit sig_close();
@@ -92,7 +92,7 @@ void Win_SkillInfo::paintEvent(QPaintEvent*)
     painter.setBrush(QBrush("#2c2c2c"));
     painter.drawRoundedRect(QRect(width()/50,width()/50,width() - width()/50,height() - width()/50), 10, 10);
 
-//    Hero * hero = EntitesHandler::getInstance().getHero();
+//    Hero * hero = EntitiesHandler::getInstance().getHero();
 //    if(!hero->getSkillList()[PassiveSkill::MageApprentice]->isUnlock())
 //    {
 //        SpellSkill * spell = dynamic_cast<SpellSkill*>(mSkill);

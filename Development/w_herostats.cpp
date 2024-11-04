@@ -59,11 +59,11 @@ void W_HeroStats::paintEvent(QPaintEvent *)
     /* payload (background + picture + label position) */
     QRect payloadBackground(0.618*width(), 0.413*height(), 0.16*width(), 0.11*height());
     QRect payloadPicture(payloadBackground.x(), payloadBackground.y(), logoSize, logoSize);
-    /* Mana (background + chunk) */
-    qreal manaPourcentage = static_cast<qreal>(mHero->getMana().curMana)/static_cast<qreal>(mHero->getMana().maxMana);
+    /* Gauge (background + chunk) */
+    qreal manaPourcentage = static_cast<qreal>(mHero->getMana().current)/static_cast<qreal>(mHero->getMana().maximum);
     QRect manaBackground(0.274*width(), 0.3567*height(), 0.552*width(), 0.0334*height());
     QRect manaChunk(manaBackground.x(), manaBackground.y(), manaPourcentage*(manaBackground.width()-1), manaBackground.height()-1);
-    /* Life (background + chunk) */
+    /* Gauge (background + chunk) */
     QRect lifeBackgroundRect(0.278*width(), 0.3*height(), 0.626*width(), 0.0567*height());
     const int pBackground[] = {
         lifeBackgroundRect.x(), lifeBackgroundRect.y(),
@@ -71,7 +71,7 @@ void W_HeroStats::paintEvent(QPaintEvent *)
         lifeBackgroundRect.x()+lifeBackgroundRect.width(), lifeBackgroundRect.y()+lifeBackgroundRect.height(),
         lifeBackgroundRect.x(), lifeBackgroundRect.y()+lifeBackgroundRect.height(),
     };
-    qreal lifePourcentage = static_cast<qreal>(mHero->getLife().curLife)/static_cast<qreal>(mHero->getLife().maxLife);
+    qreal lifePourcentage = static_cast<qreal>(mHero->getLife().current)/static_cast<qreal>(mHero->getLife().maximum);
     const int pLife[] = {
         lifeBackgroundRect.x(), lifeBackgroundRect.y(),
         lifeBackgroundRect.x()+static_cast<int>(lifePourcentage*(0.9713*lifeBackgroundRect.width()-1)), lifeBackgroundRect.y(),
@@ -114,7 +114,7 @@ void W_HeroStats::paintEvent(QPaintEvent *)
     painter.setPen(QPen(Qt::white));
     painter.setFont(QFont("Sitka Small",16));
     painter.drawText(posName, mHero->getName());
-    /* Life */
+    /* Gauge */
     painter.setPen(QPen(QBrush(), 0));
     painter.setOpacity(0.5);
     painter.setBrush(QBrush(colorWhite));
@@ -122,7 +122,7 @@ void W_HeroStats::paintEvent(QPaintEvent *)
     painter.setOpacity(1);
     painter.setBrush(QBrush(colorGreen));
     painter.drawPolygon(lifeChunk);
-    /* Mana */
+    /* Gauge */
     painter.setPen(QPen(QBrush(), 0));
     painter.setOpacity(0.2);
     painter.setBrush(QBrush(colorWhite));

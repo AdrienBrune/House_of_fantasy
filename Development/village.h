@@ -9,6 +9,9 @@
 #include "equipment.h"
 #include "hero.h"
 #include "constants.h"
+#include "w_potioncookingslot.h"
+
+#define NUMBER_POTION_SLOT 3
 
 class House : public MapItem
 {
@@ -90,6 +93,8 @@ public:
     ~Merchant();
 signals:
     void sig_replenish(QObject*);
+    void sig_itemThrown(Item*);
+    void sig_adventurerMapUnlock();
 private slots:
     void replenish();
 public:
@@ -128,18 +133,23 @@ public:
     ~Alchemist();
 signals:
     void sig_replenish(QObject*);
+    void sig_addPotion(Item*);
 private slots:
     void replenish();
+    void onCookingRequested(PotionCookingSlot * slot);
+    void onCookingDone(PotionCookingSlot * slot);
 public:
     void setPosition(QPointF);
-    void setPotionPreferencies(QList<int>);
     AlchemistHouse * getHouse();
-    QList<Consumable*> getPotionPreferencies();
     QList<Item*> getItemsToSell();
+    QList<PotionCookingSlot*> getPotionSlots() { return mPotionSlots; }
 public:
     bool itemIsInShop(Item*);
     void addItemInShop(Item*);
     void buyItem(Hero*, Item*);
+private:
+    void addPotionInQueue(PotionCookingSlot * potionSlot) { mCookingQueue.append(potionSlot); potionSlot->setInQueue(true);}
+    void removePotionInQueue(PotionCookingSlot * potionSlot) { mCookingQueue.removeOne(potionSlot); potionSlot->setInQueue(false);}
 public:
     void serialize(QDataStream& stream)const
     {
@@ -151,13 +161,12 @@ public:
             stream << item->getIdentifier();
             item->serialize(stream);
         }
-        numberItems = mPotionPreferencies.size();
+
+        numberItems = static_cast<quint16>(NUMBER_POTION_SLOT);
         stream << numberItems;
-        for(Item * potion : mPotionPreferencies)
-        {
-            stream << potion->getIdentifier();
-            potion->serialize(stream);
-        }
+        for(PotionCookingSlot * slot : mPotionSlots)
+            slot->serialize(stream);
+
         DEBUG("SERIALIZED[in]  : Alchemist");
     }
 
@@ -166,12 +175,8 @@ public:
         // Remove attributes
         while(!mItemsToSell.isEmpty())
             delete mItemsToSell.takeLast();
-        while(!mPotionPreferencies.isEmpty())
-            delete mPotionPreferencies.takeLast();
 
         quint16 numberItems = 0;
-        quint32 identifier = 0;
-        Consumable * potion = nullptr;
         stream >> numberItems;
         for(int i = 0; i < numberItems; i++)
         {
@@ -183,14 +188,17 @@ public:
             item->deserialize(stream);
             mItemsToSell.append(item);
         }
+
         stream >> numberItems;
         for(int i = 0; i < numberItems; i++)
+            mPotionSlots.at(i)->deserialize(stream);
+
+        for(PotionCookingSlot * potionSlot : mPotionSlots)
         {
-            stream >> identifier;
-            potion = dynamic_cast<Consumable*>(Item::getInstance(identifier));
-            potion->deserialize(stream);
-            mPotionPreferencies.append(potion);
+            if(potionSlot->getInQueue())
+                mCookingQueue.append(potionSlot);
         }
+
         DEBUG("SERIALIZED[out] : Alchemist");
     }
     friend QDataStream& operator<<(QDataStream& stream, const Alchemist& object)
@@ -207,7 +215,8 @@ public:
     AlchemistHouse * mHouse;
 private:
     QList<Item*> mItemsToSell;
-    QList<Consumable*> mPotionPreferencies;
+    QList<PotionCookingSlot*> mPotionSlots;
+    QList<PotionCookingSlot*> mCookingQueue;
 };
 
 

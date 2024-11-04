@@ -1,6 +1,7 @@
 #include "village.h"
-#include "item.h"
 
+#include "item.h"
+#include "entitieshandler.h"
 
 House::House():
     mHover(false),
@@ -259,11 +260,19 @@ void Merchant::replenish()
     }
 
     addItemInShop(new Scroll_X);
-    addItemInShop(new Compass);
-    addItemInShop(new Shovel);
-    addItemInShop(new Pickaxe);
-    addItemInShop(new FishingRod); 
-    addItemInShop(new Knife);
+    if(!QRandomGenerator().global()->bounded(3)) // 33%
+        addItemInShop(new Compass);
+    if(!QRandomGenerator().global()->bounded(3)) // 33%
+        addItemInShop(new Shovel);
+    if(!QRandomGenerator().global()->bounded(3)) // 33%
+        addItemInShop(new Pickaxe);
+    if(!QRandomGenerator().global()->bounded(3)) // 33%
+        addItemInShop(new FishingRod);
+    if(!QRandomGenerator().global()->bounded(3)) // 33%
+        addItemInShop(new Knife);
+    if(!QRandomGenerator().global()->bounded(1)) // 100%
+        addItemInShop(new MapScroll());
+
     addItemInShop(gItemGenerator->generateEquipment());
 
     if(QRandomGenerator::global()->bounded(3) == 0)
@@ -321,6 +330,15 @@ void Merchant::addItemInShop(Item * item)
 
 void Merchant::buyItem(Hero * hero, Item * item)
 {
+    MapScroll * mapScroll = dynamic_cast<MapScroll*>(item);
+    if(mapScroll)
+    {
+        mItemsToSell.removeOne(item);
+        hero->unlockAdventurerMap();
+        emit sig_adventurerMapUnlock();
+        return;
+    }
+
     hero->removeCoin(item->getPrice());
     hero->takeItem(item);
     mItemsToSell.removeOne(item);
@@ -337,6 +355,8 @@ void Merchant::sellItem(Hero * hero, Item * item)
     hero->addCoin(item->getPrice()*outstandingMerchantCoef);
     mItemsToSell.append(hero->getBag()->takeItem(item));
     item->setPrice(static_cast<int>(item->getPrice()*2.0));
+
+    emit hero->sig_SellItem(item);
 }
 
 
@@ -391,57 +411,82 @@ Alchemist::Alchemist():
     mHouse = new AlchemistHouse();
 
     addItemInShop(new PotionLife);
+    addItemInShop(new PotionLife);
     addItemInShop(new PotionMana);
-    addItemInShop(new PotionStamina);
-    addItemInShop(new PotionStrenght);
-    addItemInShop(new PotionKnowledge);
 
-    QTimer * timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(replenish()));
-    timer->start(3*60*1000);
-
-    mPotionPreferencies.append(new PotionLife);
-    mPotionPreferencies.append(new PotionMana);
-    mPotionPreferencies.append(new PotionStamina);
+    for(int i = 0; i < NUMBER_POTION_SLOT; i++)
+    {
+        PotionCookingSlot * potionSlot = new PotionCookingSlot(this);
+        connect(potionSlot, &PotionCookingSlot::sig_cookingRequested, this, &Alchemist::onCookingRequested);
+        connect(potionSlot, &PotionCookingSlot::sig_cookingDone, this, &Alchemist::onCookingDone);
+        mPotionSlots.append(potionSlot);
+    }
 }
 
 Alchemist::~Alchemist()
 {
     while(!mItemsToSell.isEmpty())
         delete mItemsToSell.takeLast();
-    while(!mPotionPreferencies.isEmpty())
-        delete mPotionPreferencies.takeLast();
     if(mHouse)
         delete mHouse;
 }
 
 void Alchemist::replenish()
 {
-    if(mItemsToSell.length() > 15)
-        delete mItemsToSell.takeFirst();
     emit sig_replenish(this);
+}
 
-    if(mPotionPreferencies.size()!=0)
+void Alchemist::onCookingRequested(PotionCookingSlot * potionSlot)
+{
+    // Add to queue
+    addPotionInQueue(potionSlot);
+
+    // Check to start a cooking
+    bool alreadyCooking = false;
+    for(PotionCookingSlot * slot : qAsConst(mCookingQueue))
     {
-        Consumable * item = nullptr;
-        bool validateConsumable = false;
-        while(!validateConsumable)
+        if(slot->getCooking())
         {
-            item = gItemGenerator->generateRandomConsumable();
-            for(Consumable * preferencies : qAsConst(mPotionPreferencies))
-            {
-                if(item->getName() == preferencies->getName()){
-                    validateConsumable = true;
-                }
-            }
-            if(!validateConsumable)
-                delete item;
+            alreadyCooking = true;
+            break;
         }
-        if(item == nullptr)
-            DEBUG_ERR("item in alchemist shop = nullptr");
-        addItemInShop(item);
-    }else{
-        addItemInShop(gItemGenerator->generateRandomConsumable());
+    }
+    if(!alreadyCooking)
+    {
+        for(PotionCookingSlot * slot : qAsConst(mCookingQueue))
+        {
+            slot->setCooking(true); // Start a cooking
+            return;
+        }
+    }
+}
+
+void Alchemist::onCookingDone(PotionCookingSlot * potionSlot)
+{
+    // Add potion in inventory
+    Item * item = potionSlot->takePotion();
+    addItemInShop(item);
+    emit sig_addPotion(item);
+
+    // Remove from queue
+    removePotionInQueue(potionSlot);
+
+    replenish();
+
+    // Check to start a cooking
+    bool alreadyCooking = false;
+    for(PotionCookingSlot * slot : qAsConst(mCookingQueue))
+    {
+        if(slot->getCooking())
+            alreadyCooking = true;
+    }
+    if(!alreadyCooking)
+    {
+        for(PotionCookingSlot * slot : qAsConst(mCookingQueue))
+        {
+            slot->setCooking(true); // Start a cooking
+            return;
+        }
     }
 }
 
@@ -450,164 +495,9 @@ void Alchemist::setPosition(QPointF position)
     mHouse->setPos(position);
 }
 
-void Alchemist::setPotionPreferencies(QList<int> potionIndexes)
-{
-    Consumable * item = nullptr;
-    for(int i=0;i<3;i++)
-    {
-        PotionLife * pLife = dynamic_cast<PotionLife*>(mPotionPreferencies[i]);
-        if(pLife){
-            if(potionIndexes[i] == 0){
-                continue;
-            }else{
-                delete mPotionPreferencies.takeAt(i);
-                Consumable * item = nullptr;
-                switch (potionIndexes[i]){
-                case 0 :
-                    item = new PotionLife;
-                    break;
-                case 1 :
-                    item = new PotionMana;
-                    break;
-                case 2 :
-                    item = new PotionStamina;
-                    break;
-                case 3 :
-                    item = new PotionStrenght;
-                    break;
-                case 4 :
-                    item = new PotionKnowledge;
-                    break;
-                }
-                mPotionPreferencies.insert(i, item);
-                continue;
-            }
-        }
-        PotionMana * pMana = dynamic_cast<PotionMana*>(mPotionPreferencies[i]);
-        if(pMana){
-            if(potionIndexes[i] == 1){
-                continue;
-            }else{
-                delete mPotionPreferencies.takeAt(i);
-                Consumable * item = nullptr;
-                switch (potionIndexes[i]){
-                case 0 :
-                    item = new PotionLife;
-                    break;
-                case 1 :
-                    item = new PotionMana;
-                    break;
-                case 2 :
-                    item = new PotionStamina;
-                    break;
-                case 3 :
-                    item = new PotionStrenght;
-                    break;
-                case 4 :
-                    item = new PotionKnowledge;
-                    break;
-                }
-                mPotionPreferencies.insert(i, item);
-                continue;
-            }
-        }
-        PotionStamina * pStamina = dynamic_cast<PotionStamina*>(mPotionPreferencies[i]);
-        if(pStamina){
-            if(potionIndexes[i] == 2){
-                continue;
-            }else{
-                delete mPotionPreferencies.takeAt(i);
-                item = nullptr;
-                switch (potionIndexes[i]){
-                case 0 :
-                    item = new PotionLife;
-                    break;
-                case 1 :
-                    item = new PotionMana;
-                    break;
-                case 2 :
-                    item = new PotionStamina;
-                    break;
-                case 3 :
-                    item = new PotionStrenght;
-                    break;
-                case 4 :
-                    item = new PotionKnowledge;
-                    break;
-                }
-                mPotionPreferencies.insert(i, item);
-                continue;
-            }
-        }
-        PotionStrenght * pStrenght = dynamic_cast<PotionStrenght*>(mPotionPreferencies[i]);
-        if(pStrenght){
-            if(potionIndexes[i] == 3){
-                continue;
-            }else{
-                delete mPotionPreferencies.takeAt(i);
-                Consumable * item = nullptr;
-                switch (potionIndexes[i]){
-                case 0 :
-                    item = new PotionLife;
-                    break;
-                case 1 :
-                    item = new PotionMana;
-                    break;
-                case 2 :
-                    item = new PotionStamina;
-                    break;
-                case 3 :
-                    item = new PotionStrenght;
-                    break;
-                case 4 :
-                    item = new PotionKnowledge;
-                    break;
-                }
-                mPotionPreferencies.insert(i, item);
-                continue;
-            }
-        }
-        PotionKnowledge * pKnowledge = dynamic_cast<PotionKnowledge*>(mPotionPreferencies[i]);
-        if(pKnowledge){
-            if(potionIndexes[i] == 4){
-                continue;
-            }else{
-                delete mPotionPreferencies.takeAt(i);
-                Consumable * item = nullptr;
-                switch (potionIndexes[i]){
-                case 0 :
-                    item = new PotionLife;
-                    break;
-                case 1 :
-                    item = new PotionMana;
-                    break;
-                case 2 :
-                    item = new PotionStamina;
-                    break;
-                case 3 :
-                    item = new PotionStrenght;
-                    break;
-                case 4 :
-                    item = new PotionKnowledge;
-                    break;
-                }
-                mPotionPreferencies.insert(i, item);
-                continue;
-            }
-        }
-    }
-
-
-}
-
 AlchemistHouse *Alchemist::getHouse()
 {
     return mHouse;
-}
-
-QList<Consumable *> Alchemist::getPotionPreferencies()
-{
-    return mPotionPreferencies;
 }
 
 QList<Item *> Alchemist::getItemsToSell()
@@ -935,6 +825,7 @@ void HeroHouse::setPosition(QPointF position)
 
 void ChevalDeFrise::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage.scaled(boundingRect().size().toSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 
@@ -1058,7 +949,7 @@ void Village::setPosition(QPointF position)
     mMerchant->setPosition(QPointF(position.x()+1267, position.y()+393));
     mHouse->setPosition(QPointF(position.x()+840, position.y()+225));
     mAlchemist->setPosition(QPointF(position.x()+1447, position.y()+628));
-    mAltar->setPosition(QPointF(position.x()+1670, position.y()+1165));
+    mAltar->setPosition(QPointF(position.x()+1670, position.y()+1000));
 
     mChevalDeFriseList.at(0)->setPosition(QPointF(position.x()+845, position.y()+1255));
     mChevalDeFriseList.at(1)->setPosition(QPointF(position.x()+1600, position.y()+1186));

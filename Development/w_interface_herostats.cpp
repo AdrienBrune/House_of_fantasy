@@ -31,8 +31,8 @@ W_Interface_HeroStats::W_Interface_HeroStats(QWidget * parent, Hero * hero) :
 void W_Interface_HeroStats::initInterface()
 {
     ui->data_name->setText(mHero->getName());
-    ui->data_life->setRange(0, mHero->getLife().maxLife);
-    ui->data_mana->setRange(0, mHero->getMana().maxMana);
+    ui->data_life->setRange(0, mHero->getLife().maximum);
+    ui->data_mana->setRange(0, mHero->getMana().maximum);
     ui->data_exp->setRange(0, mHero->getExperience().pointsToLevelUp);
     ui->data_role->setPixmap(mHero->getImage());
 
@@ -45,14 +45,14 @@ void W_Interface_HeroStats::initInterface()
 
 void W_Interface_HeroStats::refreshLifeDisplayed()
 {
-    ui->data_life->setRange(0,mHero->getLife().maxLife);
-    ui->data_life->setValue(mHero->getLife().curLife);
+    ui->data_life->setRange(0,mHero->getLife().maximum);
+    ui->data_life->setValue(mHero->getLife().current);
 }
 
 void W_Interface_HeroStats::refreshManaDisplayed()
 {
-    ui->data_mana->setRange(0, mHero->getMana().maxMana);
-    ui->data_mana->setValue(mHero->getMana().curMana);
+    ui->data_mana->setRange(0, mHero->getMana().maximum);
+    ui->data_mana->setValue(mHero->getMana().current);
 }
 
 void W_Interface_HeroStats::refreshExperienceDisplayed()
