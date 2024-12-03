@@ -23,7 +23,7 @@
 
 If you're interrested in dowloading the source code of the game, you can find the ressource package on this link :
 <ul>
-<li>https://drive.google.com/drive/folders/1FHMtcss1f2P0Bqn__3ViJ1Lpc-_YAjx_?usp=sharing</li>
+<li>[https://drive.google.com/drive/folders/1FHMtcss1f2P0Bqn__3ViJ1Lpc-_YAjx_?usp=sharing](https://drive.google.com/drive/folders/16_HV_IfVu2a9XO24dE5iqd_bw9zmMT1e?usp=drive_link)</li>
 </ul>
 
 ## Preview
