@@ -547,8 +547,8 @@ void MapScroll::init()
     disconnect(&mMapDiscovery.timer, &QTimer::timeout, this, &MapScroll::updateDiscovery);
     while(!mMapDiscovery.monsters.isEmpty())
         mMapDiscovery.monsters.takeLast();
-    while(!mMapDiscovery.mapEvent.isEmpty())
-        mMapDiscovery.mapEvent.takeLast();
+    while(!mMapDiscovery.mapItem.isEmpty())
+        mMapDiscovery.mapItem.takeLast();
 
     ToolFunctions::matrix2DResize(mMapDiscovery.fogMatrix, 100, 100);
     ToolFunctions::matrix2DInit(mMapDiscovery.fogMatrix, false);
@@ -593,6 +593,19 @@ void MapScroll::updateDiscovery()
     QList<QGraphicsItem*> list = view->scene()->items(ToolFunctions::getVisibleView(view));
     for(QGraphicsItem * object : qAsConst(list))
     {
+        MapItem * mapItem = dynamic_cast<MapItem*>(object);
+        if(mapItem)
+        {
+            Lake * lake = dynamic_cast<Lake*>(object);
+            if(lake)
+            {
+                if(mMapDiscovery.mapItem.contains(lake))
+                    continue;
+
+                mMapDiscovery.mapItem.append(lake);
+            }
+            continue;
+        }
         Monster * monster = dynamic_cast<Monster*>(object);
         if(monster)
         {
@@ -608,10 +621,10 @@ void MapScroll::updateDiscovery()
             if(bush)
                 continue;
 
-            if(mMapDiscovery.mapEvent.contains(mapEvent))
+            if(mMapDiscovery.mapItem.contains(mapEvent))
                 continue;
 
-            mMapDiscovery.mapEvent.append(mapEvent);
+            mMapDiscovery.mapItem.append(mapEvent);
         }
     }
 

@@ -201,7 +201,7 @@ public :
 };
 
 class Monster;
-class MapEvent;
+class MapItem;
 
 class MapScroll : public Tool
 {
@@ -212,7 +212,7 @@ public:
         QTimer timer;
         QVector<QVector<bool>> fogMatrix;
         QList<Monster*> monsters;
-        QList<MapEvent*> mapEvent;
+        QList<MapItem*> mapItem;
     }Map_Discovery;
 public:
     MapScroll();

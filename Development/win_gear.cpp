@@ -12,17 +12,13 @@ Win_Gear::Win_Gear(QWidget *parent) :
     Hero * hero = EntitiesHandler::getInstance().getHero();
 
     ui->setupUi(this);
-//    ui->scrollAreaWidgetContents->setAutoFillBackground(false);
-//    ui->scrollArea->setAutoFillBackground(false);
-//    ui->scrollArea->setStyleSheet("background-color:transparent;border:0px solid white;");
     ui->item_info->setWordWrap(true);
-    mItemEquipment = new Frag_Interface_Gear(this);
+    mItemEquipment = ui->itemSorter;
     connect(mItemEquipment, SIGNAL(sig_equipItem(Item*)), this, SLOT(equipItem(Item*)));
     connect(mItemEquipment, SIGNAL(sig_unequipItem(Item*)), this, SLOT(unequipItem(Item*)));
     connect(mItemEquipment, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(showItem(ItemQuickDisplayer*)));
     connect(mItemEquipment, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SLOT(showItemHover(ItemQuickDisplayer*)));
     connect(mItemEquipment, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SLOT(hideItemHover(ItemQuickDisplayer*)));
-    ui->layout_inventoryEquipment->addWidget(mItemEquipment, 0, Qt::AlignCenter);
     mItemToDisplay = nullptr;
 
     mLife = new Frag_Stats_Displayer(this, "Points de vie", QPixmap(":/icons/lifeStat.png"), hero->getLife().current, hero->getLife().maximum);
@@ -55,6 +51,7 @@ Win_Gear::Win_Gear(QWidget *parent) :
     connect(hero->getBag(), SIGNAL(sig_bagEvent()), this, SLOT(displayBagPayloadChanged()), Qt::ConnectionType::QueuedConnection);
     connect(hero, SIGNAL(sig_staminaMaxChanged()), this, SLOT(displayStaminaChanged()), Qt::ConnectionType::QueuedConnection);
 
+    setGeometry(0, 0, parent->width() - 100, parent->height());
 }
 
 void Win_Gear::equipItem(Item * item)
@@ -239,14 +236,14 @@ void Win_Gear::paintEvent(QPaintEvent *)
 
     painter.setOpacity(0.9);
 
-    QRect iteamArea(QRect(mItemEquipment->x()-140, ui->title->y(), mItemEquipment->width()+280, mItemEquipment->height()+ui->title->height()+200));
+    QRect iteamArea(QRect(mItemEquipment->x(), ui->title->y(), mItemEquipment->width(), mItemEquipment->height()+ui->title->height()));
     QRect statArea(QRect(mLife->x()-15, mLife->y()-10, (mBagPayload->x()+mBagPayload->width())-mLife->x()+20, (mBagPayload->y()+mBagPayload->height())-mLife->y()+20));
     painter.setPen(QPen(QBrush(Qt::white), 1));
 
-    painter.drawPixmap(iteamArea, QPixmap(":/graphicItems/background_window_2.png"));
-    painter.drawRect(iteamArea.x()-1, iteamArea.y()-1, iteamArea.width()+2, iteamArea.height()+2);
+    painter.drawPixmap(iteamArea, QPixmap(":/graphicItems/background_black_textured.png"));
+    //painter.drawRect(iteamArea.x()-1, iteamArea.y()-1, iteamArea.width()+2, iteamArea.height()+2);
     painter.setOpacity(0.96);
-    painter.drawPixmap(statArea, QPixmap(":/graphicItems/background_window_2.png"));
+    painter.drawPixmap(statArea, QPixmap(":/graphicItems/background_black_textured.png"));
     painter.drawRect(statArea.x()-1, statArea.y()-1, statArea.width()+2, statArea.height()+2);
 
     painter.setOpacity(0.2);

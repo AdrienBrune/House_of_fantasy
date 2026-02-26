@@ -269,7 +269,7 @@ public:
         stream << numberItems;
         for(Offering offer : mOfferings)
         {
-            offer.item ? isNull = 1 : isNull = 0;
+            (offer.item == nullptr) ? isNull = 1 : isNull = 0;
             stream << isNull;
             stream << offer.identifier;
             if(offer.item)
@@ -299,7 +299,7 @@ public:
 
             stream >> isNull;
             stream >> identifier;
-            if(isNull)
+            if(isNull == 0)
             {
                 item = Item::getInstance(identifier);
                 item->deserialize(stream);

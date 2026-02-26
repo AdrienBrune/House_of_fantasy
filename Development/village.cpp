@@ -333,6 +333,7 @@ void Merchant::buyItem(Hero * hero, Item * item)
     MapScroll * mapScroll = dynamic_cast<MapScroll*>(item);
     if(mapScroll)
     {
+        hero->removeCoin(item->getPrice());
         mItemsToSell.removeOne(item);
         hero->unlockAdventurerMap();
         emit sig_adventurerMapUnlock();
@@ -619,6 +620,10 @@ void AltarBuilding::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                 painter->drawPixmap(offerAreas[i], QPixmap(mOffers->at(i).item->getImage()));
             }
         }
+    }
+    else
+    {
+        qDebug() << "nullptr !!";
     }
 
     Q_UNUSED(widget)

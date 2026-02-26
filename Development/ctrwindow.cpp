@@ -831,7 +831,6 @@ void CTRWindow::on_Inventory_clicked()
     connect(w_inventory, SIGNAL(sig_closeWindow()), this, SLOT(hideInventary()));
     connect(w_inventory, SIGNAL(sig_useTool(Tool*)), this, SLOT(useTool(Tool*)));
     connect(w_inventory, SIGNAL(sig_useScroll(Scroll*)), this, SLOT(useScroll(Scroll*)));
-    w_inventory->setGeometry((width()-w_inventory->width())/2, (height()-w_inventory->height())/2, w_inventory->width(), w_inventory->height());
     w_inventory->diplayInventory();
 }
 
@@ -859,7 +858,7 @@ void CTRWindow::on_Gear_clicked()
     connect(w_gear, SIGNAL(sig_closeWindow()), this, SLOT(hideInventaryGear()));
     connect(w_gear, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
     connect(w_gear, SIGNAL(sig_itemThrown(Item*)), mMap, SLOT(putItemThrownInMap(Item*)));
-    w_gear->setGeometry(width()-w_gear->width()-100, 0, w_gear->width()-100, w_gear->height());
+    //w_gear->setGeometry(width()-w_gear->width()-100, 0, w_gear->width()-100, w_gear->height());
     w_gear->diplayWindow();
 }
 
@@ -1117,7 +1116,7 @@ void CTRWindow::showPNJinfo(QGraphicsItem * interaction)
 void CTRWindow::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    painter.drawPixmap(0,0,QPixmap(":/graphicItems/screenBackground.png"));
+    painter.drawPixmap(rect(),QPixmap(":/graphicItems/screenBackground.png"));
 }
 
 void CTRWindow::on_Skills_clicked()
@@ -1135,7 +1134,7 @@ void CTRWindow::on_Skills_clicked()
     w_skill = new Win_Skills(this);
     connect(w_skill, SIGNAL(sig_closeWindow()), this, SLOT(hideSkillWindow()));
     //connect(w_skill, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
-    w_skill->setGeometry((width() - w_skill->width())/2, 0, w_skill->width(), w_skill->height());
+    w_skill->setGeometry((width() - w_skill->width())/2, 0, w_skill->width(), height());
     w_skill->diplayWindow();
 }
 

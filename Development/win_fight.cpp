@@ -333,7 +333,7 @@ void Win_Fight::paintEvent(QPaintEvent *)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(100,50,width()-200,height()-150), QPixmap(":/graphicItems/background_window_1.png"));
+    painter.drawPixmap(QRect(100,50,width()-200,height()-150), QPixmap(":/graphicItems/background_black_textured.png"));
 
     painter.drawPixmap(QRect(ui->button_useSpell->x(), ui->button_heavyAttack->y(), ui->button_useSpell->width()*3, ui->button_heavyAttack->height()*3),
                        QPixmap(":/graphicItems/buttons_background.png"));

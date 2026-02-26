@@ -44,13 +44,13 @@ private:
     QList<ItemQuickDisplayer*> mItemsLeftSide;
     QList<ItemQuickDisplayer*> equipmentRightSide;
     int xPosSplitter;
-    QPointF helmetPos;
-    QPointF breastplatePos;
-    QPointF glovesPos;
-    QPointF pantPos;
-    QPointF footwearsPos;
-    QPointF amuletPos;
-    QPointF weaponPos;
+    QPointF mHelmetPos;
+    QPointF mBreastplatePos;
+    QPointF mGlovesPos;
+    QPointF mPantPos;
+    QPointF mFootwearsPos;
+    QPointF mAmuletPos;
+    QPointF mWeaponPos;
 private:
     Ui::Frag_interface_gear *ui;
 };
