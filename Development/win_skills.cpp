@@ -148,47 +148,47 @@ void Win_Skills::onSkillInfoClosed()
     }
 }
 
-void Win_Skills::skillUnlockAnimation(Skill * skill)
+void Win_Skills::skillUnlockAnimation(Skill *)
 {
     update();
 }
 
 void Win_Skills::diplayWindow()
 {
-    QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
-    this->setGraphicsEffect(eff);
-    QPropertyAnimation *a = new QPropertyAnimation(eff,"opacity");
-    a->setDuration(400);
-    a->setStartValue(0);
-    a->setEndValue(1);
-    a->setEasingCurve(QEasingCurve::InBack);
-    a->start(QPropertyAnimation::DeleteWhenStopped);
+    // QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
+    // this->setGraphicsEffect(eff);
+    // QPropertyAnimation *a = new QPropertyAnimation(eff,"opacity");
+    // a->setDuration(400);
+    // a->setStartValue(0);
+    // a->setEndValue(1);
+    // a->setEasingCurve(QEasingCurve::InBack);
+    // a->start(QPropertyAnimation::DeleteWhenStopped);
 
-    QPropertyAnimation *b = new QPropertyAnimation(this,"geometry");
-    b->setDuration(500);
-    b->setStartValue(QRect(this->x()+this->width(),this->y(),this->width(),this->height()));
-    b->setEndValue(QRect(this->x(),this->y(),this->width(),this->width()));
-    b->start(QPropertyAnimation::DeleteWhenStopped);
+    // QPropertyAnimation *b = new QPropertyAnimation(this,"geometry");
+    // b->setDuration(500);
+    // b->setStartValue(QRect(this->x()+this->width(),this->y(),this->width(),this->height()));
+    // b->setEndValue(QRect(this->x(),this->y(),this->width(),this->width()));
+    // b->start(QPropertyAnimation::DeleteWhenStopped);
 
     show();
 }
 
 void Win_Skills::closeWindow()
 {
-    QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
-    this->setGraphicsEffect(eff);
-    QPropertyAnimation *a = new QPropertyAnimation(eff,"opacity");
-    a->setDuration(400);
-    a->setStartValue(1);
-    a->setEndValue(0);
-    a->setEasingCurve(QEasingCurve::InBack);
-    a->start(QPropertyAnimation::DeleteWhenStopped);
+    // QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
+    // this->setGraphicsEffect(eff);
+    // QPropertyAnimation *a = new QPropertyAnimation(eff,"opacity");
+    // a->setDuration(400);
+    // a->setStartValue(1);
+    // a->setEndValue(0);
+    // a->setEasingCurve(QEasingCurve::InBack);
+    // a->start(QPropertyAnimation::DeleteWhenStopped);
 
-    QPropertyAnimation *b = new QPropertyAnimation(this,"geometry");
-    b->setDuration(500);
-    b->setStartValue(QRect(this->x(),this->y(),this->width(),this->height()));
-    b->setEndValue(QRect(this->x()+this->width(),this->y(),this->width(),this->width()));
-    b->start(QPropertyAnimation::DeleteWhenStopped);
+    // QPropertyAnimation *b = new QPropertyAnimation(this,"geometry");
+    // b->setDuration(500);
+    // b->setStartValue(QRect(this->x(),this->y(),this->width(),this->height()));
+    // b->setEndValue(QRect(this->x()+this->width(),this->y(),this->width(),this->width()));
+    // b->start(QPropertyAnimation::DeleteWhenStopped);
 
     QTimer * timer = new QTimer(this);
     timer->setSingleShot(true);
@@ -203,7 +203,7 @@ void Win_Skills::paintEvent(QPaintEvent*)
 
     painter.setOpacity(0.9);
 
-    painter.drawPixmap(QRect(0, 0, width(), height()), QPixmap(":/graphicItems/background_window_2.png"));
+    painter.drawPixmap(QRect(0, 0, width(), height()), QPixmap(":/graphicItems/background_black_textured.png"));
     //painter.setPen(QPen(Qt::white, 1));
     //painter.drawLine(QLine(ui->buttonExit->width()/2, 0, ui->buttonExit->width()/2, height()));
 

@@ -8,19 +8,6 @@
 #include "equipment.h"
 #include "w_itemdisplayer.h"
 
-
-class Bin : public QGraphicsPixmapItem
-{
-public:
-    Bin(QPixmap, QPointF);
-    ~Bin();
-public:
-    QRectF boundingRect()const;
-};
-
-
-
-
 namespace Ui {
 class Frag_interface_itemSorter;
 }
@@ -33,6 +20,7 @@ public:
     ~Frag_Interface_ItemSorter();
 signals:
     void sig_itemClicked(ItemQuickDisplayer*);
+    void sig_itemRightClicked(ItemQuickDisplayer*);
     void sig_itemHoverIn(ItemQuickDisplayer*);
     void sig_itemHoverOut(ItemQuickDisplayer*);
     void sig_itemThrown(Item*);
@@ -40,6 +28,7 @@ signals:
 private slots:
     void itemMoved(ItemQuickDisplayer*);
     void itemClicked(ItemQuickDisplayer*);
+    void itemRightClicked(ItemQuickDisplayer*);
 public:
     void setSceneDeep(int);
     void addItem(Item*);
@@ -48,13 +37,13 @@ public:
     void refreshItemsPosition();
     void unselectItems();
     ItemQuickDisplayer * getSelectedItem();
-private:
-    void displayItem(ItemQuickDisplayer*);
+public slots:
+    void throwItem(ItemQuickDisplayer*);
+protected:
+    void resizeEvent(QResizeEvent*) override { mScene->setSceneRect(0, 0, mScene->sceneRect().width(), mScene->sceneRect().height()); }
 public:
     QGraphicsScene * mScene;
     QList<ItemQuickDisplayer*> mItems;
-private:
-    Bin * mBinItem;
 private:
     Ui::Frag_interface_itemSorter *ui;
 };

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>1000</height>
+    <width>1920</width>
+    <height>1080</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,8,2">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -63,65 +63,29 @@
       <number>0</number>
      </property>
      <property name="leftMargin">
-      <number>5</number>
+      <number>50</number>
+     </property>
+     <property name="topMargin">
+      <number>80</number>
      </property>
      <property name="rightMargin">
-      <number>0</number>
+      <number>50</number>
+     </property>
+     <property name="bottomMargin">
+      <number>100</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="layout">
-       <property name="spacing">
-        <number>0</number>
+      <widget class="Frag_Interface_ItemSorter" name="itemContainer" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <property name="leftMargin">
-        <number>5</number>
+       <property name="styleSheet">
+        <string notr="true"/>
        </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>80</number>
-       </property>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="layoutItems">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>50</number>
-         </property>
-        </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
+      </widget>
      </item>
     </layout>
    </item>
@@ -190,6 +154,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Frag_Interface_ItemSorter</class>
+   <extends>QWidget</extends>
+   <header>frag_interface_itemsorter.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -13,15 +13,15 @@ Win_Inventory::Win_Inventory(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->item_info->setWordWrap(true);
+    setGeometry(0, 0, parent->width() - 100, parent->height());
 
-    mItemsContainer = new Frag_Interface_ItemSorter(this);
+    mItemsContainer = ui->itemContainer;
     connect(mItemsContainer, SIGNAL(sig_itemThrown(Item*)), this, SIGNAL(sig_itemThrown(Item*)));
     connect(mItemsContainer, SIGNAL(sig_itemThrown(Item*)), this, SLOT(onItemThrown(Item*)));
     connect(mItemsContainer, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(showItem(ItemQuickDisplayer*)));
     connect(mItemsContainer, SIGNAL(sig_itemDoubleClicked(ItemQuickDisplayer*)), this, SLOT(useItem(ItemQuickDisplayer*)));
     connect(mItemsContainer, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SLOT(showItemHover(ItemQuickDisplayer*)));
     connect(mItemsContainer, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SLOT(hideItemHover(ItemQuickDisplayer*)));
-    ui->layoutItems->addWidget(mItemsContainer, 0, Qt::AlignCenter);
 
     Hero * hero = EntitiesHandler::getInstance().getHero();
     Bag * bag = hero->getBag();
@@ -267,7 +267,7 @@ void Win_Inventory::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing);
 
     painter.setOpacity(0.95);
-    painter.drawPixmap(QRect(50, ui->title->y(), width()-100, ui->itemArea->y()-40-ui->title->y()), QPixmap(":/graphicItems/background_window_2.png"));
+    painter.drawPixmap(QRect(50, ui->title->y(), width()-100, ui->itemArea->y()-40-ui->title->y()), QPixmap(":/graphicItems/background_black_textured.png"));
 
     painter.setPen(QPen(QBrush(Qt::white), 2));
     painter.drawRect(QRect(50, ui->title->y(), width()-100, ui->itemArea->y()-40-ui->title->y()));

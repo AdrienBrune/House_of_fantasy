@@ -214,7 +214,7 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
         if(mFilterList["ore"]->checkState() == Qt::CheckState::Checked)
         {
             // Draw ore spots
-            for(MapEvent * mapEvent : scroll->getDiscoveryData().mapEvent)
+            for(MapItem * mapEvent : scroll->getDiscoveryData().mapItem)
             {
                 OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
                 if(oreSpot)
@@ -232,7 +232,7 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
         if(mFilterList["lake"]->checkState() == Qt::CheckState::Checked)
         {
             // Draw lakes
-            for(MapEvent * mapEvent : scroll->getDiscoveryData().mapEvent)
+            for(MapItem * mapEvent : scroll->getDiscoveryData().mapItem)
             {
                 Lake * lake = dynamic_cast<Lake*>(mapEvent);
                 if(lake)
@@ -250,7 +250,7 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
         if(mFilterList["chest"]->checkState() == Qt::CheckState::Checked)
         {
             // Draw chests
-            for(MapEvent * mapEvent : scroll->getDiscoveryData().mapEvent)
+            for(MapItem * mapEvent : scroll->getDiscoveryData().mapItem)
             {
                 ChestEvent * chest = dynamic_cast<ChestEvent*>(mapEvent);
                 if(chest)

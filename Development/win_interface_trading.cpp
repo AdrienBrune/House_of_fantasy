@@ -97,6 +97,8 @@ Win_BlackSmith::Win_BlackSmith(QWidget * parent):
         ui->chronoResplenish->display(mBlacksmith->getTimeBeforeResplenish());
     } );
     t_chronoResplenish->start(1000);
+
+    setGeometry(0, 0, parent->width(), parent->height());
 }
 
 Win_BlackSmith::~Win_BlackSmith()
@@ -203,9 +205,9 @@ void Win_BlackSmith::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setBrush(QBrush("#393939"));
     painter.setOpacity(0.7);
-    painter.drawRect(0,0,width(),height());
+    painter.drawRect(rect());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(WINDOW_OFFSET,WINDOW_OFFSET,width()-2*WINDOW_OFFSET,height()-2*WINDOW_OFFSET), QPixmap(":/graphicItems/background_window_1.png"));
+    painter.drawPixmap(QRect(WINDOW_OFFSET,WINDOW_OFFSET,width()-2*WINDOW_OFFSET,height()-2*WINDOW_OFFSET), QPixmap(":/graphicItems/background_black_textured.png"));
 
     painter.drawPixmap(QRect(width()-480, height()-600, 480, 600), QPixmap(":/images/blacksmith_character.png"));
 
@@ -411,6 +413,8 @@ Win_Merchant::Win_Merchant(QWidget * parent):
     ui->setupUi(this);
     initInterface();
     connect(mMerchant, SIGNAL(sig_replenish(QObject*)), this, SLOT(closeWindow()));
+
+    setGeometry(0, 0, parent->width(), parent->height());
 }
 
 Win_Merchant::~Win_Merchant()
@@ -466,7 +470,7 @@ void Win_Merchant::paintEvent(QPaintEvent *)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/background_window_1.png"));
+    painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/background_black_textured.png"));
 
     painter.drawPixmap(QRect(width()-430, height()-630, 480, 600), QPixmap(":/images/merchant_character.png"));
 
@@ -574,6 +578,8 @@ Win_Alchemist::Win_Alchemist(QWidget * parent):
     initInterface();
 
     connect(mAlchemist, SIGNAL(sig_addPotion(Item*)), this, SLOT(onAddItem(Item*)));
+
+    setGeometry(0, 0, parent->width(), parent->height());
 }
 
 Win_Alchemist::~Win_Alchemist()
@@ -637,7 +643,7 @@ void Win_Alchemist::paintEvent(QPaintEvent *)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/background_window_1.png"));
+    painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/background_black_textured.png"));
 
     painter.setPen(QPen(QBrush("#FFF894"),5));
     int offset = 20;
@@ -781,7 +787,7 @@ Win_Altar::Win_Altar(QWidget *parent):
 
     mAltar = EntitiesHandler::getInstance().getMap()->getVillage()->getAltar();
 
-    setGeometry(0,0,parent->width(),parent->height());
+    setGeometry(0, 0, parent->width(), parent->height());
 
     QRect window(QRect(WINDOW_OFFSET, WINDOW_OFFSET, width()-(2*WINDOW_OFFSET), height()-(2*WINDOW_OFFSET)));
     mAreasOffering.append(QRect(window.x()+OFFERINGS_OFFSET, height()/2-OFFERING_SIZE/2, OFFERING_SIZE, OFFERING_SIZE));
@@ -821,7 +827,7 @@ void Win_Altar::paintEvent(QPaintEvent*)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(centralArea, QPixmap(":/graphicItems/background_window_1.png"));
+    painter.drawPixmap(centralArea, QPixmap(":/graphicItems/background_black_textured.png"));
 
     /* Draw skull Lao Shan Lung */
     painter.setOpacity(0.2);
