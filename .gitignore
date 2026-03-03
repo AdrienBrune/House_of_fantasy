@@ -4,5 +4,3 @@ cat .gitignore
 *.o
 /Temp
 /Conception
-/Release/Windows/saves
-/Release/MacOs/saves
