@@ -90,7 +90,7 @@ void W_UseToolCompass::paintEvent(QPaintEvent * event)
     QRect area = TOOL_AREA();
 
     QRect compassArea = QRect(area.x() + area.width()/10, area.y() + area.height()/10, area.width()*8/10, area.height()*8/10);
-    painter.drawPixmap(area, QPixmap(":/graphicItems/compassDisplayer.png"));
+    painter.drawPixmap(area, QPixmap(":/graphicItems/Ressources/compassDisplayer.png"));
     if(!hero->isInVillage())
     {
         QPoint center(area.x() + area.width()/2, area.y() + area.height()/2);
@@ -177,7 +177,7 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
     if(!scroll)
         return;
 
-    painter.drawPixmap(area, QPixmap(":/graphicItems/mapBackground.png"));
+    painter.drawPixmap(area, QPixmap(":/graphicItems/Ressources/mapBackground.png"));
 
     QSizeF worldSize = map->getScene()->sceneRect().size();
     int xpos, ypos;
@@ -185,12 +185,12 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
     // Draw village
     xpos = (map->getVillage()->pos().x() + map->getVillage()->boundingRect().width()/2) * area.width() / worldSize.width();
     ypos = (map->getVillage()->pos().y() + map->getVillage()->boundingRect().height()/2) * area.height() / worldSize.height();
-    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(":/icons/icon_village.png"));
+    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(":/icons/Ressources/icon_village.png"));
 
     // Draw Goblin Village
     xpos = (map->getGoblinVillage()->pos().x() + map->getGoblinVillage()->boundingRect().width()/2) * area.width() / worldSize.width();
     ypos = (map->getGoblinVillage()->pos().y() + map->getGoblinVillage()->boundingRect().height()/2) * area.height() / worldSize.height();
-    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(":/icons/icon_goblin_village.png"));
+    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(":/icons/Ressources/icon_goblin_village.png"));
 
     if(mFilterList["monster"])
     {
@@ -203,7 +203,7 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
                 {
                     xpos = monster->pos().x() * area.width() / worldSize.width();
                     ypos = monster->pos().y() * area.height() / worldSize.height();
-                    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(QString(":/icons/icon_%1.png").arg(monster->getName())));
+                    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(QString(":/icons/Ressources/icon_%1.png").arg(monster->getName())));
                 }
             }
         }
@@ -221,7 +221,7 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
                 {
                     xpos = oreSpot->pos().x() * area.width() / worldSize.width();
                     ypos = oreSpot->pos().y() * area.height() / worldSize.height();
-                    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(QString(":/icons/icon_%1.png").arg(oreSpot->invocName())));
+                    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(QString(":/icons/Ressources/icon_%1.png").arg(oreSpot->invocName())));
                 }
             }
         }
@@ -239,7 +239,7 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
                 {
                     xpos = lake->pos().x() * area.width() / worldSize.width();
                     ypos = lake->pos().y() * area.height() / worldSize.height();
-                    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(QString(":/icons/icon_fish.png")));
+                    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(QString(":/icons/Ressources/icon_fish.png")));
                 }
             }
         }
@@ -257,14 +257,14 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
                 {
                     xpos = chest->pos().x() * area.width() / worldSize.width();
                     ypos = chest->pos().y() * area.height() / worldSize.height();
-                    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(QString(":/icons/icon_chest.png")));
+                    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(QString(":/icons/Ressources/icon_chest.png")));
                 }
             }
         }
     }
 
     // Draw fog
-    QPixmap fogTexture(":/graphicItems/fog_brush.png");
+    QPixmap fogTexture(":/graphicItems/Ressources/fog_brush.png");
     QBrush fogBrush(fogTexture);
     fogBrush.setStyle(Qt::TexturePattern);
     painter.setOpacity(0.9);

@@ -3,7 +3,7 @@
 W_Animation_Forge::W_Animation_Forge(QWidget *parent) :
     QWidget(parent),
     mAnimationStep(0),
-    mPixmap(QPixmap(":/graphicItems/animation_forge.png")),
+    mPixmap(QPixmap(":/graphicItems/Ressources/animation_forge.png")),
     mCurPixmap(0),
     mAnimationVar(0)
 {

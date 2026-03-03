@@ -131,7 +131,7 @@ void FishingEvent::initGraphicStuff()
     mBoundingRect = QRect(0,0,200,100);
     mImageSelected = 0;
     mNextFrame = 6;
-    setImage(QPixmap(":/MapItems/animation_fish.png"));
+    setImage(QPixmap(":/MapItems/Ressources/animation_fish.png"));
     setZValue(Z_FISH_EVENT);
 }
 
@@ -175,7 +175,7 @@ BushEvent::BushEvent():
     
     mBoundingRect = QRect(0,0,100,100);
     mZOffset = mBoundingRect.height()*5/6;
-    setImage(QPixmap(":/MapItems/bush.png"));
+    setImage(QPixmap(":/MapItems/Ressources/bush.png"));
 
     mNextFrame = 0;
     setRotation(QRandomGenerator::global()->bounded(31)-15);
@@ -221,7 +221,7 @@ void BushEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
 void BushEvent::restoreGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/bush.png");
+    mImage = QPixmap(":/MapItems/Ressources/bush.png");
 }
 
 BushEvent::~BushEvent()
@@ -245,7 +245,7 @@ BushEventCoin::BushEventCoin():
 
 void BushEventCoin::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/bush_event_coin.png");
+    mImage = QPixmap(":/MapItems/Ressources/bush_event_coin.png");
     mImageSelected = QRandomGenerator::global()->bounded(RES_BUSH);
 }
 
@@ -274,7 +274,7 @@ BushEventEquipment::BushEventEquipment():
 
 void BushEventEquipment::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/bush_event_equipment.png");
+    mImage = QPixmap(":/MapItems/Ressources/bush_event_equipment.png");
     mImageSelected = QRandomGenerator::global()->bounded(RES_BUSH);
 }
 
@@ -458,7 +458,7 @@ ChestBurried::ChestBurried():
 
 void ChestBurried::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/chest_event_burried.png");
+    mImage = QPixmap(":/MapItems/Ressources/chest_event_burried.png");
     mImageSelected = 0;
 }
 
@@ -474,7 +474,7 @@ GoblinChest::GoblinChest():
     initGraphicStuff();
     revealChest();
 
-    mItems.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
+    mItems.append(new Sword("Gourdin", QPixmap(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
     for(int n=0;n<QRandomGenerator::global()->bounded(1, 3);n++){
         mItems.append(new EmeraldOre);
     }
@@ -491,7 +491,7 @@ GoblinChest::GoblinChest():
 
 void GoblinChest::initGraphicStuff()
 {
-    mImage = QPixmap(":/MapItems/chest_openClose.png");
+    mImage = QPixmap(":/MapItems/Ressources/chest_openClose.png");
     mImageSelected = 0;
     setZValue(Z_CHEST_BURRIED);
 }
@@ -534,7 +534,7 @@ void OreSpot::initGraphicStuff()
     mBoundingRect = QRect(0,0,100,100);
     mZOffset = mBoundingRect.height()/2;
     mImageSelected = QRandomGenerator::global()->bounded(RES_ORE_SPOT);
-    setImage(QPixmap(":/MapItems/oreSpot.png"));
+    setImage(QPixmap(":/MapItems/Ressources/oreSpot.png"));
     setZValue(Z_ORESPOT);
 }
 

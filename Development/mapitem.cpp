@@ -128,7 +128,7 @@ void Bush::initMapItem()
     mBoundingRect = QRect(0,0,100,100);
     mZOffset = mBoundingRect.height()*9/10;
     mImageSelected = QRandomGenerator::global()->bounded(RES_BUSH);
-    setImage(QPixmap(":/MapItems/bush.png"));
+    setImage(QPixmap(":/MapItems/Ressources/bush.png"));
 
     mNextFrame = 0;
     t_animation = new QTimer(this);
@@ -198,7 +198,7 @@ void Tree::initMapItem()
     mBoundingRect = QRect(0,0,200,400);
     mZOffset = mBoundingRect.height()*19/20;
     mImageSelected = QRandomGenerator::global()->bounded(RES_TREE);
-    setImage(QPixmap(":/MapItems/tree.png"));
+    setImage(QPixmap(":/MapItems/Ressources/tree.png"));
 
     setZValue(Z_TREE);
     setRotation(QRandomGenerator::global()->bounded(20)-10);
@@ -237,7 +237,7 @@ void TreeFallen::initMapItem()
     mBoundingRect = QRect(0,0,200,100);
     mZOffset = mBoundingRect.height()*3/4;
     mImageSelected = QRandomGenerator::global()->bounded(RES_TREE_FALLEN);
-    setImage(QPixmap(":/MapItems/tree_fallen.png"));
+    setImage(QPixmap(":/MapItems/Ressources/tree_fallen.png"));
 
     setZValue(Z_TREE_FALLEN);
     setRotation(QRandomGenerator::global()->bounded(20)-10);
@@ -268,7 +268,7 @@ void Rock::initMapItem()
     mBoundingRect = QRect(0,0,150,150);
     mZOffset = mBoundingRect.height()*3/4;
     mImageSelected = QRandomGenerator::global()->bounded(RES_ROCK);
-    setImage(QPixmap(":/MapItems/rock.png"));
+    setImage(QPixmap(":/MapItems/Ressources/rock.png"));
 
     setZValue(Z_ROCK);
     setRotation(QRandomGenerator::global()->bounded(20)-10);
@@ -304,7 +304,7 @@ void Ground::initMapItem()
 
     mBoundingRect = QRect(0,0,500,300);
     mImageSelected = 0;
-    setImage(QPixmap(":/grounds/grounds/ground_" + temp.asprintf("%d", QRandomGenerator::global()->bounded(RES_GROUND)) + ".png"));
+    setImage(QPixmap(":/grounds/Ressources/grounds/ground_" + temp.asprintf("%d", QRandomGenerator::global()->bounded(RES_GROUND)) + ".png"));
 
     setZValue(Z_GROUND);
     setRotation(QRandomGenerator::global()->bounded(30)-15);
@@ -440,7 +440,7 @@ void Plank::initMapItem()
     mBoundingRect = QRect(0,0,100,100);
     mZOffset = mBoundingRect.height()*3/4;
     mImageSelected = QRandomGenerator::global()->bounded(RES_PLANK);
-    setImage(QPixmap(":/MapItems/plank.png"));
+    setImage(QPixmap(":/MapItems/Ressources/plank.png"));
 
     setZValue(Z_PLANK);
     setRotation(QRandomGenerator::global()->bounded(30)-15);
@@ -466,7 +466,7 @@ void Stone::initMapItem()
     mBoundingRect = QRect(0,0,70,70);
     mZOffset = mBoundingRect.height()*3/4;
     mImageSelected = QRandomGenerator::global()->bounded(RES_STONE);
-    setImage(QPixmap(":/MapItems/stone.png"));
+    setImage(QPixmap(":/MapItems/Ressources/stone.png"));
 
     setZValue(Z_STONE);
     setRotation(QRandomGenerator::global()->bounded(30)-15);
@@ -494,7 +494,7 @@ void Lake::initMapItem()
 
     mBoundingRect = QRect(0,0,700,700);
     mImageSelected = QRandomGenerator::global()->bounded(RES_LAKE);
-    setImage(QPixmap(":/MapItems/lake.png"));
+    setImage(QPixmap(":/MapItems/Ressources/lake.png"));
 
     QPainterPath collidingShape;
     QPolygon polygon;

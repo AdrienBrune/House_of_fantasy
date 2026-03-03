@@ -82,7 +82,7 @@ void Win_Menu::paintEvent(QPaintEvent*)
      painter.setBrush(QBrush("#272727"));
      painter.drawRect(0,0,width(),height());
 
-     painter.drawPixmap(QRect(0,0,width(),height()), QPixmap(":/graphicItems/background_menu.png"));
+     painter.drawPixmap(QRect(0,0,width(),height()), QPixmap(":/graphicItems/Ressources/background_menu.png"));
 }
 
 void Win_Menu::on_buttonNewGame_clicked()

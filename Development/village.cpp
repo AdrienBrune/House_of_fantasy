@@ -111,7 +111,7 @@ void BlacksmithHouse::initGraphicStuff()
 {
     mBoundingRect = QRect(0,0,400,400);
     mZOffset = mBoundingRect.height()*2/3;
-    setImage(QPixmap(":/MapItems/blacksmith_house.png"), true);
+    setImage(QPixmap(":/MapItems/Ressources/blacksmith_house.png"), true);
 
     QPainterPath collidingShape;
     QPolygon polygon;
@@ -211,7 +211,7 @@ void MerchantHouse::initGraphicStuff()
 {
     mBoundingRect = QRect(0,0,400,300);
     mZOffset = mBoundingRect.height()*2/3;
-    setImage(QPixmap(":/MapItems/merchant_house.png"), true);
+    setImage(QPixmap(":/MapItems/Ressources/merchant_house.png"), true);
 
     QPolygon polygon;
     QPainterPath collidingShape;
@@ -387,7 +387,7 @@ void AlchemistHouse::initGraphicStuff()
 {
     mBoundingRect = QRect(0,0,400,500);
     mZOffset = mBoundingRect.height()*2/3;
-    setImage(QPixmap(":/MapItems/alchemist_house.png"), true);
+    setImage(QPixmap(":/MapItems/Ressources/alchemist_house.png"), true);
 
     QPolygon polygon;
     QPainterPath collidingShape;
@@ -572,7 +572,7 @@ void AltarBuilding::initGraphicStuff()
 {
     mBoundingRect = QRect(0,0,400,300);
     mZOffset = mBoundingRect.height()*2/3;
-    setImage(QPixmap(":/MapItems/altar.png"), true);
+    setImage(QPixmap(":/MapItems/Ressources/altar.png"), true);
 
     QPolygon polygon;
     QPainterPath collidingShape;
@@ -588,7 +588,7 @@ void AltarBuilding::initGraphicStuff()
     mCollisionShape = new CollisionShape(this, mBoundingRect, collidingShape);
 
     // QGraphicsPixmapItem * tmp = new QGraphicsPixmapItem(this);
-    // QPixmap tmpImg(":/MapItems/altar_bound.png");
+    // QPixmap tmpImg(":/MapItems/Ressources/altar_bound.png");
     // tmpImg.scroll(0,0,0,0,boundingRect().width(), boundingRect().height());
     // tmp->setPixmap(tmpImg);
     // mShape = tmp->shape();
@@ -631,7 +631,7 @@ void AltarBuilding::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 }
 
 Altar::Altar():
-    mOfferingPixmap(QPixmap(":/materials/earthCristal.png"))
+    mOfferingPixmap(QPixmap(":/materials/Ressources/earthCristal.png"))
 {
     mBuilding = new AltarBuilding(&mOfferings);
 }
@@ -719,7 +719,7 @@ void Taverne::setGraphicStuff()
 {
     mBoundingRect = QRect(0,0,400,400);
     mZOffset = mBoundingRect.height()*2/3;
-    setImage(QPixmap(":/MapItems/house.png"), true);
+    setImage(QPixmap(":/MapItems/Ressources/house.png"), true);
 
     QPolygon polygon;
     QPainterPath collidingShape;
@@ -791,7 +791,7 @@ void HeroChest::setGraphicStuff()
 {
     mBoundingRect = QRect(0,0,70,70);
     mZOffset = mBoundingRect.height()/2;
-    setImage(QPixmap(":/MapItems/heroChest.png"), true);
+    setImage(QPixmap(":/MapItems/Ressources/heroChest.png"), true);
 }
 
 
@@ -841,7 +841,7 @@ void ChevalDeFriseFront::setGraphicStuff()
 {
     mBoundingRect = QRect(0, 0, 250 * mRatio, 200 * mRatio);
     mZOffset = mBoundingRect.height()/2;
-    setImage(QPixmap(":/MapItems/cheval_de_frise_front.png"), false, true);
+    setImage(QPixmap(":/MapItems/Ressources/cheval_de_frise_front.png"), false, true);
 
     QPainterPath collidingShape;
     collidingShape.addRect(QRect(0, mBoundingRect.height() - mBoundingRect.height()/2 - mBoundingRect.height()/20, mBoundingRect.width(), mBoundingRect.height()/10));
@@ -854,7 +854,7 @@ void ChevalDeFriseDiag::setGraphicStuff()
 {
     mBoundingRect = QRect(0, 0, 240 * mRatio, 260 * mRatio);
     mZOffset = mBoundingRect.height()/2;
-    setImage(QPixmap(":/MapItems/cheval_de_frise_diag.png"), false, true);
+    setImage(QPixmap(":/MapItems/Ressources/cheval_de_frise_diag.png"), false, true);
 
     QPainterPath collidingShape;
     collidingShape.addRect(QRect(mBoundingRect.width()/3, mBoundingRect.height() - mBoundingRect.height()/2 - mBoundingRect.height()/20, mBoundingRect.width()/3, mBoundingRect.height()/10));
@@ -869,7 +869,7 @@ void ChevalDeFriseDiag::setGraphicStuff()
 
 Village::Village():
     QGraphicsPixmapItem (),
-    mImage(QPixmap(":/MapItems/village_ground.png"))
+    mImage(QPixmap(":/MapItems/Ressources/village_ground.png"))
 {
     setZValue(0);
     mBlacksmith = new Blacksmith();

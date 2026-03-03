@@ -753,8 +753,8 @@ SwordMan::SwordMan(QString name):
     connect(mBag, SIGNAL(sig_bagFull()), this, SIGNAL(sig_bagFull()));
     mCoin = mHeroList[eSwordman].coin;
     mExperience = Experience{0,1,10};
-    mImage = QPixmap(":/heros/swordman_logo.png");
-    mCurrentPixmap = QPixmap(":/heros/swordman.png");
+    mImage = QPixmap(":/heros/Ressources/swordman_logo.png");
+    mCurrentPixmap = QPixmap(":/heros/Ressources/swordman.png");
     mNumberFrame = 4;
     mImageSelected = HERO_STAND;
     t_animation->start(150);
@@ -808,8 +808,8 @@ Archer::Archer(QString name):
     connect(mBag, SIGNAL(sig_bagFull()), this, SIGNAL(sig_bagFull()));
     mCoin = mHeroList[eArcher].coin;
     mExperience = Experience{0,1,10};
-    mImage = QPixmap(":/heros/archer_logo.png");
-    mCurrentPixmap = QPixmap(":/heros/archer.png");
+    mImage = QPixmap(":/heros/Ressources/archer_logo.png");
+    mCurrentPixmap = QPixmap(":/heros/Ressources/archer.png");
     mNumberFrame = 4;
     mImageSelected = HERO_STAND;
     t_animation->start(150);
@@ -862,8 +862,8 @@ Wizard::Wizard(QString name):
     connect(mBag, SIGNAL(sig_bagFull()), this, SIGNAL(sig_bagFull()));
     mCoin = mHeroList[eWizard].coin;
     mExperience = Experience{0,1,10};
-    mImage = QPixmap(":/heros/wizard_logo.png");
-    mCurrentPixmap = QPixmap(":/heros/wizard.png");
+    mImage = QPixmap(":/heros/Ressources/wizard_logo.png");
+    mCurrentPixmap = QPixmap(":/heros/Ressources/wizard.png");
     mNumberFrame = 4;
     mImageSelected = HERO_STAND;
     t_animation->start(150);

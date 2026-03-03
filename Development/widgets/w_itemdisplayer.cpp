@@ -266,7 +266,7 @@ void W_ItemDisplayer::paintEvent(QPaintEvent *)
 
         // DRAW Background
         //painter.drawRoundedRect(QRect(0,0,width(),height()), 20, 20);
-        painter.drawPixmap(QRect(0,0,width(),height()), QPixmap(":/graphicItems/itemBackground.png"));
+        painter.drawPixmap(QRect(0,0,width(),height()), QPixmap(":/graphicItems/Ressources/itemBackground.png"));
 
         // DRAW Item name
         QRect nameField(0, height()*2/3-10, width(), height()/3);

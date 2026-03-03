@@ -23,11 +23,11 @@ Win_Interface_Trading::~Win_Interface_Trading()
 void Win_Interface_Trading::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    painter.drawPixmap(0,0,QPixmap(":/graphicItems/screenBackground.png"));
+    painter.drawPixmap(0,0,QPixmap(":/graphicItems/Ressources/screenBackground.png"));
 
     painter.setOpacity(0.5);
     painter.drawPixmap(QRect(mItemTrader->x(), mItemTrader->y(), mItemTrader->width(), mItemTrader->height()),
-                       QPixmap(":/graphicItems/itemTrader.png"));
+                       QPixmap(":/graphicItems/Ressources/itemTrader.png"));
 }
 
 
@@ -207,9 +207,9 @@ void Win_BlackSmith::paintEvent(QPaintEvent *)
     painter.setOpacity(0.7);
     painter.drawRect(rect());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(WINDOW_OFFSET,WINDOW_OFFSET,width()-2*WINDOW_OFFSET,height()-2*WINDOW_OFFSET), QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(QRect(WINDOW_OFFSET,WINDOW_OFFSET,width()-2*WINDOW_OFFSET,height()-2*WINDOW_OFFSET), QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
 
-    painter.drawPixmap(QRect(width()-480, height()-600, 480, 600), QPixmap(":/images/blacksmith_character.png"));
+    painter.drawPixmap(QRect(width()-480, height()-600, 480, 600), QPixmap(":/images/Ressources/blacksmith_character.png"));
 
     /* Forge area perimeter definition */
     quint16 diameter = 0.75*height();
@@ -235,39 +235,39 @@ void Win_BlackSmith::paintEvent(QPaintEvent *)
         switch(mBlacksmith->getEquipmentToCraft()->getEquipment()->getIdentifier())
         {
             case ARMOR_HELMET:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_helmet.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_helmet.png"));
                 break;
 
             case ARMOR_BREASTPLATE:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_breastplate.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_breastplate.png"));
                 break;
 
             case ARMOR_FOOTWEARS:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_footwears.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_footwears.png"));
                 break;
 
             case ARMOR_GLOVES:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_gloves.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_gloves.png"));
                 break;
 
             case ARMOR_AMULET:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_amulet.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_amulet.png"));
                 break;
 
             case ARMOR_PANT:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_pant.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_pant.png"));
                 break;
 
             case WEAPON_BOW:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_bow.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_bow.png"));
                 break;
 
             case WEAPON_STAFF:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_staff.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_staff.png"));
                 break;
 
             case WEAPON_SWORD:
-                painter.drawPixmap(itemCenterRect, QPixmap(":/images/forge_sword.png"));
+                painter.drawPixmap(itemCenterRect, QPixmap(":/images/Ressources/forge_sword.png"));
                 break;
         }
     }
@@ -300,7 +300,7 @@ void Win_BlackSmith::paintEvent(QPaintEvent *)
     /* Coins always at bottom */
     SETUP_COIN_DISPLAY();
     QRect IconCoinRect = QRect(forgeArea.x()+forgeArea.width()/2-iconMaterialSize/2, forgeArea.y()+forgeArea.height()-iconMaterialSize/2, iconMaterialSize, iconMaterialSize);
-    painter.drawPixmap(IconCoinRect, QPixmap(":/images/coinBag.png"));
+    painter.drawPixmap(IconCoinRect, QPixmap(":/images/Ressources/coinBag.png"));
     painter.drawText(QRect(IconCoinRect.x()-IconCoinRect.width()/2,IconCoinRect.y()-TEXT_HEIGHT,IconCoinRect.width()*2,TEXT_HEIGHT), Qt::AlignCenter, "Coin", &boundingRect);
     painter.drawText(QRect(IconCoinRect.x()-IconCoinRect.width()/2,IconCoinRect.y()+IconCoinRect.height(),IconCoinRect.width()*2,TEXT_HEIGHT), Qt::AlignCenter, QString("%1/%2").arg(mHero->getCoin()).arg(equipment->getCraftingPrice()), &boundingRect);
 
@@ -409,7 +409,7 @@ Win_Merchant::Win_Merchant(QWidget * parent):
     ui(new Ui::Win_Merchant)
 {
     mMerchant = EntitiesHandler::getInstance().getMap()->getVillage()->getMerchant();
-    mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/ship.png"));
+    mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/Ressources/bag.png"), QPixmap(":/images/Ressources/ship.png"));
     ui->setupUi(this);
     initInterface();
     connect(mMerchant, SIGNAL(sig_replenish(QObject*)), this, SLOT(closeWindow()));
@@ -470,9 +470,9 @@ void Win_Merchant::paintEvent(QPaintEvent *)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
 
-    painter.drawPixmap(QRect(width()-430, height()-630, 480, 600), QPixmap(":/images/merchant_character.png"));
+    painter.drawPixmap(QRect(width()-430, height()-630, 480, 600), QPixmap(":/images/Ressources/merchant_character.png"));
 
 
     painter.setPen(QPen(QBrush("#FFF894"),5));
@@ -572,7 +572,7 @@ Win_Alchemist::Win_Alchemist(QWidget * parent):
     ui(new Ui::Win_Alchemist)
 {
     mAlchemist = EntitiesHandler::getInstance().getMap()->getVillage()->getAlchemist();
-    mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/alchemist.png"));
+    mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/Ressources/bag.png"), QPixmap(":/images/Ressources/alchemist.png"));
     ui->setupUi(this);
 
     initInterface();
@@ -643,7 +643,7 @@ void Win_Alchemist::paintEvent(QPaintEvent *)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(QRect(100,50,width()-150,height()-150), QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
 
     painter.setPen(QPen(QBrush("#FFF894"),5));
     int offset = 20;
@@ -656,7 +656,7 @@ void Win_Alchemist::paintEvent(QPaintEvent *)
     painter.drawLine(QPointF(ui->titreCoins->x()+(ui->image_coin->x()-ui->titreCoins->x())/2, ui->data_coin_virtual->y()+ui->data_coin_virtual->height()+offset),
                      QPointF(ui->titreCoins->x()+(ui->image_coin->x()-ui->titreCoins->x())/2, ui->titreCoins->y()+ui->titreCoins->height()+10));
 
-    painter.drawPixmap(QRect(width()-480, height()-630, 480, 600), QPixmap(":/images/alchemist_character.png"));
+    painter.drawPixmap(QRect(width()-480, height()-630, 480, 600), QPixmap(":/images/Ressources/alchemist_character.png"));
 }
 
 void Win_Alchemist::on_button_validate_clicked()
@@ -724,7 +724,7 @@ Win_HeroChest::Win_HeroChest(QWidget *parent) :
     ui(new Ui::Win_chest)
 {
     mChest = EntitiesHandler::getInstance().getMap()->getVillage()->getHeroHouse()->getChest();
-    mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/bag.png"), QPixmap(":/images/chest.png"));
+    mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/Ressources/bag.png"), QPixmap(":/images/Ressources/chest.png"));
     ui->setupUi(this);
     mChest->openChest(true);
     initInterface();
@@ -827,11 +827,11 @@ void Win_Altar::paintEvent(QPaintEvent*)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(centralArea, QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(centralArea, QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
 
     /* Draw skull Lao Shan Lung */
     painter.setOpacity(0.2);
-    painter.drawPixmap(QRect(width()/4, 0, width()/2, height()), QPixmap(":/graphicItems/LaoShanLungSkull.png"));
+    painter.drawPixmap(QRect(width()/4, 0, width()/2, height()), QPixmap(":/graphicItems/Ressources/LaoShanLungSkull.png"));
 
     /* Draw item areas */
     painter.setOpacity(0.1);

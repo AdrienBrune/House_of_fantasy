@@ -53,7 +53,7 @@ CTRWindow::CTRWindow(QWidget *parent) :
 
     hide();
 
-    QCursor cursor(QPixmap(":/graphicItems/cursor.png"), 16, 16);
+    QCursor cursor(QPixmap(":/graphicItems/Ressources/cursor.png"), 16, 16);
     setCursor(cursor);
     w_menu->setCursor(cursor);
     w_loadingScreen->setCursor(cursor);
@@ -1116,7 +1116,7 @@ void CTRWindow::showPNJinfo(QGraphicsItem * interaction)
 void CTRWindow::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    painter.drawPixmap(rect(),QPixmap(":/graphicItems/screenBackground.png"));
+    painter.drawPixmap(rect(),QPixmap(":/graphicItems/Ressources/screenBackground.png"));
 }
 
 void CTRWindow::on_Skills_clicked()

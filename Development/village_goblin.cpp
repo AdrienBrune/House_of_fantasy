@@ -1,7 +1,7 @@
 #include "village_goblin.h"
 
 Village_Goblin::Village_Goblin():
-    mImage(QPixmap(":/MapItems/village_goblin_ground.png")),
+    mImage(QPixmap(":/MapItems/Ressources/village_goblin_ground.png")),
     mRoadsWeight(200)
 {
     mTownHall = new TownHall();
@@ -199,7 +199,7 @@ Hut::Hut():
 {
     mBoundingRect = QRect(0,0,200,200);
     mZOffset = mBoundingRect.height()*3/4;
-    setImage(QPixmap(":/MapItems/goblin_hut.png"));
+    setImage(QPixmap(":/MapItems/Ressources/goblin_hut.png"));
 
     QPolygon polygon;
     QPainterPath collidingShape;
@@ -233,7 +233,7 @@ TownHall::TownHall():
 {
     mBoundingRect = QRect(0,0,300,400);
     mZOffset = mBoundingRect.height()*3/4;
-    setImage(QPixmap(":/MapItems/goblin_townhall.png"));
+    setImage(QPixmap(":/MapItems/Ressources/goblin_townhall.png"));
 
     QPolygon polygon;
     QPainterPath collidingShape;
@@ -269,7 +269,7 @@ WatchTower::WatchTower():
 {
     mBoundingRect = QRect(0,0,200,300);
     mZOffset = mBoundingRect.height()*255/300;
-    setImage(QPixmap(":/MapItems/goblin_watchtower.png"));
+    setImage(QPixmap(":/MapItems/Ressources/goblin_watchtower.png"));
 
     QPolygon polygon;
     QPainterPath collidingShape;

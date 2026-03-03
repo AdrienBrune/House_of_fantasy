@@ -51,7 +51,7 @@ void W_Skill::paintEvent(QPaintEvent*)
         }
         else
         {
-            painter.drawPixmap(lockForm, QPixmap(":/graphicItems/lock.png"));
+            painter.drawPixmap(lockForm, QPixmap(":/graphicItems/Ressources/lock.png"));
             ui->unlockPoints->setText(QString("%1").arg(mSkillToShow->getUnlockPoints()));
         }
     }

@@ -355,8 +355,8 @@ void Frag_Interface_ItemTrader::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing);
     int widthOneSide = width()/2-50;
 
-    painter.drawPixmap(QRect(0, 0, width(), static_cast<int>(50*width()/1000.0)/6), QPixmap(":/graphicItems/whiteLine.png"));
-    painter.drawPixmap(QRect(0, height()-static_cast<int>(50*width()/1000.0)/6, width(), static_cast<int>(50*width()/1000.0)/6), QPixmap(":/graphicItems/whiteLine.png"));
+    painter.drawPixmap(QRect(0, 0, width(), static_cast<int>(50*width()/1000.0)/6), QPixmap(":/graphicItems/Ressources/whiteLine.png"));
+    painter.drawPixmap(QRect(0, height()-static_cast<int>(50*width()/1000.0)/6, width(), static_cast<int>(50*width()/1000.0)/6), QPixmap(":/graphicItems/Ressources/whiteLine.png"));
 
     painter.drawPixmap(QRect((widthOneSide-300)/2, (height()-300)/2, 300, 300), mPictureLeft);
     painter.drawPixmap(QRect(widthOneSide+(widthOneSide-300)/2+100, (height()-300)/2, 300, 300), mPictureRight);

@@ -615,7 +615,7 @@ Spider::Spider(QGraphicsView * view):
     mDamage = 30;
     mAction = Action::stand;
     mThreatLevel = 1;
-    mImage = QPixmap(":/monsters/spider/spider_logo.png");
+    mImage = QPixmap(":/monsters/spider/Ressources/spider_logo.png");
     mDescription = "Les araignées sont dangereuses mais aussi fragiles";
     mSkin = QRandomGenerator::global()->bounded(SPIDER_SKIN_NUM);
 
@@ -627,13 +627,13 @@ Spider::Spider(QGraphicsView * view):
     mFrames.stand = 1;
     mFrames.skinned = 1;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/spider/spider_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/spider/spider_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/spider/spider_move.png");
-    mPixmap.run = QPixmap(":/monsters/spider/spider_move.png");
-    mPixmap.stand = QPixmap(":/monsters/spider/spider_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/spider/spider_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/spider/spider_skinned.png");
+    mPixmap.heavyAttack = QPixmap(":/monsters/spider/Ressources/spider_heavyAttack.png");
+    mPixmap.lightAttack = QPixmap(":/monsters/spider/Ressources/spider_lightAttack.png");
+    mPixmap.walk = QPixmap(":/monsters/spider/Ressources/spider_move.png");
+    mPixmap.run = QPixmap(":/monsters/spider/Ressources/spider_move.png");
+    mPixmap.stand = QPixmap(":/monsters/spider/Ressources/spider_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/spider/Ressources/spider_dead.png");
+    mPixmap.skinned = QPixmap(":/monsters/spider/Ressources/spider_skinned.png");
 
     mSounds[0] = SOUND_SPIDER_HEAVYATTACK;
     mSounds[1] = SOUND_SPIDER_LIGHTATTACK;
@@ -745,7 +745,7 @@ Wolf::Wolf(QGraphicsView * view):
     mDamage = 15;
     mAction = Action::stand;
     mThreatLevel = 2;
-    mImage = QPixmap(":/monsters/wolf/wolf_logo.png");
+    mImage = QPixmap(":/monsters/wolf/Ressources/wolf_logo.png");
     mDescription = "Les loups sont des chasseurs agressifs chassant exclusivement en meute";
 
     setBoundingRect(QRectF(0,0,100,70));
@@ -756,13 +756,13 @@ Wolf::Wolf(QGraphicsView * view):
     mFrames.stand = 1;
     mFrames.skinned = 1;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/wolf/wolf_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/wolf/wolf_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/wolf/wolf_move.png");
-    mPixmap.run = QPixmap(":/monsters/wolf/wolf_run.png");
-    mPixmap.stand = QPixmap(":/monsters/wolf/wolf_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/wolf/wolf_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/wolf/wolf_skinned.png");
+    mPixmap.heavyAttack = QPixmap(":/monsters/wolf/Ressources/wolf_heavyAttack.png");
+    mPixmap.lightAttack = QPixmap(":/monsters/wolf/Ressources/wolf_lightAttack.png");
+    mPixmap.walk = QPixmap(":/monsters/wolf/Ressources/wolf_move.png");
+    mPixmap.run = QPixmap(":/monsters/wolf/Ressources/wolf_run.png");
+    mPixmap.stand = QPixmap(":/monsters/wolf/Ressources/wolf_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/wolf/Ressources/wolf_dead.png");
+    mPixmap.skinned = QPixmap(":/monsters/wolf/Ressources/wolf_skinned.png");
 
     mSounds[0] = SOUND_WOLF_HEAVYATTACK;
     mSounds[1] = SOUND_WOLF_LIGHTATTACK;
@@ -870,16 +870,16 @@ WolfAlpha::WolfAlpha(QGraphicsView * view):
     mLife = Gauge{1000,1000};
     mDamage = 18;
     mThreatLevel = 3;
-    mImage = QPixmap(":/monsters/wolfAlpha/wolfAlpha_logo.png");
+    mImage = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_logo.png");
     mDescription = "Les loups alpha sont des meneurs par nature, s'ils ont pu se hisser à la tête de leur meute, c'est bien par leur férocité sans égale";
 
     setBoundingRect(QRectF(0,0,120,80));
 
-    mPixmap.walk = QPixmap(":/monsters/wolfAlpha/wolfAlpha_move.png");
-    mPixmap.run = QPixmap(":/monsters/wolfAlpha/wolfAlpha_run.png");
-    mPixmap.stand = QPixmap(":/monsters/wolfAlpha/wolfAlpha_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/wolfAlpha/wolfAlpha_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/wolfAlpha/wolfAlpha_skinned.png");
+    mPixmap.walk = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_move.png");
+    mPixmap.run = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_run.png");
+    mPixmap.stand = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_dead.png");
+    mPixmap.skinned = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_skinned.png");
 
     mFightView = new WolfAlphaFightView();
 
@@ -929,7 +929,7 @@ Goblin::Goblin(QGraphicsView * view):
     mDamage = 8;
     mAction = Action::stand;
     mThreatLevel = 1;
-    mImage = QPixmap(":/monsters/goblin/goblin_logo.png");
+    mImage = QPixmap(":/monsters/goblin/Ressources/goblin_logo.png");
     mDescription = "Le gobelin est un être incompris et sournois qui cherchera à vous faire du mal par tous les moyens";
     mSkin = QRandomGenerator::global()->bounded(GOBLIN_SKIN_NUM);
 
@@ -941,13 +941,13 @@ Goblin::Goblin(QGraphicsView * view):
     mFrames.stand = 1;
     mFrames.skinned = 1;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/ressources/goblin/goblin_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/goblin/goblin_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/goblin/goblin_move.png");
-    mPixmap.run = QPixmap(":/monsters/goblin/goblin_run.png");
-    mPixmap.stand = QPixmap(":/monsters/goblin/goblin_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/goblin/goblin_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/goblin/goblin_skinned.png");
+    mPixmap.heavyAttack = QPixmap(":/monsters/goblin/Ressources/goblin_heavyAttack.png");
+    mPixmap.lightAttack = QPixmap(":/monsters/goblin/Ressources/goblin_lightAttack.png");
+    mPixmap.walk = QPixmap(":/monsters/goblin/Ressources/goblin_move.png");
+    mPixmap.run = QPixmap(":/monsters/goblin/Ressources/goblin_run.png");
+    mPixmap.stand = QPixmap(":/monsters/goblin/Ressources/goblin_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/goblin/Ressources/goblin_dead.png");
+    mPixmap.skinned = QPixmap(":/monsters/goblin/Ressources/goblin_skinned.png");
 
     mSounds[0] = SOUND_GOBLIN_HEAVYATTACK;
     mSounds[1] = SOUND_GOBLIN_LIGHTATTACK;
@@ -1040,7 +1040,7 @@ void Goblin::generateRandomLoots()
         mItems.append(new GoblinBones);
 
     if(QRandomGenerator::global()->bounded(10) == 0)
-        mItems.append(new Amulet("Amulette\nde shaman",QPixmap(":/equipment/amulet_7.png"),8,2,5,8,"Amulette mystérieuse confectionnée par un gobelin."));
+        mItems.append(new Amulet("Amulette\nde shaman",QPixmap(":/equipment/Ressources/amulet_7.png"),8,2,5,8,"Amulette mystérieuse confectionnée par un gobelin."));
 
 }
 
@@ -1067,7 +1067,7 @@ Bear::Bear(QGraphicsView * view):
     mDamage = 20;
     mAction = Action::stand;
     mThreatLevel = 3;
-    mImage = QPixmap(":/monsters/bear/bear_logo.png");
+    mImage = QPixmap(":/monsters/bear/Ressources/bear_logo.png");
     mDescription = "L'ours est un prédator puissant est dangereux, il hiberne pendant la saison hivernale";
     mSkin = QRandomGenerator::global()->bounded(BEAR_SKIN_NUM);
 
@@ -1079,13 +1079,13 @@ Bear::Bear(QGraphicsView * view):
     mFrames.stand = 1;
     mFrames.skinned = 1;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/bear/bear_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/bear/bear_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/bear/bear_move.png");
-    mPixmap.run = QPixmap(":/monsters/bear/bear_run.png");
-    mPixmap.stand = QPixmap(":/monsters/bear/bear_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/bear/bear_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/bear/bear_skinned.png");
+    mPixmap.heavyAttack = QPixmap(":/monsters/bear/Ressources/bear_heavyAttack.png");
+    mPixmap.lightAttack = QPixmap(":/monsters/bear/Ressources/bear_lightAttack.png");
+    mPixmap.walk = QPixmap(":/monsters/bear/Ressources/bear_move.png");
+    mPixmap.run = QPixmap(":/monsters/bear/Ressources/bear_run.png");
+    mPixmap.stand = QPixmap(":/monsters/bear/Ressources/bear_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/bear/Ressources/bear_dead.png");
+    mPixmap.skinned = QPixmap(":/monsters/bear/Ressources/bear_skinned.png");
 
     mSounds[0] = SOUND_BEAR_HEAVYATTACK;
     mSounds[1] = SOUND_BEAR_LIGHTATTACK;
@@ -1203,7 +1203,7 @@ Troll::Troll(QGraphicsView * view):
     mDamage = 14;
     mAction = Action::stand;
     mThreatLevel = 2;
-    mImage = QPixmap(":/monsters/troll/troll_logo.png");
+    mImage = QPixmap(":/monsters/troll/Ressources/troll_logo.png");
     mDescription = "Le troll est avare et cherche à dérober les biens des humains et ce par tous les moyens";
     mSkin = QRandomGenerator::global()->bounded(TROLL_SKIN_NUM);
 
@@ -1215,13 +1215,13 @@ Troll::Troll(QGraphicsView * view):
     mFrames.stand = 1;
     mFrames.skinned = 1;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/troll/troll_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/troll/troll_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/troll/troll_move.png");
-    mPixmap.run = QPixmap(":/monsters/troll/troll_run.png");
-    mPixmap.stand = QPixmap(":/monsters/troll/troll_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/troll/troll_die.png");
-    mPixmap.skinned = QPixmap(":/monsters/troll/troll_skinned.png");
+    mPixmap.heavyAttack = QPixmap(":/monsters/troll/Ressources/troll_heavyAttack.png");
+    mPixmap.lightAttack = QPixmap(":/monsters/troll/Ressources/troll_lightAttack.png");
+    mPixmap.walk = QPixmap(":/monsters/troll/Ressources/troll_move.png");
+    mPixmap.run = QPixmap(":/monsters/troll/Ressources/troll_run.png");
+    mPixmap.stand = QPixmap(":/monsters/troll/Ressources/troll_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/troll/Ressources/troll_die.png");
+    mPixmap.skinned = QPixmap(":/monsters/troll/Ressources/troll_skinned.png");
 
     mSounds[0] = SOUND_TROLL_HEAVYATTACK;
     mSounds[1] = SOUND_TROLL_LIGHTATTACK;
@@ -1312,7 +1312,7 @@ void Troll::generateRandomLoots()
         mItems.append(new TrollSkull);
 
     if(QRandomGenerator::global()->bounded(6) == 0)
-        mItems.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
+        mItems.append(new Sword("Gourdin", QPixmap(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extremement lourd et très dur à manipuler."));
 
 }
 
@@ -1342,7 +1342,7 @@ Oggre::Oggre(QGraphicsView * view):
     mDamage = 30;
     mAction = Action::stand;
     mThreatLevel = 4;
-    mImage = QPixmap(":/monsters/oggre/oggre_logo.png");
+    mImage = QPixmap(":/monsters/oggre/Ressources/oggre_logo.png");
     mDescription = "L'ogre est massif et terriblement dangereux, il vaut mieux ne pas croiser son chemin si l'on y est pas préparé";
     mSkin = QRandomGenerator::global()->bounded(OGGRE_SKIN_NUM);
 
@@ -1354,13 +1354,13 @@ Oggre::Oggre(QGraphicsView * view):
     mFrames.stand = 1;
     mFrames.skinned = 1;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/oggre/oggre_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/oggre/oggre_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/oggre/oggre_move.png");
-    mPixmap.run = QPixmap(":/monsters/oggre/oggre_run.png");
-    mPixmap.stand = QPixmap(":/monsters/oggre/oggre_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/oggre/oggre_die.png");
-    mPixmap.skinned = QPixmap(":/monsters/oggre/oggre_skinned.png");
+    mPixmap.heavyAttack = QPixmap(":/monsters/oggre/Ressources/oggre_heavyAttack.png");
+    mPixmap.lightAttack = QPixmap(":/monsters/oggre/Ressources/oggre_lightAttack.png");
+    mPixmap.walk = QPixmap(":/monsters/oggre/Ressources/oggre_move.png");
+    mPixmap.run = QPixmap(":/monsters/oggre/Ressources/oggre_run.png");
+    mPixmap.stand = QPixmap(":/monsters/oggre/Ressources/oggre_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/oggre/Ressources/oggre_die.png");
+    mPixmap.skinned = QPixmap(":/monsters/oggre/Ressources/oggre_skinned.png");
 
     mSounds[0] = SOUND_OGGRE_HEAVYATTACK;
     mSounds[1] = SOUND_OGGRE_LIGHTATTACK;
@@ -1446,7 +1446,7 @@ void Oggre::generateRandomLoots()
         mItems.append(new OggreSkull);
 
     if(QRandomGenerator::global()->bounded(3) == 0)
-        mItems.append(new Sword("Gourdin", QPixmap(":/equipment/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
+        mItems.append(new Sword("Gourdin", QPixmap(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
 }
 
 
@@ -1472,7 +1472,7 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mDamage = 50;
     mAction = Action::stand;
     mThreatLevel = 10;
-    mImage = QPixmap(":/monsters/laoshanlung/laoshanlung_logo.png");
+    mImage = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_logo.png");
     mDescription = "Créature mythique, le Lao Shun Lung est un dragon de terre colossale qui écume les plaines depuis des centaines d'années";
 
     setBoundingRect(QRectF(0,0,700,450));
@@ -1483,13 +1483,13 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mFrames.stand = 1;
     mFrames.skinned = 1;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/laoshanlung/laoshanlung_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/laoshanlung/laoshanlung_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/laoshanlung/laoshanlung_move.png");
+    mPixmap.heavyAttack = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_heavyAttack.png");
+    mPixmap.lightAttack = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_lightAttack.png");
+    mPixmap.walk = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_move.png");
     mPixmap.run = mPixmap.walk;
-    mPixmap.stand = QPixmap(":/monsters/laoshanlung/laoshanlung_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/laoshanlung/laoshanlung_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/laoshanlung/laoshanlung_skinned.png");
+    mPixmap.stand = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_stand.png");
+    mPixmap.dead = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_dead.png");
+    mPixmap.skinned = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_skinned.png");
 
     mSounds[0] = SOUND_LAOSHANLUNG_HEAVYATTACK;
     mSounds[1] = SOUND_LAOSHANLUNG_LIGHTATTACK;

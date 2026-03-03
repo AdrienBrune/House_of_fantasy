@@ -13,8 +13,8 @@ W_Interface_HeroStats::W_Interface_HeroStats(QWidget * parent, Hero * hero) :
     this->setAttribute(Qt::WA_TranslucentBackground);
     this->setAttribute(Qt::WA_TransparentForMouseEvents);
 
-    mImage_bar = QPixmap(":/graphicItems/bar.png");
-    mImage_halo = QPixmap(":/graphicItems/halo.png");
+    mImage_bar = QPixmap(":/graphicItems/Ressources/bar.png");
+    mImage_halo = QPixmap(":/graphicItems/Ressources/halo.png");
 
     ui->data_damage->installEventFilter(this);
 
