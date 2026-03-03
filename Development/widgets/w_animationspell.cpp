@@ -40,5 +40,5 @@ void W_AnimationSpell::paintEvent(QPaintEvent*)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    painter.drawPixmap(QRect(0,0,width(),height()), QPixmap(QString(":/animation/animation_spell_%1.png").arg(mSpellIndex)), QRect(mAnimation*700,0,700,700));
+    painter.drawPixmap(QRect(0,0,width(),height()), QPixmap(QString(":/animation/Ressources/animation_spell_%1.png").arg(mSpellIndex)), QRect(mAnimation*700,0,700,700));
 }

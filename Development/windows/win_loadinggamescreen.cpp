@@ -46,5 +46,5 @@ void Win_LoadingGameScreen::paintEvent(QPaintEvent*)
         image.setRect(cadre.x(), cadre.y()+(cadre.height()-cadre.width()/1.6), cadre.width(), cadre.width()/1.6);
     }
 
-    painter.drawPixmap(image, QPixmap(":/graphicItems/loadingImage.png"), QRect((mImageIndex)*1725, 0, 1725, 1080));
+    painter.drawPixmap(image, QPixmap(":/graphicItems/Ressources/loadingImage.png"), QRect((mImageIndex)*1725, 0, 1725, 1080));
 }

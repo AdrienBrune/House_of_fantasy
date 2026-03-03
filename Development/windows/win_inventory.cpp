@@ -267,7 +267,7 @@ void Win_Inventory::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing);
 
     painter.setOpacity(0.95);
-    painter.drawPixmap(QRect(50, ui->title->y(), width()-100, ui->itemArea->y()-40-ui->title->y()), QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(QRect(50, ui->title->y(), width()-100, ui->itemArea->y()-40-ui->title->y()), QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
 
     painter.setPen(QPen(QBrush(Qt::white), 2));
     painter.drawRect(QRect(50, ui->title->y(), width()-100, ui->itemArea->y()-40-ui->title->y()));
@@ -280,7 +280,7 @@ void Win_Inventory::paintEvent(QPaintEvent *)
     painter.setOpacity(1);
 
     uint16_t sizeTitle = ui->title->height();
-    painter.drawPixmap(QRect(ui->title->x()-0.4*sizeTitle, ui->title->y()-sizeTitle*0.5, sizeTitle*2, sizeTitle*2),QPixmap(":/images/bag.png"));
+    painter.drawPixmap(QRect(ui->title->x()-0.4*sizeTitle, ui->title->y()-sizeTitle*0.5, sizeTitle*2, sizeTitle*2),QPixmap(":/images/Ressources/bag.png"));
 
     painter.setBrush(QBrush());
     painter.setPen(QPen(QBrush(Qt::white), 3));
@@ -288,9 +288,9 @@ void Win_Inventory::paintEvent(QPaintEvent *)
 
     if(mShowItemDescription)
     {
-        painter.drawPixmap(QRect(ui->item_info->x(), ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/background_itemInfo_left.png"));
-        painter.drawPixmap(QRect(ui->item_info->x()+100, ui->item_info->y(), ui->item_info->width()-200, 200), QPixmap(":/graphicItems/background_itemInfo_middle.png"));
-        painter.drawPixmap(QRect(ui->item_info->x()+ui->item_info->width()-100, ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/background_itemInfo_right.png"));
+        painter.drawPixmap(QRect(ui->item_info->x(), ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/Ressources/background_itemInfo_left.png"));
+        painter.drawPixmap(QRect(ui->item_info->x()+100, ui->item_info->y(), ui->item_info->width()-200, 200), QPixmap(":/graphicItems/Ressources/background_itemInfo_middle.png"));
+        painter.drawPixmap(QRect(ui->item_info->x()+ui->item_info->width()-100, ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/Ressources/background_itemInfo_right.png"));
     }
 }
 

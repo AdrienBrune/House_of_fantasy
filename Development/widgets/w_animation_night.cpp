@@ -34,7 +34,7 @@ void W_Animation_Night::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing);
     QRect loadingArea(width()/4, height()-height()/10, width()/2, 20);
 
-    painter.drawPixmap(QRect(0,0,width(),height()), QPixmap(":/graphicItems/bedroom.png"));
+    painter.drawPixmap(QRect(0,0,width(),height()), QPixmap(":/graphicItems/Ressources/bedroom.png"));
 
     painter.setPen(QPen("#CCCCCC"));
     painter.setFont(QFont("Sitka Small", 20));

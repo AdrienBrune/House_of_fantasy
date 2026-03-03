@@ -11,7 +11,7 @@ class IMonsterFightView
 public:
     IMonsterFightView(QString monster, QRect dimensions):
         mDimensions(dimensions),
-        mImage(QPixmap(QString(":/monsters/%1/%1_fight_view.png").arg(monster)))
+        mImage(QPixmap(QString(":/monsters/%1/Ressources/%1_fight_view.png").arg(monster)))
     {}
     ~IMonsterFightView() {}
 

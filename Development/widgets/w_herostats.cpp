@@ -85,7 +85,7 @@ void W_HeroStats::paintEvent(QPaintEvent *)
     /* Drawing --------------------------------------------------------------------------- */
 
     /* Coins */
-    painter.drawPixmap(QRect(coinsPicture.x(), coinsPicture.y(), coinsPicture.width(), coinsPicture.height()), QPixmap(":/graphicItems/logo_coins.png"));
+    painter.drawPixmap(QRect(coinsPicture.x(), coinsPicture.y(), coinsPicture.width(), coinsPicture.height()), QPixmap(":/graphicItems/Ressources/logo_coins.png"));
     painter.setOpacity(1);
     painter.setPen(QPen(Qt::black));
     painter.setFont(QFont("Britannic Bold",16));
@@ -106,9 +106,9 @@ void W_HeroStats::paintEvent(QPaintEvent *)
     painter.drawText(QRect(damageBackground.x()+damagePicture.width(), damageBackground.y(), damageBackground.width()-damagePicture.width(), damageBackground.height()), Qt::AlignCenter, QString("%1").arg(mHero->getGear()->damageStat()));
     painter.drawText(QRect(touchnessBackground.x()+touchnessPicture.width(), touchnessBackground.y(), touchnessBackground.width()-touchnessPicture.width(), touchnessBackground.height()), Qt::AlignCenter, QString("%1").arg(mHero->getGear()->defenseStat()));
     painter.drawText(QRect(payloadBackground.x()+payloadPicture.width(), payloadBackground.y(), payloadBackground.width()-payloadPicture.width(), payloadBackground.height()), Qt::AlignCenter, QString("%1").arg(mHero->getBag()->getPayload().current));
-    painter.drawPixmap(damagePicture, QPixmap(":/icons/sword_logo_2.png"));
-    painter.drawPixmap(touchnessPicture, QPixmap(":/icons/shield_logo.png"));
-    painter.drawPixmap(payloadPicture, QPixmap(":/icons/payload_logo.png"));
+    painter.drawPixmap(damagePicture, QPixmap(":/icons/Ressources/sword_logo_2.png"));
+    painter.drawPixmap(touchnessPicture, QPixmap(":/icons/Ressources/shield_logo.png"));
+    painter.drawPixmap(payloadPicture, QPixmap(":/icons/Ressources/payload_logo.png"));
     /* Name */
     painter.setOpacity(1);
     painter.setPen(QPen(Qt::white));
@@ -143,5 +143,5 @@ void W_HeroStats::paintEvent(QPaintEvent *)
     painter.setPen(QPen(QBrush(), 0));
     painter.setBrush(colorGrey);
     painter.drawEllipse(portraitPicture);
-    painter.drawPixmap(QRect(portraitPicture.x(),portraitPicture.y(),portraitPicture.width(),portraitPicture.height()),QPixmap(":/graphicItems/heros_logos.png"), QRect(mHero->getHeroClass()*90,0,90,90));
+    painter.drawPixmap(QRect(portraitPicture.x(),portraitPicture.y(),portraitPicture.width(),portraitPicture.height()),QPixmap(":/graphicItems/Ressources/heros_logos.png"), QRect(mHero->getHeroClass()*90,0,90,90));
 }

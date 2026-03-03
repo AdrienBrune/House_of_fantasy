@@ -63,22 +63,22 @@ void Weapon::setSpeed(int speed)
 
 Item::Feature Weapon::getFirstCaracteristic()
 {
-    return Feature{getDamage(),QPixmap(":/icons/sword_logo.png")};
+    return Feature{getDamage(),QPixmap(":/icons/Ressources/sword_logo.png")};
 }
 
 Item::Feature Weapon::getSecondCaracteristic()
 {
-    return Feature{getWeight(),QPixmap(":/icons/payload_logo.png")};
+    return Feature{getWeight(),QPixmap(":/icons/Ressources/payload_logo.png")};
 }
 
 Item::Feature Weapon::getThirdCaracteristic()
 {
-    return Feature{getSpeed(),QPixmap(":/icons/speed_logo.png")};
+    return Feature{getSpeed(),QPixmap(":/icons/Ressources/speed_logo.png")};
 }
 
 Item::Feature Weapon::getFourthCaracteristic()
 {
-    return Feature{getPrice(),QPixmap(":/icons/coin_logo.png")};
+    return Feature{getPrice(),QPixmap(":/icons/Ressources/coin_logo.png")};
 }
 
 Weapon::~Weapon()
@@ -179,22 +179,22 @@ void ArmorPiece::setDodgingStat(qreal dodge)
 
 Item::Feature ArmorPiece::getFirstCaracteristic()
 {
-    return Feature{getDefense(),QPixmap(":/icons/shield_logo.png")};
+    return Feature{getDefense(),QPixmap(":/icons/Ressources/shield_logo.png")};
 }
 
 Item::Feature ArmorPiece::getSecondCaracteristic()
 {
-    return Feature{getWeight(),QPixmap(":/icons/payload_logo.png")};
+    return Feature{getWeight(),QPixmap(":/icons/Ressources/payload_logo.png")};
 }
 
 Item::Feature ArmorPiece::getThirdCaracteristic()
 {
-    return Feature{static_cast<int>(mDodgingStat),QPixmap(":/icons/dodge_logo.png")};
+    return Feature{static_cast<int>(mDodgingStat),QPixmap(":/icons/Ressources/dodge_logo.png")};
 }
 
 Item::Feature ArmorPiece::getFourthCaracteristic()
 {
-    return Feature{getPrice(),QPixmap(":/icons/coin_logo.png")};
+    return Feature{getPrice(),QPixmap(":/icons/Ressources/coin_logo.png")};
 }
 
 

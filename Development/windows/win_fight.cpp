@@ -333,10 +333,10 @@ void Win_Fight::paintEvent(QPaintEvent *)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(100,50,width()-200,height()-150), QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(QRect(100,50,width()-200,height()-150), QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
 
     painter.drawPixmap(QRect(ui->button_useSpell->x(), ui->button_heavyAttack->y(), ui->button_useSpell->width()*3, ui->button_heavyAttack->height()*3),
-                       QPixmap(":/graphicItems/buttons_background.png"));
+                       QPixmap(":/graphicItems/Ressources/buttons_background.png"));
 
     painter.setBrush(QBrush("#434343"));
     painter.setPen(QPen(QBrush("#FFFFFF"), 3));
@@ -609,27 +609,27 @@ void W_StatusBar::paintEvent(QPaintEvent*)
 
     if(mEntity->isApplied(Character::eStatus::benediction))
     {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/logo_benediction.png"));
+        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_benediction.png"));
         logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
     }
     if(mEntity->isApplied(Character::eStatus::confused))
     {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/logo_confused.png"));
+        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_confused.png"));
         logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
     }
     if(mEntity->isApplied(Character::eStatus::heal))
     {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/logo_heal.png"));
+        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_heal.png"));
         logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
     }
     if(mEntity->isApplied(Character::eStatus::poisoned))
     {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/logo_poisoned.png"));
+        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_poisoned.png"));
         logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
     }
     if(mEntity->isApplied(Character::eStatus::shield))
     {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/logo_shield.png"));
+        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_shield.png"));
         logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
     }
 }

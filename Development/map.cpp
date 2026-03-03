@@ -25,7 +25,7 @@ Map::Map(QWidget * parent, QGraphicsView * view):
 
     mScene = new QGraphicsScene(this);
     mScene->setSceneRect(QRect(0,0,MAP_WIDTH,MAP_HEIGHT));
-    mScene->setBackgroundBrush(QPixmap(":/map/background.png"));
+    mScene->setBackgroundBrush(QPixmap(":/map/Ressources/background.png"));
 
     t_monstersActions = new QTimer(this);
     connect(t_monstersActions, SIGNAL(timeout()), this, SLOT(monstersActionHandler()));

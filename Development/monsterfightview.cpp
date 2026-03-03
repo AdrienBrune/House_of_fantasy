@@ -23,7 +23,7 @@ void MonsterFightView::paintEvent(QPaintEvent*)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    painter.drawPixmap(rect(), QString(":/graphicItems/fight_map_%1.png").arg(str_biomes[mBiome]));
+    painter.drawPixmap(rect(), QString(":/graphicItems/Ressources/fight_map_%1.png").arg(str_biomes[mBiome]));
 
     if(!mMonster)
         return;

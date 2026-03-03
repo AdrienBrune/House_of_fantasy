@@ -203,7 +203,7 @@ void Win_Skills::paintEvent(QPaintEvent*)
 
     painter.setOpacity(0.9);
 
-    painter.drawPixmap(QRect(0, 0, width(), height()), QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(QRect(0, 0, width(), height()), QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
     //painter.setPen(QPen(Qt::white, 1));
     //painter.drawLine(QLine(ui->buttonExit->width()/2, 0, ui->buttonExit->width()/2, height()));
 
@@ -211,7 +211,7 @@ void Win_Skills::paintEvent(QPaintEvent*)
     painter.setOpacity(1);
     painter.setBrush(QBrush("#FFFFFF"));
     painter.drawRect(QRect(ui->skillPoints->x(), ui->skillPoints->y(), ui->skillPoints->rect().width(), ui->skillPoints->rect().height()));
-    //painter.drawPixmap(QRect(ui->skillPoints->x() - ui->skillPoints->height()/2, ui->skillPoints->y(), ui->skillPoints->height(), ui->skillPoints->height()), QPixmap(":/graphicItems/icon_skill.png"));
+    //painter.drawPixmap(QRect(ui->skillPoints->x() - ui->skillPoints->height()/2, ui->skillPoints->y(), ui->skillPoints->height(), ui->skillPoints->height()), QPixmap(":/graphicItems/Ressources/icon_skill.png"));
 }
 
 void Win_Skills::on_buttonUpLife_clicked()

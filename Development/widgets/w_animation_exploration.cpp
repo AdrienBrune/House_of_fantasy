@@ -50,7 +50,7 @@ void W_Animation_exploration::paintEvent(QPaintEvent *)
 
     painter.setBrush(QBrush(COLOR_BLACK));
     painter.drawEllipse(elipseArea);
-    painter.drawPixmap(QRect(elipseArea.x()+5, elipseArea.y()+5, elipseArea.width()-10, elipseArea.height()-10), QPixmap(":/graphicItems/glass.png"));
+    painter.drawPixmap(QRect(elipseArea.x()+5, elipseArea.y()+5, elipseArea.width()-10, elipseArea.height()-10), QPixmap(":/graphicItems/Ressources/glass.png"));
 
 
 /* Old animation */
@@ -77,7 +77,7 @@ void W_Animation_exploration::paintEvent(QPaintEvent *)
 
     // if(angle/360.0 > 0.6){
     //     painter.setOpacity(((angle/360.0)-0.6)*2.2);
-    //     painter.drawPixmap(QRect(offset+30, offset+30, w-2*(offset+30), h-2*(offset+30)), QPixmap(":/graphicItems/glass.png"));
+    //     painter.drawPixmap(QRect(offset+30, offset+30, w-2*(offset+30), h-2*(offset+30)), QPixmap(":/graphicItems/Ressources/glass.png"));
     // }
 }
 

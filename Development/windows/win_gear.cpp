@@ -21,15 +21,15 @@ Win_Gear::Win_Gear(QWidget *parent) :
     connect(mItemEquipment, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SLOT(hideItemHover(ItemQuickDisplayer*)));
     mItemToDisplay = nullptr;
 
-    mLife = new Frag_Stats_Displayer(this, "Points de vie", QPixmap(":/icons/lifeStat.png"), hero->getLife().current, hero->getLife().maximum);
-    mMana = new Frag_Stats_Displayer(this, "Gauge", QPixmap(":/icons/manaStat.png"), hero->getMana().current, hero->getMana().maximum);
-    mExperience =  new Frag_Stats_Displayer(this, "Expérience", QPixmap(":/icons/exp_logo.png"), hero->getExperience().points, hero->getExperience().pointsToLevelUp);
-    mDamage = new Frag_Stats_Displayer(this, "Dégats du héro", QPixmap(":/icons/sword_logo.png"), hero->getGear()->damageStat(), 0, 1);
-    mHitSpeed = new Frag_Stats_Displayer(this, "Vitesse d'attaque", QPixmap(":/icons/speed_logo.png"), hero->getAttackSpeed(), 0, 1);
-    mDefense = new Frag_Stats_Displayer(this, "Armure du héro", QPixmap(":/icons/shield_logo.png"), hero->getGear()->defenseStat(), 0, 1);
-    mDodge = new Frag_Stats_Displayer(this, "Taux d'esquive", QPixmap(":/icons/dodge_logo.png"), static_cast<int>(hero->getGear()->dodgingStat()), 0, 1);
-    mBagPayload = new Frag_Stats_Displayer(this, "Capacité du sac", QPixmap(":/images/bag.png"), hero->getBag()->getPayload().current, hero->getBag()->getPayload().max);
-    mStamina = new Frag_Stats_Displayer(this, "Endurance", QPixmap(":/icons/staminaStat.png"), hero->getStamina().maximum, 0, 1);
+    mLife = new Frag_Stats_Displayer(this, "Points de vie", QPixmap(":/icons/Ressources/lifeStat.png"), hero->getLife().current, hero->getLife().maximum);
+    mMana = new Frag_Stats_Displayer(this, "Gauge", QPixmap(":/icons/Ressources/manaStat.png"), hero->getMana().current, hero->getMana().maximum);
+    mExperience =  new Frag_Stats_Displayer(this, "Expérience", QPixmap(":/icons/Ressources/exp_logo.png"), hero->getExperience().points, hero->getExperience().pointsToLevelUp);
+    mDamage = new Frag_Stats_Displayer(this, "Dégats du héro", QPixmap(":/icons/Ressources/sword_logo.png"), hero->getGear()->damageStat(), 0, 1);
+    mHitSpeed = new Frag_Stats_Displayer(this, "Vitesse d'attaque", QPixmap(":/icons/Ressources/speed_logo.png"), hero->getAttackSpeed(), 0, 1);
+    mDefense = new Frag_Stats_Displayer(this, "Armure du héro", QPixmap(":/icons/Ressources/shield_logo.png"), hero->getGear()->defenseStat(), 0, 1);
+    mDodge = new Frag_Stats_Displayer(this, "Taux d'esquive", QPixmap(":/icons/Ressources/dodge_logo.png"), static_cast<int>(hero->getGear()->dodgingStat()), 0, 1);
+    mBagPayload = new Frag_Stats_Displayer(this, "Capacité du sac", QPixmap(":/images/Ressources/bag.png"), hero->getBag()->getPayload().current, hero->getBag()->getPayload().max);
+    mStamina = new Frag_Stats_Displayer(this, "Endurance", QPixmap(":/icons/Ressources/staminaStat.png"), hero->getStamina().maximum, 0, 1);
 
     ui->layoutStats->addWidget(mLife, 0, 0);
     ui->layoutStats->addWidget(mMana, 1, 0);
@@ -240,10 +240,10 @@ void Win_Gear::paintEvent(QPaintEvent *)
     QRect statArea(QRect(mLife->x()-15, mLife->y()-10, (mBagPayload->x()+mBagPayload->width())-mLife->x()+20, (mBagPayload->y()+mBagPayload->height())-mLife->y()+20));
     painter.setPen(QPen(QBrush(Qt::white), 1));
 
-    painter.drawPixmap(iteamArea, QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(iteamArea, QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
     //painter.drawRect(iteamArea.x()-1, iteamArea.y()-1, iteamArea.width()+2, iteamArea.height()+2);
     painter.setOpacity(0.96);
-    painter.drawPixmap(statArea, QPixmap(":/graphicItems/background_black_textured.png"));
+    painter.drawPixmap(statArea, QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
     painter.drawRect(statArea.x()-1, statArea.y()-1, statArea.width()+2, statArea.height()+2);
 
     painter.setOpacity(0.2);
@@ -253,13 +253,13 @@ void Win_Gear::paintEvent(QPaintEvent *)
 
     painter.setOpacity(0.9);
     uint16_t sizeTitle = ui->title->height();
-    painter.drawPixmap(QRect(ui->title->x()-sizeTitle*0.5, ui->title->y()-sizeTitle*0.5, sizeTitle*2, sizeTitle*2),QPixmap(":/graphicItems/plastron.png"));
+    painter.drawPixmap(QRect(ui->title->x()-sizeTitle*0.5, ui->title->y()-sizeTitle*0.5, sizeTitle*2, sizeTitle*2),QPixmap(":/graphicItems/Ressources/plastron.png"));
 
     if(mItemToDisplay)
     {
-        painter.drawPixmap(QRect(ui->item_info->x(), ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/background_itemInfo_left.png"));
-        painter.drawPixmap(QRect(ui->item_info->x()+100, ui->item_info->y(), ui->item_info->width()-200, 200), QPixmap(":/graphicItems/background_itemInfo_middle.png"));
-        painter.drawPixmap(QRect(ui->item_info->x()+ui->item_info->width()-100, ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/background_itemInfo_right.png"));
+        painter.drawPixmap(QRect(ui->item_info->x(), ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/Ressources/background_itemInfo_left.png"));
+        painter.drawPixmap(QRect(ui->item_info->x()+100, ui->item_info->y(), ui->item_info->width()-200, 200), QPixmap(":/graphicItems/Ressources/background_itemInfo_middle.png"));
+        painter.drawPixmap(QRect(ui->item_info->x()+ui->item_info->width()-100, ui->item_info->y(), 100, 200), QPixmap(":/graphicItems/Ressources/background_itemInfo_right.png"));
     }
 }
 
