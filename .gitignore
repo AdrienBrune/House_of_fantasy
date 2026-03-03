@@ -4,3 +4,4 @@ cat .gitignore
 *.o
 /Temp
 /Conception
+/saves
