@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/audio">
+        <file>Ressources/musics/music_village_1.wav</file>
+        <file>Ressources/musics/music_village_2.wav</file>
+        <file>Ressources/musics/music_village_3.wav</file>
+    </qresource>
+</RCC>

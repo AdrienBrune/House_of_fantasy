@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/audio">
+        <file>Ressources/musics/music_end_difficult_fight.wav</file>
+        <file>Ressources/musics/music_world.wav</file>
+    </qresource>
+</RCC>

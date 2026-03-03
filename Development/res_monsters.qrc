@@ -1,0 +1,101 @@
+<RCC>
+    <qresource prefix="/monsters/wolf">
+        <file>Ressources/wolf_stand.png</file>
+        <file>Ressources/wolf_move.png</file>
+        <file>Ressources/wolf_pelt.png</file>
+        <file>Ressources/wolf_dead.png</file>
+        <file>Ressources/wolf_skinned.png</file>
+        <file>Ressources/wolf_lightAttack.png</file>
+        <file>Ressources/wolf_meat.png</file>
+        <file>Ressources/wolf_heavyAttack.png</file>
+        <file>Ressources/wolf_fang.png</file>
+        <file>Ressources/wolf_run.png</file>
+        <file>Ressources/wolf_logo.png</file>
+        <file>Ressources/wolf_fight_view.png</file>
+    </qresource>
+    <qresource prefix="/monsters/goblin">
+        <file>Ressources/goblin_move.png</file>
+        <file>Ressources/goblin_run.png</file>
+        <file>Ressources/goblin_ear.png</file>
+        <file>Ressources/goblin_skinned.png</file>
+        <file>Ressources/goblin_stand.png</file>
+        <file>Ressources/goblin_dead.png</file>
+        <file>Ressources/goblin_logo.png</file>
+        <file>Ressources/goblin_heavyAttack.png</file>
+        <file>Ressources/goblin_lightAttack.png</file>
+        <file>Ressources/goblin_bones.png</file>
+        <file>Ressources/goblin_fight_view.png</file>
+    </qresource>
+    <qresource prefix="/monsters/bear">
+        <file>Ressources/bear_move.png</file>
+        <file>Ressources/bear_run.png</file>
+        <file>Ressources/bear_stand.png</file>
+        <file>Ressources/bear_dead.png</file>
+        <file>Ressources/bear_skinned.png</file>
+        <file>Ressources/bear_logo.png</file>
+        <file>Ressources/bear_heavyAttack.png</file>
+        <file>Ressources/bear_lightAttack.png</file>
+        <file>Ressources/bear_claw.png</file>
+        <file>Ressources/bear_meat.png</file>
+        <file>Ressources/bear_pelt.png</file>
+        <file>Ressources/bear_fight_view.png</file>
+    </qresource>
+    <qresource prefix="/monsters/troll">
+        <file>Ressources/troll_die.png</file>
+        <file>Ressources/troll_logo.png</file>
+        <file>Ressources/troll_run.png</file>
+        <file>Ressources/troll_stand.png</file>
+        <file>Ressources/troll_move.png</file>
+        <file>Ressources/troll_skinned.png</file>
+        <file>Ressources/troll_heavyAttack.png</file>
+        <file>Ressources/troll_lightAttack.png</file>
+        <file>Ressources/troll_meat.png</file>
+        <file>Ressources/troll_skull.png</file>
+        <file>Ressources/troll_fight_view.png</file>
+    </qresource>
+    <qresource prefix="/monsters/oggre">
+        <file>Ressources/oggre_die.png</file>
+        <file>Ressources/oggre_logo.png</file>
+        <file>Ressources/oggre_move.png</file>
+        <file>Ressources/oggre_run.png</file>
+        <file>Ressources/oggre_skinned.png</file>
+        <file>Ressources/oggre_stand.png</file>
+        <file>Ressources/oggre_heavyAttack.png</file>
+        <file>Ressources/oggre_lightAttack.png</file>
+        <file>Ressources/oggre_skull.png</file>
+        <file>Ressources/oggre_fight_view.png</file>
+    </qresource>
+    <qresource prefix="/monsters/laoshanlung">
+        <file>Ressources/laoshanlung_heavyAttack.png</file>
+        <file>Ressources/laoshanlung_lightAttack.png</file>
+        <file>Ressources/laoshanlung_logo.png</file>
+        <file>Ressources/laoshanlung_dead.png</file>
+        <file>Ressources/laoshanlung_move.png</file>
+        <file>Ressources/laoshanlung_skinned.png</file>
+        <file>Ressources/laoshanlung_stand.png</file>
+        <file>Ressources/laoshanlung_heart.png</file>
+        <file>Ressources/laoShanLung_fight_view.png</file>
+    </qresource>
+    <qresource prefix="/monsters/spider">
+        <file>Ressources/spider_move.png</file>
+        <file>Ressources/spider_dead.png</file>
+        <file>Ressources/spider_skinned.png</file>
+        <file>Ressources/spider_stand.png</file>
+        <file>Ressources/spider_logo.png</file>
+        <file>Ressources/mandibles.png</file>
+        <file>Ressources/poison_pouch.png</file>
+        <file>Ressources/spider_fight_view.png</file>
+        <file>Ressources/spider_heavyAttack.png</file>
+        <file>Ressources/spider_lightAttack.png</file>
+    </qresource>
+    <qresource prefix="/monsters/wolfAlpha">
+        <file>Ressources/wolfAlpha_dead.png</file>
+        <file>Ressources/wolfAlpha_fight_view.png</file>
+        <file>Ressources/wolfAlpha_logo.png</file>
+        <file>Ressources/wolfAlpha_move.png</file>
+        <file>Ressources/wolfAlpha_pelt.png</file>
+        <file>Ressources/wolfAlpha_run.png</file>
+        <file>Ressources/wolfAlpha_skinned.png</file>
+        <file>Ressources/wolfAlpha_stand.png</file>
+    </qresource>
+</RCC>

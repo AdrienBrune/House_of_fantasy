@@ -1,0 +1,31 @@
+<RCC>
+    <qresource prefix="/consumables">
+        <file>Ressources/potionLife.png</file>
+        <file>Ressources/potionMana.png</file>
+        <file>Ressources/bagCoin.png</file>
+        <file>Ressources/potionStamina.png</file>
+        <file>Ressources/potionStrenght.png</file>
+        <file>Ressources/fish_blue.png</file>
+        <file>Ressources/fish_red.png</file>
+        <file>Ressources/fish_yellow.png</file>
+        <file>Ressources/fish_common.png</file>
+        <file>Ressources/potionKnowledge.png</file>
+        <file>Ressources/scroll_X.png</file>
+    </qresource>
+    <qresource prefix="/materials">
+        <file>Ressources/ironOre.png</file>
+        <file>Ressources/stoneOre.png</file>
+        <file>Ressources/emeraldOre.png</file>
+        <file>Ressources/rubisOre.png</file>
+        <file>Ressources/saphirOre.png</file>
+        <file>Ressources/earthCristal.png</file>
+    </qresource>
+    <qresource prefix="/tools">
+        <file>Ressources/fishingrod.png</file>
+        <file>Ressources/pickaxe.png</file>
+        <file>Ressources/shovel.png</file>
+        <file>Ressources/compass.png</file>
+        <file>Ressources/knife.png</file>
+        <file>Ressources/map_scroll.png</file>
+    </qresource>
+</RCC>

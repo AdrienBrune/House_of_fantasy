@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/audio">
+        <file>Ressources/musics/music_event_0.wav</file>
+        <file>Ressources/musics/music_event_1.wav</file>
+        <file>Ressources/musics/music_event_2.wav</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/MapItems">
+        <file>Ressources/rock.png</file>
+        <file>Ressources/tree_fallen.png</file>
+        <file>Ressources/bush_event_coin.png</file>
+        <file>Ressources/bush_event_equipment.png</file>
+        <file>Ressources/plank.png</file>
+        <file>Ressources/stone.png</file>
+        <file>Ressources/tree.png</file>
+        <file>Ressources/chest_event_burried.png</file>
+        <file>Ressources/bush.png</file>
+        <file>Ressources/animation_fish.png</file>
+        <file>Ressources/lake.png</file>
+        <file>Ressources/merchant_house.png</file>
+        <file>Ressources/blacksmith_house.png</file>
+        <file>Ressources/house.png</file>
+        <file>Ressources/alchemist_house.png</file>
+        <file>Ressources/village_ground.png</file>
+        <file>Ressources/oreSpot.png</file>
+        <file>Ressources/goblin_hut.png</file>
+        <file>Ressources/goblin_townhall.png</file>
+        <file>Ressources/goblin_watchtower.png</file>
+        <file>Ressources/village_goblin_ground.png</file>
+        <file>Ressources/chest_openClose.png</file>
+        <file>Ressources/heroChest.png</file>
+        <file>Ressources/altar.png</file>
+        <file>Ressources/cheval_de_frise_diag.png</file>
+        <file>Ressources/cheval_de_frise_front.png</file>
+    </qresource>
+</RCC>
