@@ -74,7 +74,7 @@
        </property>
        <property name="styleSheet">
         <string notr="true">QLabel{
-	border-image:url(:/icons/skill/spell01.png);
+	border-image:url(:/icons/skill/Ressources/spell01.png);
 }</string>
        </property>
        <property name="text">

@@ -146,9 +146,9 @@
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">QPushButton_Hover{border-image:url(:/icons/button/button_blacksmith.png);border:no border;border-radius:50px;color:#3c3c3c;}
-QPushButton_Hover::hover{border-image:url(:/icons/button/button_blacksmith_h.png);}
-QPushButton_Hover::pressed{border-image:url(:/icons/button/button_blacksmith_p.png);}</string>
+          <string notr="true">QPushButton_Hover{border-image:url(:/icons/button/Ressources/button_blacksmith.png);border:no border;border-radius:50px;color:#3c3c3c;}
+QPushButton_Hover::hover{border-image:url(:/icons/button/Ressources/button_blacksmith_h.png);}
+QPushButton_Hover::pressed{border-image:url(:/icons/button/Ressources/button_blacksmith_p.png);}</string>
          </property>
          <property name="text">
           <string/>

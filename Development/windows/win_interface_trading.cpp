@@ -439,9 +439,9 @@ void Win_Merchant::initInterface()
     itemToDisplay = nullptr;
     ui->layout_item_trader->addWidget(mItemTrader, 0, Qt::AlignCenter);
 
-    ui->button_validate->setStyleSheet("QPushButton{border-image:url(:/icons/button/button_merchant.png);border:no border;border-radius:50px;color:#3c3c3c;}"
-                                       "QPushButton::hover{border-image:url(:/icons/button/button_merchant_h.png);}"
-                                       "QPushButton::pressed{border-image:url(:/icons/button/button_merchant_p.png);}");
+    ui->button_validate->setStyleSheet("QPushButton{border-image:url(:/icons/button/Ressources/button_merchant.png);border:no border;border-radius:50px;color:#3c3c3c;}"
+                                       "QPushButton::hover{border-image:url(:/icons/button/Ressources/button_merchant_h.png);}"
+                                       "QPushButton::pressed{border-image:url(:/icons/button/Ressources/button_merchant_p.png);}");
 
     ui->data_info->setWordWrap(true);
     ui->data_info->setStyleSheet("QLabel{}");
@@ -609,9 +609,9 @@ void Win_Alchemist::initInterface()
     itemToDisplay = nullptr;
     ui->layout_item_trader->addWidget(mItemTrader, 0, Qt::AlignCenter);
 
-    ui->button_validate->setStyleSheet("QPushButton{border-image:url(:/icons/button/button_buyer.png);border:no border;border-radius:50px;color:#3c3c3c;}"
-                                       "QPushButton::hover{border-image:url(:/icons/button/button_buyer_h.png);}"
-                                       "QPushButton::pressed{border-image:url(:/icons/button/button_buyer_p.png);}");
+    ui->button_validate->setStyleSheet("QPushButton{border-image:url(:/icons/button/Ressources/button_buyer.png);border:no border;border-radius:50px;color:#3c3c3c;}"
+                                       "QPushButton::hover{border-image:url(:/icons/button/Ressources/button_buyer_h.png);}"
+                                       "QPushButton::pressed{border-image:url(:/icons/button/Ressources/button_buyer_p.png);}");
 
     ui->data_info->setWordWrap(true);
     ui->data_info->setStyleSheet("QLabel{}");

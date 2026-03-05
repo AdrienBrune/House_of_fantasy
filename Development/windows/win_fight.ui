@@ -290,35 +290,35 @@
                  <property name="styleSheet">
                   <string notr="true">QPushButton{
 	border:1px solid black;
-	border-image:url(:/icons/button/buttonFight_spell.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_spell.png);
 }
 
 QPushButton::hover{
-	border-image:url(:/icons/button/buttonFight_spell_h.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_spell_h.png);
 }
 
 QPushButton::pressed{
-	border-image:url(:/icons/button/buttonFight_spell_p.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_spell_p.png);
 }
 
 QPushButton:disabled{
-	border-image:url(:/icons/button/buttonFight_spell_d.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_spell_d.png);
 }
 /*QPushButton{
 	border:1px solid black;
-	border-image:url(:/icons/button/buttonFight_4.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_4.png);
 }
 
 QPushButton::hover{
-	border-image:url(:/icons/button/buttonFight_4_hover.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_4_hover.png);
 }
 
 QPushButton::pressed{
-	border-image:url(:/icons/button/buttonFight_4_pressed.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_4_pressed.png);
 }
 
 QPushButton::disabled{
-	border-image:url(:/icons/button/buttonFight_4_disabled.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_4_disabled.png);
 }*/</string>
                  </property>
                  <property name="text">
@@ -349,19 +349,19 @@ QPushButton::disabled{
                  <property name="styleSheet">
                   <string notr="true">QPushButton{
 	border:1px solid black;
-	border-image:url(:/icons/button/buttonFight_2.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_2.png);
 }
 
 QPushButton::hover{
-	border-image:url(:/icons/button/buttonFight_2_hover.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_2_hover.png);
 }
 
 QPushButton::pressed{
-	border-image:url(:/icons/button/buttonFight_2_pressed.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_2_pressed.png);
 }
 
 QPushButton::disabled{
-	border-image:url(:/icons/button/buttonFight_2_disabled.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_2_disabled.png);
 }</string>
                  </property>
                  <property name="text">
@@ -392,19 +392,19 @@ QPushButton::disabled{
                  <property name="styleSheet">
                   <string notr="true">QPushButton{
 	border:1px solid black;
-	border-image:url(:/icons/button/buttonFight_1.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_1.png);
 }
 
 QPushButton::hover{
-	border-image:url(:/icons/button/buttonFight_1_hover.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_1_hover.png);
 }
 
 QPushButton::pressed{
-	border-image:url(:/icons/button/buttonFight_1_pressed.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_1_pressed.png);
 }
 
 QPushButton::disabled{
-	border-image:url(:/icons/button/buttonFight_1_disabled.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_1_disabled.png);
 }</string>
                  </property>
                  <property name="text">
@@ -435,19 +435,19 @@ QPushButton::disabled{
                  <property name="styleSheet">
                   <string notr="true">QPushButton{
 	border:1px solid black;
-	border-image:url(:/icons/button/buttonFight_3.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_3.png);
 }
 
 QPushButton::hover{
-	border-image:url(:/icons/button/buttonFight_3_hover.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_3_hover.png);
 }
 
 QPushButton::pressed{
-	border-image:url(:/icons/button/buttonFight_3_pressed.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_3_pressed.png);
 }
 
 QPushButton::disabled{
-	border-image:url(:/icons/button/buttonFight_3_disabled.png);
+	border-image:url(:/icons/button/Ressources/buttonFight_3_disabled.png);
 }</string>
                  </property>
                  <property name="text">
