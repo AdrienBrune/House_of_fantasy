@@ -44,10 +44,10 @@
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
-	border-image:url(:/icons/button/button_skill.png);
+	border-image:url(:/icons/button/Ressources/button_skill.png);
 }
 QPushButton::hover{
-	border-image:url(:/icons/button/button_skill_h.png);
+	border-image:url(:/icons/button/Ressources/button_skill_h.png);
 }</string>
           </property>
           <property name="text">
@@ -71,10 +71,10 @@ QPushButton::hover{
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
-	border-image:url(:/icons/button/button_armor.png);
+	border-image:url(:/icons/button/Ressources/button_armor.png);
 }
 QPushButton::hover{
-	border-image:url(:/icons/button/button_armor_h.png);
+	border-image:url(:/icons/button/Ressources/button_armor_h.png);
 }</string>
           </property>
           <property name="text">
@@ -98,10 +98,10 @@ QPushButton::hover{
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
-	border-image:url(:/icons/button/button_bag.png);
+	border-image:url(:/icons/button/Ressources/button_bag.png);
 }
 QPushButton::hover{
-	border-image:url(:/icons/button/button_bag_h.png);
+	border-image:url(:/icons/button/Ressources/button_bag_h.png);
 }</string>
           </property>
           <property name="text">
@@ -125,13 +125,13 @@ QPushButton::hover{
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
-	border-image:url(:/icons/button/button_map.png);
+	border-image:url(:/icons/button/Ressources/button_map.png);
 }
 QPushButton::hover{
-	border-image:url(:/icons/button/button_map_h.png);
+	border-image:url(:/icons/button/Ressources/button_map_h.png);
 }
 QPushButton::disabled{
-	border-image:url(:/icons/button/button_map_d.png);
+	border-image:url(:/icons/button/Ressources/button_map_d.png);
 }</string>
           </property>
           <property name="text">
@@ -155,10 +155,10 @@ QPushButton::disabled{
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
-	border-image:url(:/icons/button/button_quit.png);
+	border-image:url(:/icons/button/Ressources/button_quit.png);
 }
 QPushButton::hover{
-	border-image:url(:/icons/button/button_quit_h.png);
+	border-image:url(:/icons/button/Ressources/button_quit_h.png);
 }</string>
           </property>
           <property name="text">
