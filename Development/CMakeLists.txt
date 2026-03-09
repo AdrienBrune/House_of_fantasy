@@ -39,6 +39,7 @@ endif()
 # Sources
 # =========================
 set(HEADERS
+    ${SRC_DIR}/daynightcycle.h
     ${SRC_DIR}/bag.h
     ${SRC_DIR}/character.h
     ${SRC_DIR}/consumable.h
@@ -71,7 +72,6 @@ set(HEADERS
     ${SRC_DIR}/widgets/w_animation_forge.h
     ${SRC_DIR}/widgets/w_animation_night.h
     ${SRC_DIR}/widgets/w_animationspell.h
-    ${SRC_DIR}/widgets/w_interface_herostats.h
     ${SRC_DIR}/widgets/w_itemdisplayer.h
     ${SRC_DIR}/widgets/w_messagelogger.h
     ${SRC_DIR}/widgets/w_quicktooldrawer.h
@@ -79,6 +79,7 @@ set(HEADERS
     ${SRC_DIR}/widgets/w_spelllistselection.h
     ${SRC_DIR}/widgets/w_usetool.h
     ${SRC_DIR}/widgets/w_herostats.h
+    ${SRC_DIR}/widgets/w_daynightcycle.h
     ${SRC_DIR}/windows/win_fight.h
     ${SRC_DIR}/windows/win_gear.h
     ${SRC_DIR}/windows/win_heroselection.h
@@ -99,6 +100,7 @@ set(HEADERS
 # Sources
 # =========================
 set(SOURCES
+    ${SRC_DIR}/daynightcycle.cpp
     ${SRC_DIR}/bag.cpp
     ${SRC_DIR}/character.cpp
     ${SRC_DIR}/consumable.cpp
@@ -132,7 +134,6 @@ set(SOURCES
     ${SRC_DIR}/widgets/w_animation_forge.cpp
     ${SRC_DIR}/widgets/w_animation_night.cpp
     ${SRC_DIR}/widgets/w_animationspell.cpp
-    ${SRC_DIR}/widgets/w_interface_herostats.cpp
     ${SRC_DIR}/widgets/w_itemdisplayer.cpp
     ${SRC_DIR}/widgets/w_messagelogger.cpp
     ${SRC_DIR}/widgets/w_quicktooldrawer.cpp
@@ -140,6 +141,7 @@ set(SOURCES
     ${SRC_DIR}/widgets/w_spelllistselection.cpp
     ${SRC_DIR}/widgets/w_usetool.cpp
     ${SRC_DIR}/widgets/w_herostats.cpp
+    ${SRC_DIR}/widgets/w_daynightcycle.cpp
     ${SRC_DIR}/windows/win_fight.cpp
     ${SRC_DIR}/windows/win_gear.cpp
     ${SRC_DIR}/windows/win_heroselection.cpp
@@ -165,7 +167,6 @@ set(FORMS
     ${UI_DIR}/widgets/frags/frag_stats_displayer.ui
     ${UI_DIR}/widgets/frags/frag_save.ui
     ${UI_DIR}/widgets/w_animationspell.ui
-    ${UI_DIR}/widgets/w_interface_herostats.ui
     ${UI_DIR}/widgets/w_messagelogger.ui
     ${UI_DIR}/widgets/w_showinformation.ui
     ${UI_DIR}/widgets/w_showmonsterdata.ui

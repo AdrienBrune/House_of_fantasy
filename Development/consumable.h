@@ -6,7 +6,7 @@
 class Consumable : public Item
 {
 public:
-    Consumable(QString name, QPixmap image, int weight, int price, int capaciy);
+    Consumable(QString name, QString imagePath, int weight, int price, int capaciy);
     virtual ~Consumable();
 public:
     int getCapacity();
@@ -25,6 +25,19 @@ public:
     {
         Item::deserialize(stream);
         stream >> mCapacity;
+    }
+    inline virtual void toJson(QJsonObject &json) const override
+    {
+        Item::toJson(json);
+        json["capacity"] = mCapacity;
+    }
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        Item::fromJson(json);
+        if (json.contains("capacity") && json["capacity"].isDouble())
+        {
+            mCapacity = json["capacity"].toInt();
+        }
     }
 private:
     int mCapacity;
@@ -71,7 +84,7 @@ public:
 class Fish : public Consumable
 {
 public:
-    Fish(QString name, QPixmap image, int weight, int price, int staminaToAdd);
+    Fish(QString name, QString imagePath, int weight, int price, int staminaToAdd);
     virtual ~Fish();
 };
 

@@ -540,7 +540,7 @@ void Alchemist::buyItem(Hero * hero, Item * item)
 
 
 
-AltarBuilding::AltarBuilding(QList<Offering>* offers):
+AltarBuilding::AltarBuilding(Offering* offers):
     House (),
     mAnimation(0),
     mOffers(offers)
@@ -613,11 +613,11 @@ void AltarBuilding::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
             QRect(187, 237, 50, 50),
             QRect(254, 226, 50, 50)
         };
-        for(int i = 0; i < mOffers->size(); i++)
+        for(int i = 0; i < NUMBER_OFFERING_SLOT; i++)
         {
-            if(mOffers->at(i).item)
+            if(mOffers[i].item)
             {
-                painter->drawPixmap(offerAreas[i], QPixmap(mOffers->at(i).item->getImage()));
+                painter->drawPixmap(offerAreas[i], QPixmap(mOffers[i].item->getImage()));
             }
         }
     }
@@ -633,12 +633,12 @@ void AltarBuilding::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 Altar::Altar():
     mOfferingPixmap(QPixmap(":/materials/Ressources/earthCristal.png"))
 {
-    mBuilding = new AltarBuilding(&mOfferings);
+    mBuilding = new AltarBuilding(mOfferings);
 }
 
 Altar::~Altar()
 {
-    for(int i = 0; i < mOfferings.size(); i++)
+    for(int i = 0; i < NUMBER_OFFERING_SLOT; i++)
     {
         if(mOfferings[i].item)
             delete mOfferings[i].item;
@@ -657,7 +657,7 @@ AltarBuilding *Altar::getBuilding()
     return mBuilding;
 }
 
-QList<Offering> Altar::getOfferings()
+Offering* Altar::getOfferingsTabPtr()
 {
     return mOfferings;
 }
@@ -669,7 +669,7 @@ QPixmap Altar::getOfferingPixmap()
 
 void Altar::setOffering(int idx, Item *item)
 {
-    if(idx >= mOfferings.size())
+    if(idx >= 3)
         return;
 
     mOfferings[idx].item = item;
@@ -686,10 +686,12 @@ void Altar::setOffering(int idx, Item *item)
 
 bool Altar::isLaoShanLungSummoned()
 {
-    for(Offering offer : qAsConst(mOfferings))
+    for(Offering offer : mOfferings)
     {
         if(!offer.item)
+        {
             return false;
+        }
     }
     return true;
 }

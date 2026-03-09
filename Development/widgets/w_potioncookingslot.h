@@ -5,16 +5,16 @@
 #include <QComboBox>
 #include <QPainter>
 #include <QDebug>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonArray>
+
 #include "consumable.h"
+#include "common.h"
 
 class PotionCookingSlot : public QObject
 {
     Q_OBJECT
-
-    typedef struct {
-        quint16 current;
-        quint16 max;
-    }TimeCount;
 
 public:
     explicit PotionCookingSlot(QObject * parent = nullptr):
@@ -22,7 +22,7 @@ public:
         mLock(false),
         mCooking(false),
         mInQueue(false),
-        mCookTime(TimeCount{0,0}),
+        mCookTime(Gauge{0,0}),
         mPotion(nullptr)
     {
         mTimer.setInterval(1000);
@@ -46,31 +46,31 @@ public slots:
         if(potionName == QString("Potion de vie"))
         {
             mCookTime.current = 100;
-            mCookTime.max = 100;
+            mCookTime.maximum = 100;
             mPotion = new PotionLife();
         }
         else if(potionName == QString("Potion de mana"))
         {
             mCookTime.current = 120;
-            mCookTime.max = 120;
+            mCookTime.maximum = 120;
             mPotion = new PotionMana();
         }
         else if(potionName == QString("Potion de vitalité"))
         {
             mCookTime.current = 220;
-            mCookTime.max = 220;
+            mCookTime.maximum = 220;
             mPotion = new PotionStamina();
         }
         else if(potionName == QString("Potion de force"))
         {
             mCookTime.current = 200;
-            mCookTime.max = 200;
+            mCookTime.maximum = 200;
             mPotion = new PotionStrenght();
         }
         else if(potionName == QString("Potion ancienne"))
         {
             mCookTime.current = 260;
-            mCookTime.max = 260;
+            mCookTime.maximum = 260;
             mPotion = new PotionKnowledge();
         }
         else
@@ -111,7 +111,7 @@ public:
     bool getInQueue() { return mInQueue; }
     bool getLocked() { return mLock; }
     bool getCooking() { return mCooking; }
-    TimeCount getCookTime() { return mCookTime; }
+    Gauge getCookTime() { return mCookTime; }
     Consumable * getPotion() { return mPotion; }
 
     Consumable * takePotion()
@@ -132,7 +132,7 @@ public:
         stream << static_cast<quint8>(mLock);
         stream << static_cast<quint8>(mCooking);
         stream << static_cast<quint8>(mInQueue);
-        stream << static_cast<quint16>(mCookTime.current) << static_cast<quint16>(mCookTime.max);
+        stream << static_cast<quint16>(mCookTime.current) << static_cast<quint16>(mCookTime.maximum);
         stream << identifier;
         if(mPotion)
             mPotion->serialize(stream);
@@ -154,11 +154,11 @@ public:
         stream >> data_8; mCooking = data_8;
         stream >> data_8; mInQueue = data_8;
         stream >> current; mCookTime.current = current;
-        stream >> max; mCookTime.max = max;
+        stream >> max; mCookTime.maximum = max;
         stream >> identifier;
         if(identifier)
         {
-            mPotion = dynamic_cast<Consumable*>(Item::getInstance(identifier));
+            mPotion = dynamic_cast<Consumable*>(Item::Factory(identifier));
             mPotion->deserialize(stream);
         }
         if(mCooking)
@@ -176,12 +176,89 @@ public:
         object.deserialize(stream);
         return stream;
     }
+    inline void toJson(QJsonObject &json) const
+    {
+        json["lock"] = mLock;
+        json["cooking"] = mCooking;
+        json["queue"] = mInQueue;
+
+        QJsonObject jsonCook;
+        jsonCook["current"] = mCookTime.current;
+        jsonCook["maximum"] = mCookTime.maximum;
+        json["cook"] = jsonCook;
+
+        json.remove("potion");
+        if (mPotion)
+        {
+            QJsonObject jsonItem;
+            mPotion->toJson(jsonItem);
+            json["potion"] = jsonItem;
+        }
+    }
+    inline void fromJson(const QJsonObject &json)
+    {
+        if (json.contains("lock") && json["lock"].isBool())
+        {
+            mLock = json["lock"].toBool();
+        }
+        if (json.contains("cooking") && json["cooking"].isBool())
+        {
+            mCooking = json["cooking"].toBool();
+        }
+        if (json.contains("queue") && json["queue"].isBool())
+        {
+            mInQueue = json["queue"].toBool();
+        }
+
+        if (json.contains("cook") && json["cook"].isObject())
+        {
+            QJsonObject jsonCook = json["cook"].toObject();
+            if (jsonCook.contains("current") && jsonCook["current"].isDouble())
+            {
+                mCookTime.current = jsonCook["current"].toInt();
+            }
+            if (jsonCook.contains("maximum") && jsonCook["maximum"].isDouble())
+            {
+                mCookTime.maximum = jsonCook["maximum"].toInt();
+            }
+        }
+
+        if (json.contains("potion") && json["potion"].isObject())
+        {
+            QJsonObject jsonPotion = json["potion"].toObject();
+            if (jsonPotion.contains("type") && jsonPotion["type"].isDouble())
+            {
+                Item* item = Item::Factory(jsonPotion["type"].toInt());
+                Consumable* consumable = dynamic_cast<Consumable*>(item);
+                if (consumable)
+                {
+                    consumable->fromJson(jsonPotion);
+                    mPotion = consumable;
+                }
+                else
+                {
+                    assert(false);
+                }
+            }
+            else
+            {
+                DEBUG("potion type not found, item can't be reconstructed !");
+                assert(false);
+            }
+        }
+
+        if(mCooking)
+        {
+            mTimer.start();
+        }
+        setLocked(mLock);
+    }
 
 private:
     bool mLock;
     bool mCooking;
     bool mInQueue;
-    TimeCount mCookTime;
+    Gauge mCookTime;
     Consumable * mPotion;
     QTimer mTimer;
 };

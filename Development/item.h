@@ -9,7 +9,11 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QRandomGenerator>
 #include <QPainterPath>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonArray>
 #include "constants.h"
+#include "common.h"
 
 class Item : public QObject, public QGraphicsPixmapItem
 {
@@ -21,7 +25,7 @@ public:
     };
 
 public:
-    Item(QString name,QPixmap image, int weight, int price);
+    Item(QString name, QString imagePath, int weight, int price);
     virtual ~Item();
 signals:
     void sig_itemStatsChanged();
@@ -34,11 +38,13 @@ public:
     QString getName();
     int getWeight();
     QPixmap getImage();
+    QString getImagePath();
     int getPrice();
     QString getInformation();
     void setShape();
     void setName(QString);
     void setweight(int);
+    void setImage(QString);
     void setPrice(int);
     void setInformation(QString);
     void setHover(bool toggle);
@@ -71,17 +77,34 @@ public:
         object.deserialize(stream);
         return stream;
     }
+    inline virtual void toJson(QJsonObject &json) const
+    {
+        json["name"] = mName;
+        json["type"] = (double)mIdentifier;
+    }
+    inline virtual void fromJson(const QJsonObject &json)
+    {
+        if (json.contains("name") && json["name"].isString())
+        {
+            mName = json["name"].toString();
+        }
+        if (json.contains("type") && json["type"].isDouble())
+        {
+            mIdentifier = json["type"].toInt();
+        }
+    }
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *);
 public:
-    static Item * getInstance(quint32);
-    static quint32 getNbInstances();
+    static Item * Factory(quint32);
+    // static quint32 getNbInstances();
 protected:
     quint32 mIdentifier;
     QString mName;
     QPixmap mImage;
+    QString mImagePath;
     int mWeight;
     int mPrice;
     QString mInformation;
@@ -108,6 +131,22 @@ public:
     BagCoin(int);
     ~BagCoin();
 public:
+    inline virtual void toJson(QJsonObject &json) const
+    {
+        Item::toJson(json);
+
+        json["coins"] = mPrice;
+    }
+    inline virtual void fromJson(const QJsonObject &json)
+    {
+        Item::fromJson(json);
+
+        if (json.contains("coins") && json["coins"].isDouble())
+        {
+            mPrice = json["coins"].toInt();
+        }
+    }
+public:
     Feature getFirstCaracteristic();
     Feature getSecondCaracteristic();
     Feature getThirdCaracteristic();
@@ -120,7 +159,7 @@ public:
 class Scroll : public Item
 {
 public:
-    Scroll(QString name, QPixmap image, int weight, int price);
+    Scroll(QString name, QString imagePath, int weight, int price);
     ~Scroll();
 public:
     Feature getFirstCaracteristic();
@@ -142,7 +181,7 @@ public:
 class Tool : public Item
 {
 public:
-    Tool(QString name, QPixmap image, int weight, int price);
+    Tool(QString name, QString imagePath, int weight, int price);
     virtual ~Tool();
 public:
     bool use();

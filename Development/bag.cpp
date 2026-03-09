@@ -3,12 +3,12 @@
 Bag::Bag():
     QObject()
 {
-    mPayload = Payload{150,0};
+    mPayload = Gauge{0, 150};
 }
 
 bool Bag::addItem(Item * item)
 {
-    if(mPayload.current+item->getWeight() > mPayload.max){
+    if(mPayload.current+item->getWeight() > mPayload.maximum){
         emit sig_bagFull();
         return false;
     }
@@ -72,7 +72,7 @@ QList<Item *> Bag::getItems()
     return mItems;
 }
 
-Bag::Payload Bag::getPayload()
+Gauge Bag::getPayload()
 {
     return mPayload;
 }
@@ -168,6 +168,6 @@ Bag::~Bag()
 
 void Bag::setMaximumPayload(int max)
 {
-    mPayload.max = max;
+    mPayload.maximum = max;
     emit sig_bagEvent();
 }

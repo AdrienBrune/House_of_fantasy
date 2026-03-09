@@ -62,6 +62,8 @@ public:
     Monster(QGraphicsView*);
     virtual ~Monster();
 
+    static Monster* Factory(QString name, QGraphicsView* view);
+
 signals:
     void sig_monsterEncountered(Monster*);
     void sig_showMonsterData(Monster*);
@@ -70,6 +72,8 @@ signals:
     void sig_lightAttack();
 
 public:
+    virtual const QString GetName()=0;
+ 
     int getDamage();
     int getThreatLevel();
     Action getAction();
@@ -115,6 +119,26 @@ public:
     virtual void nextAction(Hero*)=0;
     virtual void addExtraLoots()=0;
 
+public:
+    inline virtual void toJson(QJsonObject &json) const override
+    {
+        Character::toJson(json);
+
+        json.remove("life");
+        json.remove("mana");
+        json.remove("stamina");
+        json.remove("experience");
+        if (mCoin == 0)
+        {
+            json.remove("coin");
+        }
+    }
+
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        Character::fromJson(json);
+    }
+
 protected:
     int getNumberFrame();
     void chooseAction(Hero*);
@@ -140,7 +164,6 @@ protected:
 
     int mDamage;
     int mThreatLevel;
-    int mExperience;
     QString mDescription;
 
     int mSpeed;
@@ -166,6 +189,8 @@ public:
     Spider(QGraphicsView*);
     ~Spider();
 public:
+    inline const QString GetName() override { return Spider::Name(); }
+    inline static const QString Name() { return "Araignée"; }
     void addExtraLoots();
 private:
     void nextAction(Hero*);
@@ -182,6 +207,8 @@ public:
     Wolf(QGraphicsView*);
     ~Wolf();
 public:
+    inline const QString GetName() override { return Wolf::Name(); }
+    inline static const QString Name() { return "Loup"; }
     void addExtraLoots();
 private:
     void nextAction(Hero*);
@@ -196,6 +223,9 @@ class WolfAlpha : public Wolf
 public:
     WolfAlpha(QGraphicsView*);
     ~WolfAlpha();
+public:
+    inline const QString GetName() override { return WolfAlpha::Name(); }
+    inline static const QString Name() { return "Loup Alpha"; }
 private:
     int getBoostedSpeed();
     void generateRandomLoots();
@@ -208,6 +238,8 @@ public:
     Goblin(QGraphicsView*);
     ~Goblin();
 public:
+    inline const QString GetName() override { return Goblin::Name(); }
+    inline static const QString Name() { return "Gobelin"; }
     void addExtraLoots();
 private:
     void nextAction(Hero*);
@@ -225,6 +257,8 @@ public:
     Bear(QGraphicsView*);
     ~Bear();
 public:
+    inline const QString GetName() override { return Bear::Name(); }
+    inline static const QString Name() { return "Ours"; }
     void addExtraLoots();
 private:
     void nextAction(Hero*);
@@ -242,6 +276,8 @@ public:
     Troll(QGraphicsView*);
     ~Troll();
 public:
+    inline const QString GetName() override { return Troll::Name(); }
+    inline static const QString Name() { return "Troll"; }
     void addExtraLoots();
 private:
     void nextAction(Hero*);
@@ -258,6 +294,8 @@ public:
     Oggre(QGraphicsView*);
     ~Oggre();
 public:
+    inline const QString GetName() override { return Oggre::Name(); }
+    inline static const QString Name() { return "Ogre"; }
     void addExtraLoots();
 private:
     void nextAction(Hero*);
@@ -274,6 +312,8 @@ public:
     LaoShanLung(QGraphicsView*);
     ~LaoShanLung();
 public:
+    inline const QString GetName() override { return LaoShanLung::Name(); }
+    inline static const QString Name() { return "Lao Shan Lung"; }
     void addExtraLoots();
 private:
     void nextAction(Hero*);

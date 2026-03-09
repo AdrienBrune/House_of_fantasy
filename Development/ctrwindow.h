@@ -35,6 +35,7 @@
 #include "w_quicktooldrawer.h"
 #include "w_messagelogger.h"
 #include "w_herostats.h"
+#include "w_daynightcycle.h"
 
 namespace Ui {
 class CTRWindow;
@@ -108,6 +109,7 @@ private:
     Win_Menu * w_menu;
     Win_LoadingGameScreen * w_loadingScreen;
     W_HeroStats * w_heroStats;
+    W_DayNightCycle * w_daynightcycle;
     W_Animation_exploration * w_explorationLoading;
     Win_Inventory * w_inventory;
     Win_Gear * w_gear;

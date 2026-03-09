@@ -137,7 +137,7 @@
              </property>
              <property name="styleSheet">
               <string notr="true">QLabel{
-	border-image:url(:/icons/coin_logo.png);
+	border-image:url(:/icons/Ressources/coin_logo.png);
 }</string>
              </property>
              <property name="text">
@@ -238,7 +238,7 @@
              </property>
              <property name="styleSheet">
               <string notr="true">QLabel{
-	border-image:url(:/icons/coinTrading_icon.png);
+	border-image:url(:/icons/Ressources/coinTrading_icon.png);
 }</string>
              </property>
              <property name="text">

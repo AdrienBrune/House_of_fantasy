@@ -1,4 +1,5 @@
 #include "mapitem.h"
+#include "mapevent.h"
 
 quint32 MapItem::sNbInstances = 0;
 
@@ -115,6 +116,70 @@ void MapItem::destructIt()
 }
 
 
+MapItem *MapItem::Factory(quint32 identifier)
+{
+    DEBUG("MAPITEM INSTANCE CREATION : (" + QString("%1").arg(identifier) + ")");
+
+    switch(identifier)
+    {
+    case MAPITEM_TREE:
+        return new Tree();
+
+    case MAPITEM_TREE_FALLEN:
+        return new TreeFallen();
+
+    case MAPITEM_BUSH:
+        return new Bush();
+
+    case MAPITEM_ROCK:
+        return new Rock();
+
+    case MAPITEM_GROUND:
+        return new Ground();
+
+    case MAPITEM_PLANK:
+        return new Plank();
+
+    case MAPITEM_STONE:
+        return new Stone();
+
+    case MAPITEM_LAKE:
+        return new Lake();
+
+    case MAPITEM_BUSHCOIN:
+        return new BushEventCoin();
+
+    case MAPITEM_BUSHEQUIPMENT:
+        return new BushEventEquipment();
+
+    case MAPITEM_CHESTBURRIED:
+        return new ChestBurried();
+
+    case MAPITEM_CHESTGOBLIN:
+        return new GoblinChest();
+
+    case MAPITEM_STONESPOT:
+        return new StoneOreSpot();
+
+    case MAPITEM_IRONSPOT:
+        return new IronOreSpot();
+
+    case MAPITEM_EMERALDSPOT:
+        return new EmeraldOreSpot();
+
+    case MAPITEM_SAPHIRSPOT:
+        return new SaphirOreSpot();
+
+    case MAPITEM_RUBISSPOT:
+        return new RubisOreSpot();
+
+    default:
+        DEBUG("WARNING: Unknown MapItem identifier (" + QString("%1").arg(identifier) + ")");
+        return nullptr;
+    }
+}
+
+
 Bush::Bush():
     MapItem ()
 {
@@ -124,6 +189,7 @@ Bush::Bush():
 void Bush::initMapItem()
 {
     mMapItemName = "Bush";
+    mIdentifier = MAPITEM_BUSH;
 
     mBoundingRect = QRect(0,0,100,100);
     mZOffset = mBoundingRect.height()*9/10;
@@ -194,6 +260,7 @@ Tree::Tree():
 void Tree::initMapItem()
 {
     mMapItemName = "Tree";
+    mIdentifier = MAPITEM_TREE;
 
     mBoundingRect = QRect(0,0,200,400);
     mZOffset = mBoundingRect.height()*19/20;
@@ -233,6 +300,7 @@ TreeFallen::TreeFallen():
 void TreeFallen::initMapItem()
 {
     mMapItemName = "Tree fallen";
+    mIdentifier = MAPITEM_TREE_FALLEN;
 
     mBoundingRect = QRect(0,0,200,100);
     mZOffset = mBoundingRect.height()*3/4;
@@ -264,6 +332,7 @@ Rock::Rock():
 void Rock::initMapItem()
 {
     mMapItemName = "Rock";
+    mIdentifier = MAPITEM_ROCK;
 
     mBoundingRect = QRect(0,0,150,150);
     mZOffset = mBoundingRect.height()*3/4;
@@ -301,6 +370,7 @@ void Ground::initMapItem()
 {
     QString temp = "";
     mMapItemName = "Ground";
+    mIdentifier = MAPITEM_GROUND;
 
     mBoundingRect = QRect(0,0,500,300);
     mImageSelected = 0;
@@ -436,6 +506,7 @@ Plank::Plank():
 void Plank::initMapItem()
 {
     mMapItemName = "Plank";
+    mIdentifier = MAPITEM_PLANK;
 
     mBoundingRect = QRect(0,0,100,100);
     mZOffset = mBoundingRect.height()*3/4;
@@ -462,6 +533,7 @@ Stone::Stone():
 void Stone::initMapItem()
 {
     mMapItemName = "Stone";
+    mIdentifier = MAPITEM_STONE;
 
     mBoundingRect = QRect(0,0,70,70);
     mZOffset = mBoundingRect.height()*3/4;
@@ -480,17 +552,18 @@ Stone::~Stone()
 
 
 
-Lake::Lake(MapItem * event):
-    MapItem (),
-    mEvent(event)
+Lake::Lake():
+    MapItem ()
 {
-    event->setZValue(Z_FISH_EVENT);
     initMapItem();
+    mEvent = new FishingEvent();
+    mEvent->setZValue(Z_FISH_EVENT);
 }
 
 void Lake::initMapItem()
 {
     mMapItemName = "Lake";
+    mIdentifier = MAPITEM_LAKE;
 
     mBoundingRect = QRect(0,0,700,700);
     mImageSelected = QRandomGenerator::global()->bounded(RES_LAKE);

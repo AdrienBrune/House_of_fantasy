@@ -7,6 +7,8 @@
 #include "bag.h"
 #include "skill.h"
 
+#include <string>
+
 extern bool gEnableMovementWithMouseClic;
 
 enum{ KEY_MASK_Z = 0x1, KEY_MASK_S = 0x2, KEY_MASK_D = 0x4, KEY_MASK_Q = 0x8, KEY_MASK_NB = 0x16 };
@@ -50,12 +52,6 @@ public:
         QTimer * t_move = nullptr;
         QPointF lastPos = QPointF();
         int movementMask = 0;
-    };
-
-    struct Experience{
-        int points;
-        int level;
-        int pointsToLevelUp;
     };
 
     struct AdventurerMap{
@@ -147,7 +143,7 @@ public:
     }
 
 public:
-    virtual void serialize(QDataStream& stream) const
+    void serialize(QDataStream& stream) const
     {
         stream << mClass
                << mName
@@ -172,7 +168,7 @@ public:
 
         DEBUG("SERIALIZED[in] : Hero");
     }
-    virtual void deserialize(QDataStream& stream)
+    void deserialize(QDataStream& stream)
     {
         QPointF location(0,0);
         stream >> mName
@@ -216,8 +212,128 @@ public:
         return stream;
     }
 
+    inline void toJson(QJsonObject &json) const override
+    {
+        Character::toJson(json);
+
+        json["class"] = mClass;
+
+        QJsonObject jsonSkills;
+        jsonSkills["points"] = mSkillPoints;
+        QJsonArray skillsArray;
+        for (Skill* skill : mSkillList)
+        {
+            QJsonObject jsonSkill;
+            jsonSkill["name"] = skill->getName();
+            jsonSkill["acquired"] = skill->isUnlock();
+            skillsArray.append(jsonSkill);
+        }
+        jsonSkills["list"] = skillsArray;
+        QJsonArray spellsArray;
+        for (Skill* spell : mSpellList)
+        {
+            QJsonObject jsonSpell;
+            jsonSpell["name"] = spell->getName();
+            jsonSpell["acquired"] = spell->isUnlock();
+            spellsArray.append(jsonSpell);
+        }
+        jsonSkills["spells"] = spellsArray;
+        json["skills"] = jsonSkills;
+    
+        json["map_acquired"] = mAdventurerMap.unlocked;
+
+        QJsonObject jsonBag;
+        mBag->toJson(jsonBag);
+        json["bag"] = jsonBag;
+
+        QJsonObject jsonGear;
+        mGear->toJson(jsonGear);
+        json["gear"] = jsonGear;
+    }
+
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        Character::fromJson(json);
+        setLocation(mPositionInMap);
+
+        if (json.contains("class") && json["class"].isDouble())
+        {
+            mClass = json["class"].toInt();
+        }
+
+        if (json.contains("skills") && json["skills"].isObject())
+        {
+            QJsonObject jsonSkills = json["skills"].toObject();
+            if (jsonSkills.contains("points") && jsonSkills["points"].isDouble())
+            {
+                mSkillPoints = jsonSkills["points"].toInt();
+            }
+            if (jsonSkills.contains("list") && jsonSkills["list"].isArray())
+            {
+                QJsonArray jsonArraySkills = jsonSkills["list"].toArray();
+                for (int i = 0; i < jsonArraySkills.size(); ++i)
+                {
+                    QJsonObject jsonSkill = jsonArraySkills[i].toObject();
+                    QString name = jsonSkill["name"].toString();
+                    bool acquired = jsonSkill["acquired"].toBool();
+
+                    for (Skill* skill : mSkillList)
+                    {
+                        if (name == skill->getName())
+                        {
+                            if (acquired)
+                            {
+                                skill->unlockSkill();
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            if (jsonSkills.contains("spells") && jsonSkills["spells"].isArray())
+            {
+                QJsonArray jsonArraySpells = jsonSkills["spells"].toArray();
+                for (int i = 0; i < jsonArraySpells.size(); ++i)
+                {
+                    QJsonObject jsonSpell = jsonArraySpells[i].toObject();
+                    QString name = jsonSpell["name"].toString();
+                    bool acquired = jsonSpell["acquired"].toBool();
+
+                    for (SpellSkill* spell : mSpellList)
+                    {
+                        if (name == spell->getName())
+                        {
+                            if (acquired)
+                            {
+                                spell->unlockSkill();
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (json.contains("map_acquired") && json["map_acquired"].isBool())
+        {
+            mAdventurerMap.unlocked = json["map_acquired"].toBool();
+        }
+
+        if (json.contains("bag") && json["bag"].isObject())
+        {
+            QJsonObject jsonBag = json["bag"].toObject();
+            mBag->fromJson(jsonBag);
+        }
+
+        if (json.contains("gear") && json["gear"].isObject())
+        {
+            QJsonObject jsonGear = json["gear"].toObject();
+            mGear->fromJson(jsonGear);
+        }
+    }
+
 public:
-    static Hero * getInstance(Hero::HeroClasses);
+    static Hero * factory(Hero::HeroClasses);
 
 public:
     HeroMovementHandler mMoveHandler;
@@ -226,8 +342,6 @@ protected:
     Bag * mBag;
     Gear * mGear;
     AdventurerMap mAdventurerMap;
-    int mCoin;
-    Experience mExperience;
     int mImageSelected;
     bool mInteractionPNG;
     bool mIsInVillage;
@@ -236,9 +350,9 @@ protected:
     quint8 mClass;
     bool mIsInMapEvent;
     HeroCaracteristics mHeroList[Hero::eNbHeroClasses] = {
-        { "Maphistos", 200, 20, 160, 10, 5, new Staff("baton", QPixmap(":/equipment/Ressources/sword_stick.png"), 5, 8, 5, 1, "Bâton en bois", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {6, 1, 4, 8} },
-        { "Sophia", 120, 120, 240, 10, 5, new Bow("bow", QPixmap(":/equipment/Ressources/sword_stick.png"), 12, 8, 5, 1, "Arc de fortune", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {3, 3, 7, 3} },
-        { "Archangelie", 80, 250, 120, 10, 12, new Staff("baton", QPixmap(":/equipment/Ressources/sword_stick.png"), 5, 8, 5, 1, "Bâton en boid", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {2, 8, 3, 5} }
+        { "Maphistos", 200, 20, 160, 10, 5, new Staff("baton", QString(":/equipment/Ressources/sword_stick.png"), 5, 8, 5, 1, "Bâton en bois", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {6, 1, 4, 8} },
+        { "Sophia", 120, 120, 240, 10, 5, new Bow("bow", QString(":/equipment/Ressources/sword_stick.png"), 12, 8, 5, 1, "Arc de fortune", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {3, 3, 7, 3} },
+        { "Archangelie", 80, 250, 120, 10, 12, new Staff("baton", QString(":/equipment/Ressources/sword_stick.png"), 5, 8, 5, 1, "Bâton en boid", ABLE(eSwordman)|ABLE(eArcher)|ABLE(eWizard)), {2, 8, 3, 5} }
     };
     PassiveSkill* mSkillList[PassiveSkill::NbSkills] = {
         new PassiveSkill( PassiveSkill::ForceOfNature, ABLE(eSwordman), "Force de la nature", 2, "Accorde un pourcentage de chance de frapper plus fort en combat", false, QPixmap(":/icons/skill/Ressources/skill00.png"), QPixmap(":/icons/skill/Ressources/skill01.png")) ,
@@ -281,18 +395,6 @@ public:
 
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
-public:
-    void serialize(QDataStream& stream) const override
-    {
-        Hero::serialize(stream);
-        DEBUG("SERIALIZED[in]  : Swordman");
-    }
-    void deserialize(QDataStream& stream) override
-    {
-        Hero::deserialize(stream);
-        DEBUG("SERIALIZED[out] : Swordman");
-    }
 };
 
 
@@ -306,19 +408,6 @@ public:
 
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
-public:
-
-    void serialize(QDataStream& stream) const override
-    {
-        Hero::serialize(stream);
-        DEBUG("SERIALIZED[in]  : Archer");
-    }
-    void deserialize(QDataStream& stream) override
-    {
-        Hero::deserialize(stream);
-        DEBUG("SERIALIZED[out] : Archer");
-    }
 };
 
 
@@ -336,19 +425,6 @@ public:
 
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
-public:
-
-    void serialize(QDataStream& stream) const override
-    {
-        Hero::serialize(stream);
-        DEBUG("SERIALIZED[in]  : Wizard");
-    }
-    void deserialize(QDataStream& stream) override
-    {
-        Hero::deserialize(stream);
-        DEBUG("SERIALIZED[out] : Wizard");
-    }
 };
 
 

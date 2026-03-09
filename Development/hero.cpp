@@ -235,7 +235,7 @@ void Hero::checkMapInteractions()
         CollisionShape * obstacle = dynamic_cast<CollisionShape*>(item);
         if(obstacle)
         {
-            setPos(mMoveHandler.lastPos);
+            Character::setPos(mMoveHandler.lastPos.x(), mMoveHandler.lastPos.y());
             stopMoving();
             break;
         }
@@ -345,7 +345,7 @@ void Hero::checkMapInteractions()
     }
 }
 
-Hero *Hero::getInstance(Hero::HeroClasses hero)
+Hero *Hero::factory(Hero::HeroClasses hero)
 {
     switch(hero)
     {
@@ -367,7 +367,7 @@ void Hero::move()
 {
     double dx = static_cast<double>(SPEED_HERO)*qSin(qDegreesToRadians(mMoveHandler.angle));
     double dy = -static_cast<double>(SPEED_HERO)*qCos(qDegreesToRadians(mMoveHandler.angle));
-    setPos(x()+dx, y()+dy);
+    Character::setPos(x()+dx, y()+dy);
 
     if(gEnableMovementWithMouseClic)
         if( (abs(mMoveHandler.destPos.x() - x()) < 1)  || (abs(mMoveHandler.destPos.y() - y()) < 1) )
@@ -492,7 +492,7 @@ void Hero::useConsumable(Consumable * item)
     PotionStrenght * potionStrength = dynamic_cast<PotionStrenght*>(item);
     if(potionStrength)
     {
-        getBag()->setMaximumPayload(getBag()->getPayload().max+item->getCapacity());
+        getBag()->setMaximumPayload(getBag()->getPayload().maximum+item->getCapacity());
     }
     PotionKnowledge * potionKnowledge = dynamic_cast<PotionKnowledge*>(item);
     if(potionKnowledge)
@@ -693,7 +693,7 @@ bool Hero::learnPassiveSkill(int index)
             break;
 
         case Strength:
-            mBag->setMaximumPayload(mBag->getPayload().max + mHeroList[mClass].steps.strength);
+            mBag->setMaximumPayload(mBag->getPayload().maximum + mHeroList[mClass].steps.strength);
             break;
 
         default:
@@ -709,7 +709,7 @@ bool Hero::learnPassiveSkill(int index)
 void Hero::levelUpHero()
 {
     mSkillPoints++;
-    getBag()->setMaximumPayload(getBag()->getPayload().max + 2);
+    getBag()->setMaximumPayload(getBag()->getPayload().maximum + 2);
 }
 
 Hero::~Hero()

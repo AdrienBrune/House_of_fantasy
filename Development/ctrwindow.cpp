@@ -4,9 +4,9 @@
 #include "entitieshandler.h"
 #include <QDir>
 #include <QCursor>
+#include <QRandomGenerator>
 
 quint8 loadingStep = 0;
-extern Hero * gSelectedHero;
 
 CTRWindow::CTRWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -81,26 +81,28 @@ void CTRWindow::onStartGame(Save * save)
     /* Loading screen */
     loadingStep = 0;
     emit sig_loadingGameUpdate(loadingStep);
-    w_loadingScreen->setImage(save->getHero()->getHeroClass());
+
+    int randomClass = QRandomGenerator::global()->bounded(static_cast<int>(Hero::HeroClasses::eNbHeroClasses));
+    w_loadingScreen->setImage(randomClass);
+
     w_loadingScreen->showFullScreen();
 
-    if(!mCurrentSave && mCurrentSave != save)
+    if(mCurrentSave && mCurrentSave != save)
         delete mCurrentSave;
     mCurrentSave = save;
-
-    gSelectedHero = mCurrentSave->getHero();
 
     QTimer::singleShot(1000, this, &CTRWindow::generateNewGame);
 }
 
 void CTRWindow::generateNewGame()
 {
-    // GAME ITEMS
-    DEBUG("GENERATED : ItemGenerator");
-    emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
-
     // MAP CREATION
-    mMap = new Map(this, ui->graphicsView);
+    mMap = mCurrentSave->MapFactory(this, ui->graphicsView);
+    if(!mMap)
+    {
+        DEBUG("map can't be loaded, it will be generated from scratch...");
+        mMap = new Map(this, ui->graphicsView);
+    }
     t_unfreezeMap = new QTimer(this);
     t_unfreezeMap->setSingleShot(true);
     connect(mMap, &Map::sig_monsterEncountered, this, &CTRWindow::GoToMonsterFight);
@@ -117,9 +119,7 @@ void CTRWindow::generateNewGame()
     ui->graphicsView->setRenderHint(QPainter::Antialiasing);
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    mMap->putVillageInMap(mCurrentSave->getVillage());
-    if(mMap->getVillage()->getAltar()->isLaoShanLungSummoned())
-        mMap->generateLaoShanLung();
+
     DEBUG("GENERATED : Map");
 
     // SOUND EFFECTS
@@ -133,7 +133,11 @@ void CTRWindow::generateNewGame()
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     // HERO CREATION
-    mHero = mCurrentSave->getHero();
+    mHero = mCurrentSave->HeroFactory();
+    if(!mHero)
+    {
+        assert(false && "le hero doit exister dans la sauvegarde !!");
+    }
     mMap->setHero(mHero);
     mHero->setPos(mHero->getLocation() != QPointF(0,0) ? mHero->getLocation() : QPointF(mMap->getVillage()->pos().x()+500, mMap->getVillage()->pos().y()+800));
     mHero->getAdventurerMap().map.init();
@@ -157,6 +161,11 @@ void CTRWindow::generateNewGame()
     DEBUG("GENERATED : Hero interface");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    w_daynightcycle = new W_DayNightCycle(this);
+    w_daynightcycle->setGeometry(500,0,200,200);
+    w_daynightcycle->show();
+    connect(mMap, &Map::sig_timeChanged, w_daynightcycle, &W_DayNightCycle::OnUpdateTime);
+
     ui->graphicsView->installEventFilter(this);
     mMap->getScene()->installEventFilter(this);
 
@@ -167,16 +176,6 @@ void CTRWindow::generateNewGame()
     t_PeriodicalEvents = new QTimer(this);
     connect(t_PeriodicalEvents, SIGNAL(timeout()), this, SLOT(onPeriodicalEvents()));
     t_PeriodicalEvents->start(PERIODICAL_EVENTS);
-    emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
-
-    // HERO CHEST
-    for(Item * item : mCurrentSave->getHeroChest()->getItems())
-    {
-        mMap->getVillage()->getHeroHouse()->getChest()->addItem(item);
-    }
-    if(mCurrentSave->getHeroChest())
-        delete mCurrentSave->getHeroChest();
-    mCurrentSave->setChest(nullptr);
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     w_loadingScreen->hide();
@@ -191,10 +190,6 @@ void CTRWindow::generateNewGame()
 
 void CTRWindow::closeGame()
 {
-    if(w_heroStats)
-        delete w_heroStats;
-    w_heroStats = nullptr;
-
     if(w_explorationLoading)
         delete w_explorationLoading;
     w_explorationLoading = nullptr;
@@ -250,6 +245,11 @@ void CTRWindow::closeGame()
     mMap = nullptr;
     DEBUG("DELETED : Map");
 
+    if(mHero)
+        delete mHero;
+    mHero = nullptr;
+    DEBUG("DELETED : Hero");
+
     if(mSoundManager)
         delete mSoundManager;
     mSoundManager = nullptr;
@@ -258,6 +258,9 @@ void CTRWindow::closeGame()
     if(w_heroStats)
         delete w_heroStats;
     w_heroStats = nullptr;
+    if(w_daynightcycle)
+        delete w_daynightcycle;
+    w_daynightcycle = nullptr;
     DEBUG("DELETED : Hero stats");
 
     if(t_unfreezeMap)
@@ -375,6 +378,7 @@ void CTRWindow::fightResult(Character* entityKilled)
             {
                 ShowPopUpInfo(ML_SHOW_LEVEL_UP(mHero));
             }
+            // TODO add coin if monster add some !!
             if(mHero->getLife().current < 30)
                 mSoundManager->startMusicEvent(MUSICEVENT_CLOSE_FIGHT);
         }
@@ -1071,6 +1075,12 @@ void CTRWindow::openInterface(QGraphicsItem * item)
     }
     Taverne * heroHouse = dynamic_cast<Taverne*>(item);
     if(heroHouse){
+        if (!mMap->isNight())
+        {
+            ShowPopUpInfo(ML_SHOW_SLEEP_IMPOSSIBLE(heroHouse));
+            return;
+        }
+
         mHero->freeze(true);
         unuseMapTool();
         mHero->getAdventurerMap().map.init();
@@ -1175,8 +1185,11 @@ void CTRWindow::on_buttonQuit_clicked()
 {
     mHero->freeze(true);
     mMap->freeze(true);
+    if(t_PeriodicalEvents)
+        t_PeriodicalEvents->stop();
 
     mHero->stopMoving();
+    mHero->getAdventurerMap().map.discoveryMode(false);
 
     ConfirmationDialog dialog(this);
     if(dialog.exec() == QDialog::Rejected)
@@ -1186,24 +1199,31 @@ void CTRWindow::on_buttonQuit_clicked()
         return;
     }  
 
-    /* Copy map chest to save */
-    HeroChest * chest = new HeroChest();
-    for(Item * item : mMap->getVillage()->getHeroHouse()->getChest()->getItems())
-    {
-        chest->addItem(item);
-    }
-    mCurrentSave->setChest(chest);
+    // /* Copy map chest to save */
+    // HeroChest * chest = new HeroChest();
+    // for(Item * item : mMap->getVillage()->getHeroHouse()->getChest()->getItems())
+    // {
+    //     chest->addItem(item);
+    // }
+    // mCurrentSave->setChest(chest);
 
     /* Avoid instances destruction with scene destruction */
     mMap->getScene()->removeItem(mHero);
     mMap->getVillage()->removeFromScene(mMap->getScene());
 
     /* Save current game */
-    QFile file(QString(QDir::currentPath()+"/"+FILE_SAVE+"/%1").arg(mCurrentSave->getName()));
-    file.open(QIODevice::WriteOnly);
-    QDataStream stream(&file);
-    stream << *mCurrentSave;
-    file.close();
+    // QFile file(QString(QDir::currentPath()+"/"+FILE_SAVE+"/%1").arg(mCurrentSave->getName()));
+    // file.open(QIODevice::WriteOnly);
+    // QDataStream stream(&file);
+    // stream << *mCurrentSave;
+    // file.close();
+    QString filePath = QString(QDir::currentPath() + "/" + FILE_SAVE + "/%1").arg(mCurrentSave->GetId());
+    GameContentStruct game = {
+        mHero,
+        mMap
+    };
+    mCurrentSave->UpdateGameContent(game);
+    mCurrentSave->SaveToFile(filePath);
 
     w_menu->enableButtons(true);
     w_menu->show();

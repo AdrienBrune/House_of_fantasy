@@ -8,7 +8,7 @@
 class Equipment : public Item
 {
 public:
-    Equipment(QString name, QPixmap image, int weight, int price, uint32_t usable = 0xFFFFFFFF);
+    Equipment(QString name, QString imagePath, int weight, int price, uint32_t usable = 0x0000000F);
     Equipment();
     virtual ~Equipment();
 public:
@@ -17,6 +17,42 @@ public:
 public:
     virtual void serialize(QDataStream& stream)const=0;
     virtual void deserialize(QDataStream& stream)=0;
+    inline virtual void toJson(QJsonObject &json) const override
+    {
+        Item::toJson(json);
+
+        json["price"] = mPrice;
+        json["weight"] = mWeight;
+        json["usable"] = (int)mUsable;
+        json["image"] = mImagePath;
+        json["description"] = mInformation;
+    }
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        Item::fromJson(json);
+
+        if (json.contains("price") && json["price"].isDouble())
+        {
+            mPrice = json["price"].toInt();
+        }
+        if (json.contains("weight") && json["weight"].isDouble())
+        {
+            mWeight = json["weight"].toInt();
+        }
+        if (json.contains("usable") && json["usable"].isDouble())
+        {
+            mUsable = json["usable"].toInt();
+        }
+        if (json.contains("image") && json["image"].isString())
+        {
+            QString imagePath = json["image"].toString();
+            setImage(imagePath);
+        }
+        if (json.contains("description") && json["description"].isString())
+        {
+            mInformation = json["description"].toString();
+        }
+    }
 protected:
     uint32_t mUsable;
 };
@@ -61,7 +97,7 @@ class Weapon : public Equipment
 {
     Q_OBJECT
 public:
-    Weapon(QString name, QPixmap image, int damage, int speed, int weight, int price, uint32_t usable = 0xFFFFFFFF);
+    Weapon(QString name, QString imagePath, int damage, int speed, int weight, int price, uint32_t usable = 0xFFFFFFFF);
     virtual ~Weapon();
 public:
     int getDamage();
@@ -73,17 +109,37 @@ public:
     Feature getSecondCaracteristic()override;
     Feature getThirdCaracteristic()override;
     Feature getFourthCaracteristic()override;
-    void serialize(QDataStream& stream)const override
+    void serialize(QDataStream& stream) const override
     {
         Item::serialize(stream);
         stream << mUsable << mDamage << mSpeed;
         DEBUG("SERIALIZED[in]  : Weapon");
     }
-    void deserialize(QDataStream& stream)override
+    void deserialize(QDataStream& stream) override
     {
         Item::deserialize(stream);
         stream >> mUsable >> mDamage >> mSpeed;
         DEBUG("SERIALIZED[out] : Weapon");
+    }
+    inline virtual void toJson(QJsonObject &json) const override
+    {
+        Equipment::toJson(json);
+
+        json["speed"] = mSpeed;
+        json["damage"] = mDamage;
+    }
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        Equipment::fromJson(json);
+
+        if (json.contains("speed") && json["speed"].isDouble())
+        {
+            mSpeed = json["speed"].toInt();
+        }
+        if (json.contains("damage") && json["damage"].isDouble())
+        {
+            mDamage = json["damage"].toInt();
+        }
     }
 private:
     int mDamage;
@@ -93,7 +149,7 @@ private:
 class Sword : public Weapon
 {
 public:
-    Sword(QString name, QPixmap image, int damage, int speed, int weight, int price, QString info, uint32_t usable = ABLE(HeroAbleToUSe::eSwordman));
+    Sword(QString name, QString imagePath, int damage, int speed, int weight, int price, QString info, uint32_t usable = ABLE(HeroAbleToUSe::eSwordman));
     Sword();
     ~Sword();
 };
@@ -101,7 +157,7 @@ public:
 class Bow : public Weapon
 {
 public:
-    Bow(QString name, QPixmap image, int damage, int speed, int weight, int price, QString info, uint32_t usable = ABLE(HeroAbleToUSe::eArcher));
+    Bow(QString name, QString imagePath, int damage, int speed, int weight, int price, QString info, uint32_t usable = ABLE(HeroAbleToUSe::eArcher));
     Bow();
     ~Bow();
 };
@@ -109,7 +165,7 @@ public:
 class Staff : public Weapon
 {
 public:
-    Staff(QString name, QPixmap image, int damage, int speed, int weight, int price, QString info, uint32_t usable = ABLE(HeroAbleToUSe::eWizard));
+    Staff(QString name, QString imagePath, int damage, int speed, int weight, int price, QString info, uint32_t usable = ABLE(HeroAbleToUSe::eWizard));
     Staff();
     ~Staff();
 };
@@ -121,7 +177,7 @@ class ArmorPiece : public Equipment
 {
     Q_OBJECT
 public:
-    ArmorPiece(QString name, QPixmap image, int defense, qreal dodgingStats, int weight, int price, uint32_t usable = 0xFFFFFFFF);
+    ArmorPiece(QString name, QString imagePath, int defense, qreal dodgingStats, int weight, int price, uint32_t usable = 0xFFFFFFFF);
     virtual ~ArmorPiece();
 public:
     int getDefense();
@@ -134,17 +190,37 @@ public:
     Feature getSecondCaracteristic()override;
     Feature getThirdCaracteristic()override;
     Feature getFourthCaracteristic()override;
-    void serialize(QDataStream& stream)const override
+    void serialize(QDataStream& stream) const override
     {
         Item::serialize(stream);
         stream << mUsable << mDefense << mDodgingStat;
         DEBUG("SERIALIZED[in]  : Armor");
     }
-    void deserialize(QDataStream& stream)override
+    void deserialize(QDataStream& stream) override
     {
         Item::deserialize(stream);
         stream >> mUsable >> mDefense >> mDodgingStat;
         DEBUG("SERIALIZED[out] : Armor");
+    }
+    inline virtual void toJson(QJsonObject &json) const override
+    {
+        Equipment::toJson(json);
+
+        json["defense"] = mDefense;
+        json["dodge"] = mDodgingStat;
+    }
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        Equipment::fromJson(json);
+
+        if (json.contains("defense") && json["defense"].isDouble())
+        {
+            mDefense = json["defense"].toInt();
+        }
+        if (json.contains("dodge") && json["dodge"].isDouble())
+        {
+            mDodgingStat = json["dodge"].toDouble();
+        }
     }
 private:
     int mDefense;
@@ -154,7 +230,7 @@ private:
 class Helmet : public ArmorPiece
 {
 public:
-    Helmet(QString name, QPixmap image, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
+    Helmet(QString name, QString imagePath, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
     Helmet();
     ~Helmet();
 };
@@ -162,7 +238,7 @@ public:
 class Breastplate : public ArmorPiece
 {
 public:
-     Breastplate(QString name, QPixmap image, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
+     Breastplate(QString name, QString imagePath, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
      Breastplate();
     ~Breastplate();
 };
@@ -170,7 +246,7 @@ public:
 class Gloves : public ArmorPiece
 {
 public:
-    Gloves(QString name, QPixmap image, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
+    Gloves(QString name, QString imagePath, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
     Gloves();
     ~Gloves();
 };
@@ -178,7 +254,7 @@ public:
 class Pant : public ArmorPiece
 {
 public:
-    Pant(QString name, QPixmap image, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
+    Pant(QString name, QString imagePath, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
     Pant();
     ~Pant();
 };
@@ -186,7 +262,7 @@ public:
 class Footwears : public ArmorPiece
 {
 public:
-    Footwears(QString name, QPixmap image, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
+    Footwears(QString name, QString imagePath, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
     Footwears();
     ~Footwears();
 };
@@ -194,7 +270,7 @@ public:
 class Amulet : public ArmorPiece
 {
 public:
-    Amulet(QString name, QPixmap image, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
+    Amulet(QString name, QString imagePath, int defense, qreal dodgingStats, int weight, int price, QString info, uint32_t usable = 0xFFFFFFFF);
     Amulet();
     ~Amulet();
 };
@@ -251,7 +327,7 @@ public:
         {
             quint32 identifier = 0;
             stream >> identifier;
-            Equipment * item = dynamic_cast<Equipment*>(Item::getInstance(identifier));
+            Equipment * item = dynamic_cast<Equipment*>(Item::Factory(identifier));
             item->deserialize(stream);
             if(item)
                 mEquipmentParts.append(item);
@@ -261,6 +337,46 @@ public:
             }
         }
         DEBUG("SERIALIZED[out] : Gear");
+    }
+    inline void toJson(QJsonObject &json) const
+    {
+        QJsonArray equipmentsArray;
+        for (Equipment* equipment : mEquipmentParts)
+        {
+            QJsonObject jsonEquipment;
+            equipment->toJson(jsonEquipment);
+            equipmentsArray.append(jsonEquipment);
+        }
+        json["equipments"] = equipmentsArray;
+    }
+    inline void fromJson(const QJsonObject &json)
+    {
+        if (json.contains("equipments") && json["equipments"].isArray())
+        {
+            QJsonArray jsonArrayItems = json["equipments"].toArray();
+            for (int i = 0; i < jsonArrayItems.size(); ++i)
+            {
+                QJsonObject jsonItem = jsonArrayItems[i].toObject();
+                if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
+                {
+                    DEBUG("item type not found, item can't be reconstructed !");
+                    assert(false);
+                    continue;
+                }
+                Item* item = Item::Factory(jsonItem["type"].toInt());
+
+                Equipment* equipment = dynamic_cast<Equipment*>(item);
+                if (equipment)
+                {
+                    equipment->fromJson(jsonItem);
+                    mEquipmentParts.append(equipment);
+                }
+                else
+                {
+                    assert(false);
+                }
+            }
+        }
     }
 private:
     QList<Equipment*> mEquipmentParts;

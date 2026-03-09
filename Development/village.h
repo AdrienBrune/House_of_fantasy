@@ -5,6 +5,10 @@
 #include <qrandom.h>
 #include <QPainter>
 #include <QDebug>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonArray>
+
 #include "mapitem.h"
 #include "equipment.h"
 #include "hero.h"
@@ -12,6 +16,7 @@
 #include "w_potioncookingslot.h"
 
 #define NUMBER_POTION_SLOT 3
+#define NUMBER_OFFERING_SLOT 3
 
 class House : public MapItem
 {
@@ -107,6 +112,41 @@ public:
     void buyItem(Hero*, Item*);
     void sellItem(Hero*,Item*);
 public:
+    inline void toJson(QJsonObject &json) const
+    {
+        QJsonArray itemsArray;
+        for (Item* item : mItemsToSell)
+        {
+            QJsonObject jsonItem;
+            item->toJson(jsonItem);
+            itemsArray.append(jsonItem);
+        }
+        json["items"] = itemsArray;
+    }
+    inline void fromJson(const QJsonObject &json)
+    {
+        qDeleteAll(mItemsToSell);
+        mItemsToSell.clear();
+
+        if (json.contains("items") && json["items"].isArray())
+        {
+            QJsonArray jsonArrayItems = json["items"].toArray();
+            for (int i = 0; i < jsonArrayItems.size(); ++i)
+            {
+                QJsonObject jsonItem = jsonArrayItems[i].toObject();
+                if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
+                {
+                    DEBUG("item type not found, item can't be reconstructed !");
+                    assert(false);
+                    continue;
+                }
+                Item * item = Item::Factory(jsonItem["type"].toInt());
+                item->fromJson(jsonItem);
+                mItemsToSell.append(item);
+            }
+        }
+    }
+public:
     MerchantHouse * mHouse;
 private:
     QList<Item*> mItemsToSell;
@@ -169,7 +209,6 @@ public:
 
         DEBUG("SERIALIZED[in]  : Alchemist");
     }
-
     void deserialize(QDataStream& stream)
     {
         // Remove attributes
@@ -184,7 +223,7 @@ public:
             Item * item = nullptr;
 
             stream >> identifier;
-            item = Item::getInstance(identifier);
+            item = Item::Factory(identifier);
             item->deserialize(stream);
             mItemsToSell.append(item);
         }
@@ -211,6 +250,67 @@ public:
         object.deserialize(stream);
         return stream;
     }
+    inline void toJson(QJsonObject &json) const
+    {
+        QJsonArray itemsArray;
+        for (Item * item : qAsConst(mItemsToSell))
+        {
+            QJsonObject jsonItem;
+            item->toJson(jsonItem);
+            itemsArray.append(jsonItem);
+        }
+        json["items"] = itemsArray;
+
+        QJsonArray cookingSlotsArray;
+        for (PotionCookingSlot * slot : qAsConst(mPotionSlots))
+        {
+            QJsonObject jsonCookSlot;
+            slot->toJson(jsonCookSlot);
+            cookingSlotsArray.append(jsonCookSlot);
+        }
+        json["slots"] = cookingSlotsArray;
+    }
+    inline void fromJson(const QJsonObject &json)
+    {
+        while(!mItemsToSell.isEmpty())
+            delete mItemsToSell.takeLast();
+
+        if (json.contains("items") && json["items"].isArray())
+        {
+            QJsonArray jsonArrayItems = json["items"].toArray();
+            for (int i = 0; i < jsonArrayItems.size(); ++i)
+            {
+                QJsonObject jsonItem = jsonArrayItems[i].toObject();
+                if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
+                {
+                    DEBUG("item type not found, item can't be reconstructed !");
+                    assert(false);
+                    continue;
+                }
+                Item* item = Item::Factory(jsonItem["type"].toInt());
+                item->fromJson(jsonItem);
+                mItemsToSell.append(item);
+            }
+        }
+        if (json.contains("slots") && json["slots"].isArray())
+        {
+            QJsonArray jsonArraySlots = json["slots"].toArray();
+            assert(mPotionSlots.size() == jsonArraySlots.size());
+            for (int i = 0; i < jsonArraySlots.size(); ++i)
+            {
+                QJsonObject jsonCookSlot = jsonArraySlots[i].toObject();
+                mPotionSlots[i]->fromJson(jsonCookSlot);
+            }
+        }
+
+        for(PotionCookingSlot* potionSlot : mPotionSlots)
+        {
+            if(potionSlot->getInQueue())
+            {
+                mCookingQueue.append(potionSlot);
+            }
+        }
+    }
 public:
     AlchemistHouse * mHouse;
 private:
@@ -231,7 +331,7 @@ class AltarBuilding : public House
 {
     Q_OBJECT
 public:
-    AltarBuilding(QList<Offering>* offers = nullptr);
+    AltarBuilding(Offering* offers);
     ~AltarBuilding();
 private slots:
     void animate();
@@ -241,7 +341,7 @@ protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 private:
     int mAnimation;
-    QList<Offering>* mOffers;
+    Offering* mOffers;
 };
 
 
@@ -256,14 +356,14 @@ signals:
 public:
     void setPosition(QPointF);
     AltarBuilding * getBuilding();
-    QList<Offering> getOfferings();
+    Offering* getOfferingsTabPtr();
     QPixmap getOfferingPixmap();
     void setOffering(int idx, Item * item);
     bool isLaoShanLungSummoned();
 public:
     void serialize(QDataStream& stream)const
     {
-        quint16 numberItems = mOfferings.size();
+        quint16 numberItems = NUMBER_OFFERING_SLOT;
         quint8 isNull;
 
         stream << numberItems;
@@ -282,13 +382,13 @@ public:
     {
         quint16 numberItems = 0;
 
-        // Remove attributes
-        while(!mOfferings.isEmpty())
-        {
-            Offering offering = mOfferings.takeFirst();
-            if(offering.item)
-                delete offering.item;
-        }
+        // // Remove attributes
+        // while(!mOfferings.isEmpty())
+        // {
+        //     Offering offering = mOfferings.takeFirst();
+        //     if(offering.item)
+        //         delete offering.item;
+        // }
 
         stream >> numberItems;
         for(int i = 0; i < numberItems; i++)
@@ -301,11 +401,11 @@ public:
             stream >> identifier;
             if(isNull == 0)
             {
-                item = Item::getInstance(identifier);
+                item = Item::Factory(identifier);
                 item->deserialize(stream);
             }
             Offering offer = {item, identifier};
-            mOfferings.append(offer);
+            // mOfferings.append(offer);
         }
         DEBUG("SERIALIZED[out] : Altar");
     }
@@ -319,10 +419,45 @@ public:
         object.deserialize(stream);
         return stream;
     }
+    inline void toJson(QJsonObject &json) const
+    {
+        QJsonArray itemsArray;
+        for (Offering offer : mOfferings)
+        {
+            if(offer.item)
+            {
+                QJsonObject jsonItem;
+                offer.item->toJson(jsonItem);
+                itemsArray.append(jsonItem);
+            }
+        }
+        json["offerings"] = itemsArray;
+    }
+    inline void fromJson(const QJsonObject &json)
+    {
+        if (json.contains("offerings") && json["offerings"].isArray())
+        {
+            QJsonArray jsonArrayOfferings = json["offerings"].toArray();
+            for (int i = 0; i < jsonArrayOfferings.size(); ++i)
+            {
+                QJsonObject jsonItem = jsonArrayOfferings[i].toObject();
+                if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
+                {
+                    DEBUG("item type not found, item can't be reconstructed !");
+                    assert(false);
+                    continue;
+                }
+                Item* item = Item::Factory(jsonItem["type"].toInt());
+                item->fromJson(jsonItem);
+                mOfferings[i].item = item;
+                mOfferings[i].identifier = item->getIdentifier();
+            }
+        }
+    }
 public:
     AltarBuilding * mBuilding;
 private:
-    QList<Offering> mOfferings = {
+    Offering mOfferings[NUMBER_OFFERING_SLOT] = {
         {nullptr, EARTH_CRISTAL},
         {nullptr, EARTH_CRISTAL},
         {nullptr, EARTH_CRISTAL}
@@ -377,7 +512,7 @@ public:
         {
             quint32 identifier = 0;
             stream >> identifier;
-            Item * item = Item::getInstance(identifier);
+            Item * item = Item::Factory(identifier);
             item->deserialize(stream);
             addItem(item);
         }
@@ -392,6 +527,37 @@ public:
     {
         object.deserialize(stream);
         return stream;
+    }
+    inline void toJson(QJsonObject &json) const
+    {
+        QJsonArray itemsArray;
+        for (Item* item : mItems)
+        {
+            QJsonObject jsonItem;
+            item->toJson(jsonItem);
+            itemsArray.append(jsonItem);
+        }
+        json["items"] = itemsArray;
+    }
+    inline void fromJson(const QJsonObject &json)
+    {
+        if (json.contains("items") && json["items"].isArray())
+        {
+            QJsonArray jsonArrayItems = json["items"].toArray();
+            for (int i = 0; i < jsonArrayItems.size(); ++i)
+            {
+                QJsonObject jsonItem = jsonArrayItems[i].toObject();
+                if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
+                {
+                    DEBUG("item type not found, item can't be reconstructed !");
+                    assert(false);
+                    continue;
+                }
+                Item* item = Item::Factory(jsonItem["type"].toInt());
+                item->fromJson(jsonItem);
+                mItems.append(item);
+            }
+        }
     }
 private:
     void setGraphicStuff();
@@ -508,6 +674,47 @@ public:
     {
         object.deserialize(stream);
         return stream;
+    }
+    inline void toJson(QJsonObject &json) const
+    {
+        QJsonObject jsonAltar;
+        mAltar->toJson(jsonAltar);
+        json["altar"] = jsonAltar;
+
+        QJsonObject jsonAlchemist;
+        mAlchemist->toJson(jsonAlchemist);
+        json["alchemist"] = jsonAlchemist;
+
+        QJsonObject jsonMerchant;
+        mMerchant->toJson(jsonMerchant);
+        json["merchant"] = jsonMerchant;
+
+        QJsonObject jsonHeroChest;
+        mHouse->mChest->toJson(jsonHeroChest);
+        json["hero_chest"] = jsonHeroChest;
+    }
+    inline void fromJson(const QJsonObject &json)
+    {
+        if (json.contains("altar") && json["altar"].isObject())
+        {
+            QJsonObject jsonAltar = json["altar"].toObject();
+            mAltar->fromJson(jsonAltar);
+        }
+        if (json.contains("alchemist") && json["alchemist"].isObject())
+        {
+            QJsonObject jsonAlchemist = json["alchemist"].toObject();
+            mAlchemist->fromJson(jsonAlchemist);
+        }
+        if (json.contains("merchant") && json["merchant"].isObject())
+        {
+            QJsonObject jsonMerchant = json["merchant"].toObject();
+            mMerchant->fromJson(jsonMerchant);
+        }
+        if (json.contains("hero_chest") && json["hero_chest"].isObject())
+        {
+            QJsonObject jsonChest = json["hero_chest"].toObject();
+            mHouse->mChest->fromJson(jsonChest);
+        }
     }
 private:
     QPixmap mImage;

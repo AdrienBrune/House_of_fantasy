@@ -26,6 +26,49 @@ public:
     bool eventIsActive();
 
     virtual void itemsTook()=0;
+
+public:
+    inline void toJson(QJsonObject &json) const override
+    {
+        MapItem::toJson(json);
+
+        QJsonArray jsonArrayItems;
+        for (Item* item : mItems)
+        {
+            QJsonObject jsonItem;
+            item->toJson(jsonItem);
+            jsonArrayItems.append(jsonItem);
+        }
+        json["items"] = jsonArrayItems;
+    }
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        MapItem::fromJson(json);
+
+        qDeleteAll(mItems);
+        mItems.clear();
+
+        if (json.contains("items") && json["items"].isArray())
+        {
+            QJsonArray jsonArrayItems = json["items"].toArray();
+            for (QJsonValueRef item : jsonArrayItems)
+            {
+                QJsonObject jsonItem = item.toObject();
+                if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
+                {
+                    DEBUG("item type not found, item can't be reconstructed !");
+                    assert(false);
+                    continue;
+                }
+                Item* item = Item::Factory(jsonItem["type"].toInt()); 
+                if (item)
+                {
+                    item->fromJson(jsonItem);
+                    mItems.append(item);
+                }
+            }
+        }
+    }
 protected:
     QList<Item*> mItems;
 };
@@ -51,7 +94,6 @@ protected:
     int mNextFrame;
     QTimer * t_animation;
     QTimer * t_startAnimation;
-    QList<Item*> mFishes;
 };
 
 class BushEvent : public MapEvent
@@ -166,7 +208,6 @@ public:
 signals:
     void sig_clicToOpenChest(ChestEvent*);
 public:
-    void removeItem(Item*);
     QList<Item*> getItems();
     void revealChest();
     bool isRevealed();
@@ -176,6 +217,38 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void itemsTook();
+public:
+    inline void toJson(QJsonObject &json) const override
+    {
+        MapEvent::toJson(json);
+
+        json["opened"] = mIsOpen;
+        json["revealed"] = mRevealChest;
+    }
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        MapEvent::fromJson(json);
+
+        if (json.contains("opened"))
+        {
+            mIsOpen = json["opened"].toBool();
+        }
+
+        if (json.contains("revealed"))
+        {
+            mRevealChest = json["revealed"].toInt();
+            if (mRevealChest == 1)
+            {
+                setAcceptHoverEvents(true);
+            }
+            else if (mRevealChest == 2)
+            {
+                setAcceptHoverEvents(false);
+            }
+        }
+
+        setShape();
+    }
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *);

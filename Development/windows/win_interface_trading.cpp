@@ -794,11 +794,11 @@ Win_Altar::Win_Altar(QWidget *parent):
     mAreasOffering.append(QRect(window.x()+OFFERINGS_OFFSET+OFFERING_SIZE+OFFERINGS_SPACING, height()/2-OFFERING_SIZE/2, OFFERING_SIZE, OFFERING_SIZE));
     mAreasOffering.append(QRect(window.x()+OFFERINGS_OFFSET+(2*OFFERING_SIZE)+(2*OFFERINGS_SPACING), height()/2-OFFERING_SIZE/2, OFFERING_SIZE, OFFERING_SIZE));
 
-    for(int i = 0; i < mAltar->getOfferings().size(); i++)
+    for(int i = 0; i < NUMBER_OFFERING_SLOT; i++)
     {
-        if(mHero->getBag()->getQuantityOf(mAltar->getOfferings().at(i).identifier) && !mAltar->getOfferings().at(i).item)
+        if(mHero->getBag()->getQuantityOf(mAltar->getOfferingsTabPtr()[i].identifier) && !mAltar->getOfferingsTabPtr()[i].item)
         {
-            QPushButton_Offering * button = new QPushButton_Offering(this, mHero->getBag()->getItem(mAltar->getOfferings().at(i).identifier), i);
+            QPushButton_Offering * button = new QPushButton_Offering(this, mHero->getBag()->getItem(mAltar->getOfferingsTabPtr()[i].identifier), i);
             connect(button, SIGNAL(sig_offer(Item*, int)), this, SLOT(onGiveOffering(Item*, int)));
             button->setGeometry(mAreasOffering.at(i).x(), mAreasOffering.at(i).y()+mAreasOffering.at(i).height()+5, mAreasOffering.at(i).width(), button->height());
         }
@@ -844,7 +844,7 @@ void Win_Altar::paintEvent(QPaintEvent*)
     /* Draw items */
     for(int i = 0; i < mAreasOffering.size(); i++)
     {
-        mAltar->getOfferings().at(i).item ? painter.setOpacity(1) : painter.setOpacity(0.4);
+        mAltar->getOfferingsTabPtr()[i].item ? painter.setOpacity(1) : painter.setOpacity(0.4);
         painter.drawPixmap(mAreasOffering.at(i), mAltar->getOfferingPixmap());
     }
 }

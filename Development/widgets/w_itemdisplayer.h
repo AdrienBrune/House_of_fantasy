@@ -37,7 +37,6 @@ public:
     Feature getThirdCaracteristic();
     Feature getFourthCaracteristic();
 public:
-    void setSelectedHero();
     QPainterPath shape() const;
     QRectF boundingRect()const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

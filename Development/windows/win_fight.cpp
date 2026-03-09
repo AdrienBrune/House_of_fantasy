@@ -483,17 +483,17 @@ void W_AnimatedProgressBar::onStatChanged()
     switch(mSetting.entityStatToDisplay)
     {
         case eLife:
-            mStatBar.max = mEntity->getLife().maximum;
+            mStatBar.maximum = mEntity->getLife().maximum;
             mStatBar.current = mEntity->getLife().current;
             break;
 
         case eMana:
-            mStatBar.max = mEntity->getMana().maximum;
+            mStatBar.maximum = mEntity->getMana().maximum;
             mStatBar.current = mEntity->getMana().current;
             break;
 
         case eStamina:
-            mStatBar.max = mEntity->getStamina().maximum;
+            mStatBar.maximum = mEntity->getStamina().maximum;
             mStatBar.current = mEntity->getStamina().current;
             break;
     }
@@ -539,19 +539,19 @@ void W_AnimatedProgressBar::setupUi(Character * entity, Settings settings)
     switch(settings.entityStatToDisplay)
     {
         case eLife:
-            mStatBar.max = mEntity->getLife().maximum;
+            mStatBar.maximum = mEntity->getLife().maximum;
             mStatBar.current = mEntity->getLife().current;
             connect(entity, &Character::sig_lifeChanged, this, &W_AnimatedProgressBar::onStatChanged);
             break;
 
         case eMana:
-            mStatBar.max = mEntity->getMana().maximum;
+            mStatBar.maximum = mEntity->getMana().maximum;
             mStatBar.current = mEntity->getMana().current;
             connect(entity, &Character::sig_manaChanged, this, &W_AnimatedProgressBar::onStatChanged);
             break;
 
         case eStamina:
-            mStatBar.max = mEntity->getStamina().maximum;
+            mStatBar.maximum = mEntity->getStamina().maximum;
             mStatBar.current = mEntity->getStamina().current;
             connect(entity, &Character::sig_staminaMaxChanged, this, &W_AnimatedProgressBar::onStatChanged);
             break;
@@ -571,8 +571,8 @@ void W_AnimatedProgressBar::paintEvent(QPaintEvent*)
     QRect field(BORDER_SIZE, BORDER_SIZE, width()-2*BORDER_SIZE, height()-2*BORDER_SIZE);
 
     QRect statBackground(field);
-    QRect statBlink(field.x(),field.y(),field.width()*(static_cast<qreal>(mStatBar.lost)/static_cast<qreal>(mStatBar.max)),field.height());
-    QRect statFilling(field.x(),field.y(),field.width()*(static_cast<qreal>(mStatBar.current)/static_cast<qreal>(mStatBar.max)),field.height());
+    QRect statBlink(field.x(),field.y(),field.width()*(static_cast<qreal>(mStatBar.lost)/static_cast<qreal>(mStatBar.maximum)),field.height());
+    QRect statFilling(field.x(),field.y(),field.width()*(static_cast<qreal>(mStatBar.current)/static_cast<qreal>(mStatBar.maximum)),field.height());
 
     painter.setPen(QPen(QBrush("#00FFFFFF"), 0));
 

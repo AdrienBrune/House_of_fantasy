@@ -58,8 +58,8 @@ public:
     struct StatBar
     {
         uint32_t current;
+        uint32_t maximum;
         uint32_t lost;
-        uint32_t max;
     };
     struct Animation{
         QTimer * blink;
