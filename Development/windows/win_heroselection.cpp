@@ -76,13 +76,16 @@ void Win_HeroSelection::on_buttonContinue_clicked()
         return;
     }
 
-    Hero * hero = Hero::getInstance(static_cast<Hero::HeroClasses>(ui->heroClass->currentIndex()));
+    Hero * hero = Hero::factory(static_cast<Hero::HeroClasses>(ui->heroClass->currentIndex()));
     hero->setName(ui->heroName->text());
+    
     Save * save = new Save();
-    save->setHero(hero);
-    save->setChest(new HeroChest);
-    save->setName(ui->saveName->text());
-    save->setVillage(new Village);
+    GameContentStruct game = {
+        hero,
+        nullptr
+    };
+    save->SetId(ui->saveName->text());
+    save->UpdateGameContent(game);
     emit sig_HeroSelected(save);
     close();
 }

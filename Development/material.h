@@ -6,7 +6,7 @@
 class Material : public Item
 {
 public:
-    Material(QString name, QPixmap image, int weight, int price);
+    Material(QString name, QString imagePath, int weight, int price);
     virtual ~Material();
 public:
     Feature getFirstCaracteristic();
@@ -61,7 +61,7 @@ class MonsterMaterial : public Material
 {
 
 public:
-    MonsterMaterial(QString name, QPixmap image, int weight, int price);
+    MonsterMaterial(QString name, QString imagePath, int weight, int price);
     virtual ~MonsterMaterial();
 };
 

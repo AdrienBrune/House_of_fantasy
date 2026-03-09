@@ -39,6 +39,7 @@ public:
 signals:
     void sig_playSound(int);
 public:
+    static MapItem* Factory(quint32 identifier);
     void setImage(QPixmap image, bool trueShape = false, bool scale = false);
     QPixmap getImage();
     QString invocName();
@@ -46,15 +47,64 @@ public:
     QRectF boundingRect()const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public:
+    inline virtual bool isMovable() { return false; }
     bool isObstacle();
     bool isDestroyed();
     CollisionShape * getObstacleShape();
     const int & getZOffset();
+    void setPos(QPointF position)
+    {
+        QGraphicsPixmapItem::setPos(position);
+        mPosition = position;
+    }
+    void setPos(qreal x, qreal y)
+    {
+        QGraphicsPixmapItem::setPos(x, y);
+        mPosition = QPointF(x, y);
+    }
 private:
     void setShape(QPixmap image, bool trueShape = false, bool scale = false);
 protected:
     void destructIt();
+public:
+    inline virtual void toJson(QJsonObject &json) const
+    {
+        json["name"] = mMapItemName;
+        json["type"] = mIdentifier;
+        QJsonObject jsonPosition;
+        jsonPosition["x"] = mPosition.x();
+        jsonPosition["y"] = mPosition.y();
+        json["position"] = jsonPosition;
+    }
+    inline virtual void fromJson(const QJsonObject &json)
+    {
+        if (json.contains("name") && json["name"].isString())
+        {
+            mMapItemName = json["name"].toString();
+        }
+
+        if (json.contains("type") && json["type"].isDouble())
+        {
+            mIdentifier = json["type"].toInt();
+        }
+        
+        if (json.contains("position") && json["position"].isObject())
+        {
+            QJsonObject jsonPosition = json["position"].toObject();
+            if (jsonPosition.contains("x") && jsonPosition["x"].isDouble())
+            {
+                mPosition.setX(jsonPosition["x"].toDouble());
+            }
+            if (jsonPosition.contains("y") && jsonPosition["y"].isDouble())
+            {
+                mPosition.setY(jsonPosition["y"].toDouble());
+            }
+        }
+        setPos(mPosition);
+    }
 protected:
+    int mIdentifier;
+    QPointF mPosition;
     QRect mBoundingRect;
     QPainterPath mShape;
     CollisionShape *mCollisionShape;
@@ -79,9 +129,33 @@ signals:
     void sig_itemPositionFixed(MapItem*);
     void sig_deleteItem(MapItemMovable*);
 public:
+    inline virtual bool isMovable() override { return true; }
     void setInitialPosition(QPointF);
     void setReadyToDelete();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+public:
+    inline virtual void toJson(QJsonObject &json) const override
+    {
+        MapItem::toJson(json);
+
+        json["movable"] = mMove;
+    }
+    inline virtual void fromJson(const QJsonObject &json) override
+    {
+        MapItem::fromJson(json);
+
+        if (json.contains("movable") && json["movable"].isBool())
+        {
+            mMove = json["movable"].toBool();
+        }
+        if(!mMove)
+        {
+            setFlag(QGraphicsItem::ItemIsMovable, false);
+            setAcceptHoverEvents(false);
+            mHover = false;
+        }
+        mInitialPosition = mPosition;
+    }
 protected:
     void setImage(QPixmap image);
 public slots:
@@ -182,7 +256,7 @@ private:
 class Lake : public MapItem
 {
 public:
-    Lake(MapItem*);
+    Lake();
     ~Lake();
 public:
     MapItem * getEvent();

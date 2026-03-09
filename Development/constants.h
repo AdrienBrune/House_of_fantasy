@@ -1,7 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-//#define ENABLE_DEBUG
+#define ENABLE_DEBUG
 #ifdef ENABLE_DEBUG
 #define DEBUG(str)      qDebug() << str
 #define DEBUG_ERR(str)  qDebug() << str
@@ -126,6 +126,7 @@
 #define Z_MONSTERS              11
 #define Z_MONSTER_FOREGROUND    12
 #define Z_HERO                  15
+#define Z_DAYNIGHT_CYCLE        100
 
 // Sounds
 #define SOUND_BUSH_SHAKED                   0
@@ -241,6 +242,8 @@
 
 #define IDENT_ITEM_OFFSET_SCROLL                0x00006B9E
 
+#define IDENT_ITEM_OFFSET_MAPITEM               0x00006D92
+
 #define IDENT_ITEM_NOT_ATTRIBUATE               0xFFFFFFFF
 
 // Identifier list :
@@ -297,6 +300,26 @@
 #define MONSTERMATERIAL_LAOSHANLUNG_HEART (MONSTERMATERIAL_WOLFALPHA_PELT+1)
 
 #define SCROLL_X                        (IDENT_ITEM_OFFSET_SCROLL)
+
+#define MAPITEM_TREE                    (IDENT_ITEM_OFFSET_MAPITEM)
+#define MAPITEM_TREE_FALLEN             (MAPITEM_TREE + 1)
+#define MAPITEM_BUSH                    (MAPITEM_TREE_FALLEN + 1)
+#define MAPITEM_ROCK                    (MAPITEM_BUSH + 1)
+#define MAPITEM_GROUND                  (MAPITEM_ROCK + 1)
+#define MAPITEM_PLANK                   (MAPITEM_GROUND + 1)
+#define MAPITEM_STONE                   (MAPITEM_PLANK + 1)
+#define MAPITEM_LAKE                    (MAPITEM_STONE + 1)
+
+#define MAPITEM_BUSHCOIN                (MAPITEM_LAKE + 1)
+#define MAPITEM_BUSHEQUIPMENT           (MAPITEM_BUSHCOIN + 1)
+#define MAPITEM_CHESTBURRIED            (MAPITEM_BUSHEQUIPMENT + 1)
+#define MAPITEM_CHESTGOBLIN             (MAPITEM_CHESTBURRIED + 1)
+
+#define MAPITEM_STONESPOT               (MAPITEM_CHESTGOBLIN + 1)
+#define MAPITEM_IRONSPOT                (MAPITEM_STONESPOT + 1)
+#define MAPITEM_EMERALDSPOT             (MAPITEM_IRONSPOT + 1)
+#define MAPITEM_SAPHIRSPOT              (MAPITEM_EMERALDSPOT + 1)
+#define MAPITEM_RUBISSPOT               (MAPITEM_SAPHIRSPOT + 1)
 
 #define ABLE(hero)                          (1<<hero)
 #define IS_ABLE(heroClass, classesAble)     ((classesAble>>heroClass)&1)

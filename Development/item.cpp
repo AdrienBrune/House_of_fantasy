@@ -10,12 +10,13 @@
 
 quint32 Item::sNbInstances = 0;
 
-Item::Item(QString name, QPixmap image, int weight, int price):
+Item::Item(QString name, QString imagePath, int weight, int price):
     QObject (),
     QGraphicsPixmapItem (),
     mIdentifier(IDENT_ITEM_NOT_ATTRIBUATE),
     mName(name),
-    mImage(image),
+    mImage(QPixmap(imagePath)),
+    mImagePath(imagePath),
     mWeight(weight),    
     mPrice(price),
     mInformation(QString()),
@@ -61,6 +62,11 @@ QPixmap Item::getImage()
     return mImage;
 }
 
+QString Item::getImagePath()
+{
+    return mImagePath;
+}
+
 int Item::getPrice()
 {
     return mPrice;
@@ -91,6 +97,13 @@ void Item::setweight(int weight)
 {
     mWeight = weight;
     emit sig_itemStatsChanged();
+}
+
+void Item::setImage(QString imagePath)
+{
+    mImagePath = imagePath;
+    mImage = QPixmap(imagePath);
+    setShape();
 }
 
 void Item::setPrice(int price)
@@ -180,7 +193,7 @@ void Item::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
     }
 }
 
-Item *Item::getInstance(quint32 identifier)
+Item *Item::Factory(quint32 identifier)
 {
     DEBUG("INSTANCE CREATION : (" + QString("%1").arg(identifier) + ")");
     switch(identifier)
@@ -328,34 +341,35 @@ Item *Item::getInstance(quint32 identifier)
 
     default:
         DEBUG("INSTANCE CREATION : Not found id=" + QString("%1").arg(identifier));
+        assert(false);
         break;
     }
 
     return new BagCoin(0);
 }
 
-quint32 Item::getNbInstances()
-{
-    return sNbInstances;
-}
+// quint32 Item::getNbInstances()
+// {
+//     return sNbInstances;
+// }
 
 
 
 
-Scroll::Scroll(QString name, QPixmap image, int weight, int price):
-    Item(name, image, weight, price)
+Scroll::Scroll(QString name, QString imagePath, int weight, int price):
+    Item(name, imagePath, weight, price)
 {
     mIsUsable = true;
 }
 
 Item::Feature Scroll::getFirstCaracteristic()
 {
-    return Feature{getPrice(), QPixmap(":/icons/Ressources/coin_logo.png")};
+    return Feature{getPrice(), QString(":/icons/Ressources/coin_logo.png")};
 }
 
 Item::Feature Scroll::getSecondCaracteristic()
 {
-    return Feature{getWeight(), QPixmap(":/icons/Ressources/payload_logo.png")};
+    return Feature{getWeight(), QString(":/icons/Ressources/payload_logo.png")};
 }
 
 Item::Feature Scroll::getThirdCaracteristic()
@@ -374,7 +388,7 @@ Scroll::~Scroll()
 }
 
 Scroll_X::Scroll_X():
-    Scroll("Parchemin X", QPixmap(":/consumables/Ressources/scroll_X.png"), 2, 10)
+    Scroll("Parchemin X", QString(":/consumables/Ressources/scroll_X.png"), 2, 10)
 {
     mIdentifier = SCROLL_X;
     setInformation("Parchemin à usage unique qui permet de se téléporter au village.");
@@ -390,8 +404,8 @@ Scroll_X::~Scroll_X()
 
 
 
-Tool::Tool(QString name, QPixmap image, int weight, int price):
-    Item(name, image, weight, price)
+Tool::Tool(QString name, QString imagePath, int weight, int price):
+    Item(name, imagePath, weight, price)
 {
     mDurability = QRandomGenerator::global()->bounded(3, 5);
     mIsUsable = true;
@@ -408,12 +422,12 @@ bool Tool::use()
 
 Item::Feature Tool::getFirstCaracteristic()
 {
-    return Feature{getPrice(), QPixmap(":/icons/Ressources/coin_logo.png")};
+    return Feature{getPrice(), QString(":/icons/Ressources/coin_logo.png")};
 }
 
 Item::Feature Tool::getSecondCaracteristic()
 {
-    return Feature{getWeight(), QPixmap(":/icons/Ressources/payload_logo.png")};
+    return Feature{getWeight(), QString(":/icons/Ressources/payload_logo.png")};
 }
 
 Item::Feature Tool::getThirdCaracteristic()
@@ -432,7 +446,7 @@ Tool::~Tool()
 }
 
 Shovel::Shovel():
-    Tool("Pelle", QPixmap(":/tools/Ressources/shovel.png"), 10, 10)
+    Tool("Pelle", QString(":/tools/Ressources/shovel.png"), 10, 10)
 {
     mIdentifier = TOOL_SHOVEL;
     setInformation("Outil permettant de creuser et de déterrer des objects cachés.");
@@ -450,7 +464,7 @@ Shovel::~Shovel()
 }
 
 Pickaxe::Pickaxe():
-    Tool("Pioche", QPixmap(":/tools/Ressources/pickaxe.png"), 10, 10)
+    Tool("Pioche", QString(":/tools/Ressources/pickaxe.png"), 10, 10)
 {
     mIdentifier = TOOL_PICKAXE;
     setInformation("Outil permettant de miner du minerai.");
@@ -468,7 +482,7 @@ bool Pickaxe::use()
 }
 
 FishingRod::FishingRod():
-    Tool("Canne à pêche", QPixmap(":/tools/Ressources/fishingrod.png"), 10, 10)
+    Tool("Canne à pêche", QString(":/tools/Ressources/fishingrod.png"), 10, 10)
 {
     mIdentifier = TOOL_FISHINGROD;
     setInformation("Outil permettant de pêcher dans les lacs.");
@@ -486,7 +500,7 @@ FishingRod::~FishingRod()
 }
 
 Compass::Compass():
-    Tool("Boussole", QPixmap(":/tools/Ressources/compass.png"), 10, 7)
+    Tool("Boussole", QString(":/tools/Ressources/compass.png"), 10, 7)
 {
     mIdentifier = TOOL_COMPASS;
     setInformation("Boussole qui vous permettra de retrouver le chemin du village avec séreinité.");
@@ -504,7 +518,7 @@ bool Compass::use()
 }
 
 Knife::Knife():
-    Tool("Couteau", QPixmap(":/tools/Ressources/knife.png"), 10, 20)
+    Tool("Couteau", QString(":/tools/Ressources/knife.png"), 10, 20)
 {
     mIdentifier = TOOL_KNIFE;
     setInformation("Couteau servant à dépecer animaux et monstres.");
@@ -522,7 +536,7 @@ bool Knife::use()
 }
 
 MapScroll::MapScroll():
-    Tool("Carte", QPixmap(":/tools/Ressources/map_scroll.png"), 2, 50)
+    Tool("Carte", QString(":/tools/Ressources/map_scroll.png"), 2, 50)
 {
     mIdentifier = TOOL_MAPSCROLL;
     setInformation("Carte du monde, idéal pour les voyageurs.");
@@ -636,7 +650,7 @@ void MapScroll::updateDiscovery()
 
 
 BagCoin::BagCoin(int coinAmount):
-    Item("Sac de pièces", QPixmap(":/consumables/Ressources/bagCoin.png"), 0, coinAmount)
+    Item("Sac de pièces", QString(":/consumables/Ressources/bagCoin.png"), 0, coinAmount)
 {
     mIdentifier = BAGCOIN;
     QString buff = "";
@@ -651,7 +665,7 @@ BagCoin::~BagCoin()
 
 Item::Feature BagCoin::getFirstCaracteristic()
 {
-    return Feature{getPrice(),QPixmap(":/icons/Ressources/coin_logo.png")};
+    return Feature{getPrice(),QString(":/icons/Ressources/coin_logo.png")};
 }
 
 Item::Feature BagCoin::getSecondCaracteristic()

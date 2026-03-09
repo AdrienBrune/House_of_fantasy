@@ -34,10 +34,10 @@
 #define ML_SHOW_CARCASS()               new LogMessageType_2(this, QString("Ce cadavre pourrait être depecé avec le bon outil"), QPixmap(":/graphicItems/Ressources/carcass.png"))
 #define ML_SHOW_MONSTER_SKINNED()       new LogMessageType_1(this, QString("Cadavre déjà dépecé"))
 #define ML_SHOW_LOOT_NUMBER(number)     new LogMessageType_1(this, number ? ( number > 1 ? QString("%1 matériaux de monstre ont pu être extraits").arg(number) : QString("1 matériau de monstre a pu être extrait") ) : QString("Aucun matériau n'a pu être extrait"))
-#define SHOW_BAG_FULL(bag)              new LogMessageType_2(this, QString("Votre inventaire est plein, augmentez la capacité de chargement via les potions\nCharge actuelle %1/%2").arg(bag->getPayload().max).arg(bag->getPayload().current), QPixmap(":/images/Ressources/bag.png"))
+#define SHOW_BAG_FULL(bag)              new LogMessageType_2(this, QString("Votre inventaire est plein, augmentez la capacité de chargement via les potions\nCharge actuelle %1/%2").arg(bag->getPayload().maximum).arg(bag->getPayload().current), QPixmap(":/images/Ressources/bag.png"))
 #define ML_SHOW_ITEM_ON_GROUND(item)    new LogMessageType_3(this, item)
 #define ML_SHOW_PNG_INFO(house)         new LogMessageType_2(this, QString(house->getInformation()), QPixmap(house->getImage()))
-
+#define ML_SHOW_SLEEP_IMPOSSIBLE(house) new LogMessageType_2(this, QString("Vous ne pouvez dormir que pendant le nuit"), QPixmap(house->getImage()))
 
 namespace Ui {
 class W_MessageLogger;

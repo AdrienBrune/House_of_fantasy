@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QPixmap>
+#include <QJsonObject>
+#include <QJsonValue>
 
 class Skill : public QObject
 {
@@ -29,6 +31,25 @@ public:
     void setUnlockPoints(uint8_t);
     void setResume(QString);
     void unlockSkill();
+
+public:
+    inline void toJson(QJsonObject &json) const
+    {
+        json["name"] = mName;
+        json["unlock"] = mUnlock;
+    }
+
+    inline void fromJson(const QJsonObject &json)
+    {
+        if (json.contains("name") && json["name"].isString())
+        {
+            mName = json["name"].toString();
+        }
+        if (json.contains("unlock") && json["unlock"].isBool())
+        {
+            mName = json["name"].toString();
+        }
+    }
 
 protected:
     uint8_t mIndex;

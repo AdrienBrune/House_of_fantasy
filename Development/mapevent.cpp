@@ -238,6 +238,7 @@ BushEvent::~BushEvent()
 BushEventCoin::BushEventCoin():
     BushEvent ()
 {
+    mIdentifier = MAPITEM_BUSHCOIN;
     initGraphicStuff();
 
     mItems.append(new BagCoin(QRandomGenerator::global()->bounded(1, 5)));
@@ -267,6 +268,7 @@ BushEventCoin::~BushEventCoin()
 BushEventEquipment::BushEventEquipment():
     BushEvent ()
 {
+    mIdentifier = MAPITEM_BUSHEQUIPMENT;
     initGraphicStuff();
 
     mItems.append(gItemGenerator->generateEquipment());
@@ -453,6 +455,7 @@ ChestEvent::~ChestEvent()
 ChestBurried::ChestBurried():
     ChestEvent ()
 {
+    mIdentifier = MAPITEM_CHESTBURRIED;
     initGraphicStuff();
 }
 
@@ -471,10 +474,11 @@ ChestBurried::~ChestBurried()
 GoblinChest::GoblinChest():
     ChestEvent ()
 {
+    mIdentifier = MAPITEM_CHESTGOBLIN;
     initGraphicStuff();
     revealChest();
 
-    mItems.append(new Sword("Gourdin", QPixmap(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
+    mItems.append(new Sword("Gourdin", QString(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
     for(int n=0;n<QRandomGenerator::global()->bounded(1, 3);n++){
         mItems.append(new EmeraldOre);
     }
@@ -551,6 +555,7 @@ StoneOreSpot::StoneOreSpot():
     OreSpot::initGraphicStuff();
 
     mMapItemName = "stone";
+    mIdentifier = MAPITEM_STONESPOT;
     mType = Ore::stone;
 
     mItems.append(new StoneOre());
@@ -571,6 +576,7 @@ IronOreSpot::IronOreSpot():
     OreSpot::initGraphicStuff();
 
     mMapItemName = "iron";
+    mIdentifier = MAPITEM_IRONSPOT;
     mType = Ore::iron;
 
     mItems.append(new IronOre());
@@ -592,6 +598,7 @@ SaphirOreSpot::SaphirOreSpot():
     OreSpot::initGraphicStuff();
 
     mMapItemName = "saphir";
+    mIdentifier = MAPITEM_SAPHIRSPOT;
     mType = Ore::saphir;
 
     mItems.append(new SaphirOre());
@@ -612,6 +619,7 @@ EmeraldOreSpot::EmeraldOreSpot():
     OreSpot::initGraphicStuff();
 
     mMapItemName = "emeraude";
+    mIdentifier = MAPITEM_EMERALDSPOT;
     mType = Ore::emerald;
 
     mItems.append(new EmeraldOre());
@@ -632,6 +640,7 @@ RubisOreSpot::RubisOreSpot():
     OreSpot::initGraphicStuff();
     
     mMapItemName = "rubis";
+    mIdentifier = MAPITEM_RUBISSPOT;
     mType = Ore::rubis;
 
     mItems.append(new RubisOre());

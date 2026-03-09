@@ -1,14 +1,14 @@
 #include "equipment.h"
 
-Equipment::Equipment(QString name, QPixmap image, int weight, int price, uint32_t usable):
-    Item(name, image, weight, price),
+Equipment::Equipment(QString name, QString imagePath, int weight, int price, uint32_t usable):
+    Item(name, imagePath, weight, price),
     mUsable(usable)
 {
 
 }
 
 Equipment::Equipment():
-    Item("", QPixmap(), 0, 0)
+    Item("", "", 0, 0)
 {
 
 }
@@ -31,8 +31,8 @@ void Equipment::setUsable(uint32_t usable)
 
 
 
-Weapon::Weapon(QString name, QPixmap image, int damage, int speed, int weight, int price, uint32_t usable):
-    Equipment(name, image, weight, price, usable),
+Weapon::Weapon(QString name, QString imagePath, int damage, int speed, int weight, int price, uint32_t usable):
+    Equipment(name, imagePath, weight, price, usable),
     mDamage(damage),
     mSpeed(speed)
 {
@@ -63,22 +63,22 @@ void Weapon::setSpeed(int speed)
 
 Item::Feature Weapon::getFirstCaracteristic()
 {
-    return Feature{getDamage(),QPixmap(":/icons/Ressources/sword_logo.png")};
+    return Feature{getDamage(),QString(":/icons/Ressources/sword_logo.png")};
 }
 
 Item::Feature Weapon::getSecondCaracteristic()
 {
-    return Feature{getWeight(),QPixmap(":/icons/Ressources/payload_logo.png")};
+    return Feature{getWeight(),QString(":/icons/Ressources/payload_logo.png")};
 }
 
 Item::Feature Weapon::getThirdCaracteristic()
 {
-    return Feature{getSpeed(),QPixmap(":/icons/Ressources/speed_logo.png")};
+    return Feature{getSpeed(),QString(":/icons/Ressources/speed_logo.png")};
 }
 
 Item::Feature Weapon::getFourthCaracteristic()
 {
-    return Feature{getPrice(),QPixmap(":/icons/Ressources/coin_logo.png")};
+    return Feature{getPrice(),QString(":/icons/Ressources/coin_logo.png")};
 }
 
 Weapon::~Weapon()
@@ -86,8 +86,8 @@ Weapon::~Weapon()
 
 }
 
-Sword::Sword(QString name, QPixmap image, int damage, int speed, int weight, int price, QString info, uint32_t usable):
-    Weapon(name, image, damage, speed, weight, price, usable)
+Sword::Sword(QString name, QString imagePath, int damage, int speed, int weight, int price, QString info, uint32_t usable):
+    Weapon(name, imagePath, damage, speed, weight, price, usable)
 {
     mIdentifier = WEAPON_SWORD;
     setInformation(info);
@@ -95,7 +95,7 @@ Sword::Sword(QString name, QPixmap image, int damage, int speed, int weight, int
 }
 
 Sword::Sword():
-    Weapon("", QPixmap(), 0, 0, 0, 0)
+    Weapon("", "", 0, 0, 0, 0)
 {
     mIdentifier = WEAPON_SWORD;
 }
@@ -105,8 +105,8 @@ Sword::~Sword()
 
 }
 
-Bow::Bow(QString name, QPixmap image, int damage, int speed, int weight, int price, QString info, uint32_t usable):
-    Weapon(name, image, damage, speed, weight, price, usable)
+Bow::Bow(QString name, QString imagePath, int damage, int speed, int weight, int price, QString info, uint32_t usable):
+    Weapon(name, imagePath, damage, speed, weight, price, usable)
 {
     mIdentifier = WEAPON_BOW;
     setInformation(info);
@@ -114,7 +114,7 @@ Bow::Bow(QString name, QPixmap image, int damage, int speed, int weight, int pri
 }
 
 Bow::Bow():
-    Weapon("", QPixmap(), 0, 0, 0, 0)
+    Weapon("", "", 0, 0, 0, 0)
 {
     mIdentifier = WEAPON_BOW;
 }
@@ -124,8 +124,8 @@ Bow::~Bow()
 
 }
 
-Staff::Staff(QString name, QPixmap image, int damage, int speed, int weight, int price, QString info, uint32_t usable):
-    Weapon(name, image, damage, speed, weight, price, usable)
+Staff::Staff(QString name, QString imagePath, int damage, int speed, int weight, int price, QString info, uint32_t usable):
+    Weapon(name, imagePath, damage, speed, weight, price, usable)
 {
     mIdentifier = WEAPON_STAFF;
     setInformation(info);
@@ -133,7 +133,7 @@ Staff::Staff(QString name, QPixmap image, int damage, int speed, int weight, int
 }
 
 Staff::Staff():
-    Weapon("", QPixmap(), 0, 0, 0, 0)
+    Weapon("", "", 0, 0, 0, 0)
 {
     mIdentifier = WEAPON_STAFF;
 }
@@ -147,8 +147,8 @@ Staff::~Staff()
 
 
 
-ArmorPiece::ArmorPiece(QString name, QPixmap image, int defense, qreal dodge, int weight, int price, uint32_t usable):
-    Equipment(name, image, weight, price, usable),
+ArmorPiece::ArmorPiece(QString name, QString imagePath, int defense, qreal dodge, int weight, int price, uint32_t usable):
+    Equipment(name, imagePath, weight, price, usable),
     mDefense(defense),
     mDodgingStat(dodge)
 {
@@ -179,22 +179,22 @@ void ArmorPiece::setDodgingStat(qreal dodge)
 
 Item::Feature ArmorPiece::getFirstCaracteristic()
 {
-    return Feature{getDefense(),QPixmap(":/icons/Ressources/shield_logo.png")};
+    return Feature{getDefense(),QString(":/icons/Ressources/shield_logo.png")};
 }
 
 Item::Feature ArmorPiece::getSecondCaracteristic()
 {
-    return Feature{getWeight(),QPixmap(":/icons/Ressources/payload_logo.png")};
+    return Feature{getWeight(),QString(":/icons/Ressources/payload_logo.png")};
 }
 
 Item::Feature ArmorPiece::getThirdCaracteristic()
 {
-    return Feature{static_cast<int>(mDodgingStat),QPixmap(":/icons/Ressources/dodge_logo.png")};
+    return Feature{static_cast<int>(mDodgingStat),QString(":/icons/Ressources/dodge_logo.png")};
 }
 
 Item::Feature ArmorPiece::getFourthCaracteristic()
 {
-    return Feature{getPrice(),QPixmap(":/icons/Ressources/coin_logo.png")};
+    return Feature{getPrice(),QString(":/icons/Ressources/coin_logo.png")};
 }
 
 
@@ -203,8 +203,8 @@ ArmorPiece::~ArmorPiece()
 
 }
 
-Helmet::Helmet(QString name, QPixmap image, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
-    ArmorPiece(name, image, defense, dodge, weight, price, usable)
+Helmet::Helmet(QString name, QString imagePath, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
+    ArmorPiece(name, imagePath, defense, dodge, weight, price, usable)
 {
     mIdentifier = ARMOR_HELMET;
     setInformation(info);
@@ -212,7 +212,7 @@ Helmet::Helmet(QString name, QPixmap image, int defense, qreal dodge, int weight
 }
 
 Helmet::Helmet():
-    ArmorPiece("", QPixmap(), 0, 0, 0, 0)
+    ArmorPiece("", "", 0, 0, 0, 0)
 {
 
 }
@@ -222,8 +222,8 @@ Helmet::~Helmet()
 
 }
 
-Breastplate::Breastplate(QString name, QPixmap image, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
-    ArmorPiece(name, image, defense, dodge, weight, price, usable)
+Breastplate::Breastplate(QString name, QString imagePath, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
+    ArmorPiece(name, imagePath, defense, dodge, weight, price, usable)
 {
     mIdentifier = ARMOR_BREASTPLATE;
     setInformation(info);
@@ -231,7 +231,7 @@ Breastplate::Breastplate(QString name, QPixmap image, int defense, qreal dodge, 
 }
 
 Breastplate::Breastplate():
-    ArmorPiece("", QPixmap(), 0, 0, 0, 0)
+    ArmorPiece("", "", 0, 0, 0, 0)
 {
 
 }
@@ -241,8 +241,8 @@ Breastplate::~Breastplate()
 
 }
 
-Gloves::Gloves(QString name, QPixmap image, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
-    ArmorPiece(name, image, defense, dodge, weight, price, usable)
+Gloves::Gloves(QString name, QString imagePath, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
+    ArmorPiece(name, imagePath, defense, dodge, weight, price, usable)
 {
     mIdentifier = ARMOR_GLOVES;
     setInformation(info);
@@ -250,7 +250,7 @@ Gloves::Gloves(QString name, QPixmap image, int defense, qreal dodge, int weight
 }
 
 Gloves::Gloves():
-    ArmorPiece("", QPixmap(), 0, 0, 0, 0)
+    ArmorPiece("", "", 0, 0, 0, 0)
 {
 
 }
@@ -260,8 +260,8 @@ Gloves::~Gloves()
 
 }
 
-Pant::Pant(QString name, QPixmap image, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
-    ArmorPiece(name, image, defense, dodge, weight, price, usable)
+Pant::Pant(QString name, QString imagePath, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
+    ArmorPiece(name, imagePath, defense, dodge, weight, price, usable)
 {
     mIdentifier = ARMOR_PANT;
     setInformation(info);
@@ -269,7 +269,7 @@ Pant::Pant(QString name, QPixmap image, int defense, qreal dodge, int weight, in
 }
 
 Pant::Pant():
-    ArmorPiece("", QPixmap(), 0, 0, 0, 0)
+    ArmorPiece("", "", 0, 0, 0, 0)
 {
 
 }
@@ -279,8 +279,8 @@ Pant::~Pant()
 
 }
 
-Footwears::Footwears(QString name, QPixmap image, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
-    ArmorPiece(name, image, defense, dodge, weight, price, usable)
+Footwears::Footwears(QString name, QString imagePath, int defense, qreal dodge, int weight, int price, QString info, uint32_t usable):
+    ArmorPiece(name, imagePath, defense, dodge, weight, price, usable)
 {
     mIdentifier = ARMOR_FOOTWEARS;
     setInformation(info);
@@ -288,7 +288,7 @@ Footwears::Footwears(QString name, QPixmap image, int defense, qreal dodge, int 
 }
 
 Footwears::Footwears():
-    ArmorPiece("", QPixmap(), 0, 0, 0, 0)
+    ArmorPiece("", "", 0, 0, 0, 0)
 {
 
 }
@@ -298,8 +298,8 @@ Footwears::~Footwears()
 
 }
 
-Amulet::Amulet(QString name, QPixmap image, int defense, qreal dodgingStat, int weight, int price, QString info, uint32_t usable):
-    ArmorPiece (name, image, defense, dodgingStat, weight, price, usable)
+Amulet::Amulet(QString name, QString imagePath, int defense, qreal dodgingStat, int weight, int price, QString info, uint32_t usable):
+    ArmorPiece (name, imagePath, defense, dodgingStat, weight, price, usable)
 {
     mIdentifier = ARMOR_AMULET;
     setInformation(info);
@@ -307,7 +307,7 @@ Amulet::Amulet(QString name, QPixmap image, int defense, qreal dodgingStat, int 
 }
 
 Amulet::Amulet():
-    ArmorPiece("", QPixmap(), 0, 0, 0, 0)
+    ArmorPiece("", "", 0, 0, 0, 0)
 {
 
 }

@@ -16,7 +16,6 @@ Monster::Monster(QGraphicsView * view):
     mHover(0),
     mDamage(0),
     mThreatLevel(0),
-    mExperience(0),
     mDescription(QString()),
     mSpeed(0),
     mAction(Action::stand),
@@ -44,6 +43,7 @@ Monster::Monster(QGraphicsView * view):
 
     mMana = Gauge{0,0};
     mStamina = Gauge{100,100};
+    mCoin = 0;
 }
 
 void Monster::setAngle(int angle)
@@ -296,11 +296,16 @@ void Monster::chooseAction(Hero * hero)
     if(distanceWithHero < DISTANCE_AGGRO && ToolFunctions::isAllowedAngle(angle) && !hero->isInVillage())
     {
         t_isWalking->stop(); // Cut walking action to set running action
-        
+
         mAction = Action::aggro;
         emit sig_monsterSound(getSoundIndexFor(AGGRO));
 
-        setTargetAngle(angle);
+        // Don't override direction when blocked by an obstacle (chevaux de frise, village...):
+        // doCollision() already handles avoidance; overriding targetAngle here causes the
+        // monster to oscillate left-right on the barrier.
+        if(mMove.obstacles.isEmpty())
+            setTargetAngle(angle);
+
         return;
     }
 
@@ -375,7 +380,7 @@ void Monster::advance(int phase)
     dx = (dx > 0) ? ceil(dx) : -ceil(abs(dx));
     dy = (dy > 0) ? ceil(dy) : -ceil(abs(dy));
 
-    setPos(x() + dx, y() + dy);
+    Character::setPos(x() + dx, y() + dy);
 }
 
 
@@ -597,6 +602,43 @@ Monster::~Monster()
         delete mFightView;
 }
 
+Monster* Monster::Factory(QString name, QGraphicsView* view)
+{
+    if (name == Spider::Name())
+    {
+        return new Spider(view);
+    }
+    if (name == Goblin::Name())
+    {
+        return new Goblin(view);
+    }
+    if (name == Troll::Name())
+    {
+        return new Troll(view);
+    }
+    if (name == Wolf::Name())
+    {
+        return new Wolf(view);
+    }
+    if (name == WolfAlpha::Name())
+    {
+        return new WolfAlpha(view);
+    }
+    if (name == Bear::Name())
+    {
+        return new Bear(view);
+    }
+    if (name == Oggre::Name())
+    {
+        return new Oggre(view);
+    }
+    if (name == LaoShanLung::Name())
+    {
+        return new LaoShanLung(view);
+    }
+    assert(false);
+    return nullptr;
+}
 
 
 
@@ -610,7 +652,7 @@ Monster::~Monster()
 Spider::Spider(QGraphicsView * view):
     Monster(view)
 {
-    mName = "Araignée";
+    mName = Spider::Name();
     mLife = Gauge{100,100};
     mDamage = 30;
     mAction = Action::stand;
@@ -740,7 +782,7 @@ Spider::~Spider()
 Wolf::Wolf(QGraphicsView * view):
     Monster(view)
 {
-    mName = "Loup";
+    mName = Wolf::Name();
     mLife = Gauge{600,600};
     mDamage = 15;
     mAction = Action::stand;
@@ -866,7 +908,7 @@ Wolf::~Wolf()
 WolfAlpha::WolfAlpha(QGraphicsView * view):
     Wolf(view)
 {
-    mName = "Loup Alpha";
+    mName = WolfAlpha::Name();
     mLife = Gauge{1000,1000};
     mDamage = 18;
     mThreatLevel = 3;
@@ -924,7 +966,7 @@ void WolfAlpha::generateRandomLoots()
 Goblin::Goblin(QGraphicsView * view):
     Monster(view)
 {
-    mName = "Gobelin";
+    mName = Goblin::Name();
     mLife = Gauge{400,400};
     mDamage = 8;
     mAction = Action::stand;
@@ -961,6 +1003,8 @@ Goblin::Goblin(QGraphicsView * view):
     Goblin::generateRandomLoots();
 
     mCurrentPixmap = mPixmap.stand;
+
+    mCoin = QRandomGenerator::global()->bounded(5);
 }
 
 void Goblin::addExtraLoots()
@@ -1040,7 +1084,7 @@ void Goblin::generateRandomLoots()
         mItems.append(new GoblinBones);
 
     if(QRandomGenerator::global()->bounded(10) == 0)
-        mItems.append(new Amulet("Amulette\nde shaman",QPixmap(":/equipment/Ressources/amulet_7.png"),8,2,5,8,"Amulette mystérieuse confectionnée par un gobelin."));
+        mItems.append(new Amulet("Amulette\nde shaman", QString(":/equipment/Ressources/amulet_7.png"),8,2,5,8,"Amulette mystérieuse confectionnée par un gobelin."));
 
 }
 
@@ -1062,7 +1106,7 @@ Goblin::~Goblin()
 Bear::Bear(QGraphicsView * view):
     Monster(view)
 {
-    mName = "Ours";
+    mName = Bear::Name();
     mLife = Gauge{1300,1300};
     mDamage = 20;
     mAction = Action::stand;
@@ -1198,7 +1242,7 @@ Bear::~Bear()
 Troll::Troll(QGraphicsView * view):
     Monster(view)
 {
-    mName = "Troll";
+    mName = Troll::Name();
     mLife = Gauge{800,800};
     mDamage = 14;
     mAction = Action::stand;
@@ -1312,7 +1356,7 @@ void Troll::generateRandomLoots()
         mItems.append(new TrollSkull);
 
     if(QRandomGenerator::global()->bounded(6) == 0)
-        mItems.append(new Sword("Gourdin", QPixmap(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extremement lourd et très dur à manipuler."));
+        mItems.append(new Sword("Gourdin", QString(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extremement lourd et très dur à manipuler."));
 
 }
 
@@ -1337,7 +1381,7 @@ Troll::~Troll()
 Oggre::Oggre(QGraphicsView * view):
     Monster(view)
 {
-    mName = "Ogre";
+    mName = Oggre::Name();
     mLife = Gauge{2500,2500};
     mDamage = 30;
     mAction = Action::stand;
@@ -1446,7 +1490,7 @@ void Oggre::generateRandomLoots()
         mItems.append(new OggreSkull);
 
     if(QRandomGenerator::global()->bounded(3) == 0)
-        mItems.append(new Sword("Gourdin", QPixmap(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
+        mItems.append(new Sword("Gourdin", QString(":/equipment/Ressources/sword_19.png"), 220, 1, 20, 8, "Gourdin extrèmement lourd et très dur à manipuler."));
 }
 
 
@@ -1467,7 +1511,7 @@ Oggre::~Oggre()
 LaoShanLung::LaoShanLung(QGraphicsView * view):
     Monster(view)
 {
-    mName = "Lao Shan Lung";
+    mName = LaoShanLung::Name();
     mLife = Gauge{10000,10000};
     mDamage = 50;
     mAction = Action::stand;

@@ -1,10 +1,5 @@
 <RCC>
     <qresource prefix="/audio">
-        <file>Ressources/sounds/bush_shaked_1.wav</file>
-        <file>Ressources/sounds/bush_shaked_2.wav</file>
-        <file>Ressources/sounds/bush_shaked_3.wav</file>
-        <file>Ressources/sounds/bush_shaked_coins.wav</file>
-        <file>Ressources/sounds/bush_shaked_equipment.wav</file>
         <file>Ressources/sounds/sound_bear.wav</file>
         <file>Ressources/sounds/sound_bear_aggro.wav</file>
         <file>Ressources/sounds/sound_bear_die.wav</file>
@@ -62,5 +57,10 @@
         <file>Ressources/sounds/sound_spider_aggro.wav</file>
         <file>Ressources/sounds/sound_spider_heavy_attack.wav</file>
         <file>Ressources/sounds/sound_spider_light_attack.wav</file>
+        <file>Ressources/sounds/sound_bush_shaked_1.wav</file>
+        <file>Ressources/sounds/sound_bush_shaked_2.wav</file>
+        <file>Ressources/sounds/sound_bush_shaked_coins.wav</file>
+        <file>Ressources/sounds/sound_bush_shaked_equipment.wav</file>
+        <file>Ressources/sounds/sound_bush_shaked_3.wav</file>
     </qresource>
 </RCC>

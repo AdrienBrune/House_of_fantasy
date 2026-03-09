@@ -25,17 +25,17 @@ QString Character::getName()
     return mName;
 }
 
-Character::Gauge Character::getLife()
+Gauge Character::getLife()
 {
     return mLife;
 }
 
-Character::Gauge Character::getMana()
+Gauge Character::getMana()
 {
     return mMana;
 }
 
-Character::Gauge Character::getStamina()
+Gauge Character::getStamina()
 {
     return mStamina;
 }

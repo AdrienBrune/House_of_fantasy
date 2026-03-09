@@ -78,10 +78,6 @@ SoundManager::SoundManager(QWidget * parent):
     bushShaked_1->setMedia(QUrl("qrc:/audio/Ressources/sounds/sound_bush_shaked_1.wav"));
     bushShaked_1->setVolume(5);
 
-    bushShaked_1 = new QMediaPlayer(this);
-    bushShaked_1->setMedia(QUrl("qrc:/audio/Ressources/sounds/sound_bush_shaked_1.wav"));
-    bushShaked_1->setVolume(5);
-
     bushShaked_2 = new QMediaPlayer(this);
     bushShaked_2->setMedia(QUrl("qrc:/audio/Ressources/sounds/sound_bush_shaked_2.wav"));
     bushShaked_2->setVolume(5);

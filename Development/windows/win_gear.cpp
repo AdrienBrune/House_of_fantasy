@@ -28,7 +28,7 @@ Win_Gear::Win_Gear(QWidget *parent) :
     mHitSpeed = new Frag_Stats_Displayer(this, "Vitesse d'attaque", QPixmap(":/icons/Ressources/speed_logo.png"), hero->getAttackSpeed(), 0, 1);
     mDefense = new Frag_Stats_Displayer(this, "Armure du héro", QPixmap(":/icons/Ressources/shield_logo.png"), hero->getGear()->defenseStat(), 0, 1);
     mDodge = new Frag_Stats_Displayer(this, "Taux d'esquive", QPixmap(":/icons/Ressources/dodge_logo.png"), static_cast<int>(hero->getGear()->dodgingStat()), 0, 1);
-    mBagPayload = new Frag_Stats_Displayer(this, "Capacité du sac", QPixmap(":/images/Ressources/bag.png"), hero->getBag()->getPayload().current, hero->getBag()->getPayload().max);
+    mBagPayload = new Frag_Stats_Displayer(this, "Capacité du sac", QPixmap(":/images/Ressources/bag.png"), hero->getBag()->getPayload().current, hero->getBag()->getPayload().maximum);
     mStamina = new Frag_Stats_Displayer(this, "Endurance", QPixmap(":/icons/Ressources/staminaStat.png"), hero->getStamina().maximum, 0, 1);
 
     ui->layoutStats->addWidget(mLife, 0, 0);
@@ -175,7 +175,7 @@ void Win_Gear::displayDodgeChanged()
 void Win_Gear::displayBagPayloadChanged()
 {
     Hero * hero = EntitiesHandler::getInstance().getHero();
-    mBagPayload->changeStats(hero->getBag()->getPayload().current, hero->getBag()->getPayload().max);
+    mBagPayload->changeStats(hero->getBag()->getPayload().current, hero->getBag()->getPayload().maximum);
 }
 
 void Win_Gear::displayStaminaChanged()

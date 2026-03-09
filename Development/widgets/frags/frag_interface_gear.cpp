@@ -106,7 +106,7 @@ void Frag_Interface_Gear::onItemMovedHandler(ItemQuickDisplayer * item)
                     area.setRect(static_cast<int>(mAmuletPos.x()), static_cast<int>(mAmuletPos.y()), 100,100);
                 }
 
-                ItemQuickDisplayer * equipmentArea = new ItemQuickDisplayer(new Helmet("", QPixmap(""), 0, 0, 0, 0, "")); // dummy item
+                ItemQuickDisplayer * equipmentArea = new ItemQuickDisplayer(new Helmet("", "", 0, 0, 0, 0, "")); // dummy item
                 mScene->addItem(equipmentArea);
                 equipmentArea->setPos(area.x(), area.y());
 

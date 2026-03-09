@@ -23,19 +23,29 @@ Win_LoadSave::Win_LoadSave(QWidget *parent) :
         delete mSaves.takeLast();
 
     /* Get saves */
+    // QStringList fileList = saveDir.entryList(QDir::Files);
+    // while(!fileList.isEmpty())
+    // {
+    //     QFile file(QDir::currentPath()+"/"+FILE_SAVE+"/"+ fileList[0]);
+    //     file.open(QIODevice::ReadOnly);
+    //     QDataStream stream(&file);
+
+    //     Save * save = new Save();
+    //     stream >> *save;
+
+    //     mSaves.append(save);
+
+    //     fileList.removeFirst();
+    // }
+
+    /* Get saves */
     QStringList fileList = saveDir.entryList(QDir::Files);
-    while(!fileList.isEmpty())
+    for (QString fileName : fileList)
     {
-        QFile file(QDir::currentPath()+"/"+FILE_SAVE+"/"+ fileList[0]);
-        file.open(QIODevice::ReadOnly);
-        QDataStream stream(&file);
-
-        Save * save = new Save();
-        stream >> *save;
-
+        QString path = QDir::currentPath() + "/" + FILE_SAVE + "/" + fileName;
+        Save* save = new Save();
+        save->LoadFromFile(path);
         mSaves.append(save);
-
-        fileList.removeFirst();
     }
 
     /* Display saves */

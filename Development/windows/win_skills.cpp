@@ -103,7 +103,7 @@ void Win_Skills::heroStatChanged()
     ui->statLife->setText(QString("%1").arg(hero->getLife().maximum));
     ui->statMana->setText(QString("%1").arg(hero->getMana().maximum));
     ui->statStamina->setText(QString("%1").arg(hero->getStamina().maximum));
-    ui->statStrength->setText(QString("%1").arg(hero->getBag()->getPayload().max));
+    ui->statStrength->setText(QString("%1").arg(hero->getBag()->getPayload().maximum));
 
     if(hero->getSkillPoints() < 1)
     {

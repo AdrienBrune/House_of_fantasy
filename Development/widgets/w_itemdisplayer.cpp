@@ -1,9 +1,8 @@
 #include "w_itemdisplayer.h"
-
-Hero * gSelectedHero = nullptr;
+#include "entitieshandler.h"
 
 ItemQuickDisplayer::ItemQuickDisplayer(Item * item):
-    Item(item->getName(), item->getImage(), item->getWeight(), item->getPrice()),
+    Item(item->getName(), item->getImagePath(), item->getWeight(), item->getPrice()),
     mItem(item),
     mSelected(false),
     mSelectedHero(nullptr)
@@ -12,7 +11,7 @@ ItemQuickDisplayer::ItemQuickDisplayer(Item * item):
     isMovable = true;
     mHover = false;
     item->setZValue(0);
-    setSelectedHero();
+    mSelectedHero = EntitiesHandler::getInstance().getHero();
     connect(mItem, SIGNAL(sig_itemStatsChanged()), this, SLOT(updateStats()));
 }
 
@@ -66,11 +65,6 @@ Item::Feature ItemQuickDisplayer::getThirdCaracteristic()
 Item::Feature ItemQuickDisplayer::getFourthCaracteristic()
 {
     return Feature{-1,QPixmap()};
-}
-
-void ItemQuickDisplayer::setSelectedHero()
-{
-    mSelectedHero = gSelectedHero;
 }
 
 QPainterPath ItemQuickDisplayer::shape() const

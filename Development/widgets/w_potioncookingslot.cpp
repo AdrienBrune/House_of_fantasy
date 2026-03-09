@@ -35,7 +35,7 @@ void W_PotionCookingSlot::paintEvent(QPaintEvent*)
         painter.setPen(QPen(QColor(250,250,250,5), 20));
         painter.drawArc(spanArea, 0, 360 * 16);
 
-        qreal spanAngle = 360.0 * (1.0 - (qreal)mSlot->getCookTime().current / mSlot->getCookTime().max);
+        qreal spanAngle = 360.0 * (1.0 - (qreal)mSlot->getCookTime().current / mSlot->getCookTime().maximum);
 
         painter.setPen(QPen(QColor(250,250,250,250), 20));
         painter.drawArc(spanArea, 90 * 16, -spanAngle * 16);

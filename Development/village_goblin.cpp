@@ -4,44 +4,28 @@ Village_Goblin::Village_Goblin():
     mImage(QPixmap(":/MapItems/Ressources/village_goblin_ground.png")),
     mRoadsWeight(200)
 {
-    mTownHall = new TownHall();
-    for(int n=0;n<2;n++)
-    {
-        mWatchTowers.append(new WatchTower());
-    }
-    for(int n=0;n<9;n++)
-    {
-        mHuts.append(new Hut());
-    }
-    mChest = new GoblinChest();
-    connect(mChest, SIGNAL(sig_clicToOpenChest(ChestEvent*)), this, SIGNAL(sig_clicToOpenChest(ChestEvent*)));
+    connect(&mChest, SIGNAL(sig_clicToOpenChest(ChestEvent*)), this, SIGNAL(sig_clicToOpenChest(ChestEvent*)));
 }
 
 Village_Goblin::~Village_Goblin()
 {
-    delete mTownHall;
-    while(!mHuts.isEmpty())
-        delete mHuts.takeLast();
-    while(!mWatchTowers.isEmpty())
-        delete mWatchTowers.takeLast();
-    delete mChest;
 }
 
 void Village_Goblin::addInScene(QGraphicsScene * scene)
 {
     scene->addItem(this);
 
-    for(WatchTower * tower : mWatchTowers)
+    for(WatchTower& tower : mWatchTowers)
     {
-        scene->addItem(tower);
+        scene->addItem(&tower);
     }
-    for(Hut * hut : mHuts)
+    for(Hut& hut : mHuts)
     {
-        scene->addItem(hut);
+        scene->addItem(&hut);
     }
-    scene->addItem(mTownHall);
-    scene->addItem(mChest);
-    mChest->setZValue(Z_VILLAGE);
+    scene->addItem(&mTownHall);
+    scene->addItem(&mChest);
+    mChest.setZValue(Z_VILLAGE);
 }
 
 void Village_Goblin::setPosition(QPointF pos)
@@ -49,84 +33,71 @@ void Village_Goblin::setPosition(QPointF pos)
     mPosition = QPointF(pos.x()+boundingRect().width()/2, pos.y()+boundingRect().height()/2);
     setPos(pos);
 
-    mTownHall->setPos(mPosition.x()-mTownHall->boundingRect().width()/2, mPosition.y()-mTownHall->boundingRect().height()/2-150);
-    mChest->setPos(mTownHall->x()+60, mTownHall->y()+315);
+    mTownHall.setPos(mPosition.x()-mTownHall.boundingRect().width()/2, mPosition.y()-mTownHall.boundingRect().height()/2-150);
+    mChest.setPos(mTownHall.x()+60, mTownHall.y()+315);
 
     QList<WatchTower*> towersPut;
-    for(WatchTower * tower : mWatchTowers)
+    for(WatchTower& tower : mWatchTowers)
     {
-        tower->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-tower->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-tower->boundingRect().height())));
         bool verifTowersPosition = false;
         while(!verifTowersPosition)
         {
-            tower->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-tower->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-tower->boundingRect().height())));
-            while(tower->collidesWithItem(this))
-                tower->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-tower->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-tower->boundingRect().height())));
+            tower.setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-tower.boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-tower.boundingRect().height())));
+            while(tower.collidesWithItem(this))
+                tower.setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-tower.boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-tower.boundingRect().height())));
 
-            verifTowersPosition = false;
-            for(WatchTower * towerToCheck : towersPut)
+            verifTowersPosition = true;
+            for(WatchTower* towerToCheck : towersPut)
             {
-                if(ToolFunctions::getDistanceBeetween(towerToCheck, tower) < 300){
+                if(ToolFunctions::getDistanceBeetween(towerToCheck, &tower) < 300)
+                {
+                    verifTowersPosition = false;
                     break;
                 }
-                if(towersPut.last() == towerToCheck){
-                    verifTowersPosition = true;
-                }
-            }
-            if(towersPut.size() == 0){
-                verifTowersPosition = true;
             }
         }
-        towersPut.append(tower);
+        towersPut.append(&tower);
     }
 
     QList<Hut*> hutsPut;
-    for(Hut * hut : mHuts)
+    for(Hut& hut : mHuts)
     {
-        hut->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-hut->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-hut->boundingRect().height())));
-        hut->setRotation(QRandomGenerator::global()->bounded(20)-10);
-
         bool verifHutsPosition = false, verifTowersPosition = false;
         while(!verifHutsPosition || !verifTowersPosition)
         {
-            hut->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-hut->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-hut->boundingRect().height())));
-            hut->setRotation(QRandomGenerator::global()->bounded(20)-10);
-            while(hut->collidesWithItem(this)){
-                hut->setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-hut->boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-hut->boundingRect().height())));
-                hut->setRotation(QRandomGenerator::global()->bounded(20)-10);
+            hut.setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-hut.boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-hut.boundingRect().height())));
+            hut.setRotation(QRandomGenerator::global()->bounded(20)-10);
+            while(hut.collidesWithItem(this)){
+                hut.setPos(this->pos().x() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().width()-hut.boundingRect().width())), this->pos().y() + QRandomGenerator::global()->bounded(static_cast<int>(boundingRect().height()-hut.boundingRect().height())));
+                hut.setRotation(QRandomGenerator::global()->bounded(20)-10);
             }
 
-            verifHutsPosition = false;
-            for(Hut * hutToCheck : hutsPut)
+            verifHutsPosition = true;
+            for(Hut* hutToCheck : hutsPut)
             {
-                int dx = static_cast<int>(hut->x() - hutToCheck->x());
-                int dy = static_cast<int>(hut->y() - hutToCheck->y());
+                int dx = static_cast<int>(hut.x() - hutToCheck->x());
+                int dy = static_cast<int>(hut.y() - hutToCheck->y());
                 if( (dy < 100 && dy > -hutToCheck->boundingRect().height()) && (abs(dx) < hutToCheck->boundingRect().width()) ){
+                    verifHutsPosition = false;
                     break;
                 }
-                if(ToolFunctions::getDistanceBeetween(hutToCheck, hut) < 50){
+                if(ToolFunctions::getDistanceBeetween(hutToCheck, &hut) < 50){
+                    verifHutsPosition = false;
                     break;
-                }
-                if(hutsPut.last() == hutToCheck){
-                    verifHutsPosition = true;
                 }
             }
-            verifTowersPosition = false;
-            for(WatchTower * tower : mWatchTowers)
+
+            verifTowersPosition = true;
+            for(WatchTower& tower : mWatchTowers)
             {
-                if( ((hut->y() < tower->y()+tower->boundingRect().height()-hut->boundingRect().height()+50) && (hut->y() > tower->y()-hut->boundingRect().height()))
-                        && (abs(hut->x()-tower->x()) < hut->boundingRect().width()) ){
+                if( ((hut.y() < tower.y()+tower.boundingRect().height()-hut.boundingRect().height()+50) && (hut.y() > tower.y()-hut.boundingRect().height()))
+                        && (abs(hut.x()-tower.x()) < hut.boundingRect().width()) ){
+                    verifTowersPosition = false;
                     break;
                 }
-                if(mWatchTowers.last() == tower){
-                    verifTowersPosition = true;
-                }
-            }
-            if(hutsPut.size() == 0){
-                verifHutsPosition = true;
             }
         }
-        hutsPut.append(hut);
+        hutsPut.append(&hut);
     }
 }
 
@@ -301,15 +272,15 @@ WatchTower::~WatchTower()
 Village_Goblin_Area::Village_Goblin_Area():
     QGraphicsItem ()
 {
-    mVillage = new Village_Goblin();
+
 }
 
 Village_Goblin_Area::~Village_Goblin_Area()
 {
-    delete mVillage;
+
 }
 
-Village_Goblin *Village_Goblin_Area::getVillage()
+Village_Goblin& Village_Goblin_Area::getVillage()
 {
     return mVillage;
 }
@@ -317,13 +288,13 @@ Village_Goblin *Village_Goblin_Area::getVillage()
 void Village_Goblin_Area::addInScene(QGraphicsScene * scene)
 {
     scene->addItem(this);
-    mVillage->addInScene(scene);
+    mVillage.addInScene(scene);
 }
 
 void Village_Goblin_Area::setPosition(QPointF pos)
 {
-    mVillage->setPosition(QPointF(pos.x()+(boundingRect().width()-mVillage->boundingRect().width())/2,
-                                  pos.y()+(boundingRect().height()-mVillage->boundingRect().height())/2));
+    mVillage.setPosition(QPointF(pos.x()+(boundingRect().width()-mVillage.boundingRect().width())/2,
+                                  pos.y()+(boundingRect().height()-mVillage.boundingRect().height())/2));
     setPos(pos);
 }
 

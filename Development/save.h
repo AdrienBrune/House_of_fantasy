@@ -1,74 +1,43 @@
- #ifndef SAVE_H
- #define SAVE_H
+#ifndef SAVE_H
+#define SAVE_H
 
- #include "hero.h"
- #include "village.h"
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonArray>
+#include <QJsonDocument>
 
- class Save
- {
- public:
-     Save();
-     ~Save();
+#include "hero.h"
+#include "map.h"
 
- public:
-     Hero * getHero();
-     HeroChest * getHeroChest();
-     const QString & getName()const;
-     Village * getVillage();
+struct GameContentStruct
+{
+    Hero* hero;
+    Map* map;
+};
 
-     void setHero(Hero*);
-     void setChest(HeroChest*);
-     void setName(QString);
-     void setVillage(Village*);
- public:
-     void serialize(QDataStream& stream)const
-     {
-         DEBUG("SERIALIZATION[in]  : Start");
+class Save
+{
+public:
+    Save():
+        mId("")
+    {}
+    ~Save(){}
 
-         stream << mName;
-         mChest->serialize(stream);
-         mHero->serialize(stream);
-         mVillage->serialize(stream);
+public:
+    inline const QString& GetId() const { return mId; }
+    inline void SetId(QString id) { mId = id; }
 
-         DEBUG("SERIALIZED[in]  : Save");
-     }
-     void deserialize(QDataStream& stream)
-     {
-         DEBUG("SERIALIZATION[out] : Start");
+    void LoadFromFile(QString path);
+    void SaveToFile(QString path);
 
-         stream >> mName;
-         if(mChest)
-             delete mChest;
-         mChest = new HeroChest();
-         mChest->deserialize(stream);
+    void UpdateGameContent(GameContentStruct game);
 
-         quint8 heroClass = 0;
-         stream >> heroClass;
-         mHero = Hero::getInstance(static_cast<Hero::HeroClasses>(heroClass));
-         mHero->deserialize(stream);
+    Hero* HeroFactory();
+    Map* MapFactory(QWidget * parent, QGraphicsView * view);
 
-         if(mVillage)
-             delete mVillage;
-         mVillage = new Village();
-         mVillage->deserialize(stream);
+private:
+    QString mId;
+    QJsonObject mJsonContent;
+};
 
-         DEBUG("SERIALIZED[out] : Save");
-     }
-     friend QDataStream& operator<<(QDataStream& stream, const Save& object)
-     {
-         object.serialize(stream);
-         return stream;
-     }
-     friend QDataStream& operator>>(QDataStream& stream, Save& object)
-     {
-         object.deserialize(stream);
-         return stream;
-     }
- private:
-     Hero * mHero;
-     HeroChest * mChest;
-     QString mName;
-     Village * mVillage;
- };
-
- #endif // SAVE_H
+#endif // SAVE_H

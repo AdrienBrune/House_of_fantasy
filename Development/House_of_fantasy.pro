@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        daynightcycle.cpp \
         bag.cpp \
         character.cpp \
         consumable.cpp \
@@ -58,7 +59,6 @@ SOURCES += \
         w_animation_forge.cpp \
         w_animation_night.cpp \
         w_animationspell.cpp \
-        w_interface_herostats.cpp \
         w_itemdisplayer.cpp \
         w_messagelogger.cpp \
         w_quicktooldrawer.cpp \
@@ -79,6 +79,7 @@ SOURCES += \
         save.cpp
 
 HEADERS += \
+        daynightcycle.h \
         bag.h \
         character.h \
         constants.h \
@@ -113,7 +114,6 @@ HEADERS += \
         w_animation_forge.h \
         w_animation_night.h \
         w_animationspell.h \
-        w_interface_herostats.h \
         w_itemdisplayer.h \
         w_messagelogger.h \
         w_quicktooldrawer.h \
@@ -143,7 +143,6 @@ FORMS += \
         frag_stats_displayer.ui \
         frag_save.ui \
         w_animationspell.ui \
-        w_interface_herostats.ui \
         w_messagelogger.ui \
         w_showinformation.ui \
         w_showmonsterdata.ui \

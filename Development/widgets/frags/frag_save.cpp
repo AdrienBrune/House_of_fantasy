@@ -12,11 +12,7 @@ Frag_Save::Frag_Save(QWidget * parent, Save * save) :
     ui->setupUi(this);
     ui->saveImage->setScaledContents(true);
 
-    if(save)
-    {
-        ui->saveName->setText(mSave->getName());
-        ui->saveImage->setPixmap(mSave->getHero()->getImage());
-    }
+    setSave(save);
 }
 
 Frag_Save::~Frag_Save()
@@ -37,8 +33,16 @@ void Frag_Save::onUnfocusExcept(Save * save)
 
 void Frag_Save::setSave(Save * save)
 {
-     ui->saveImage->setPixmap(save->getHero()->getImage());
-     ui->saveName->setText(save->getName());
+    if (!save)
+        return;
+
+    Hero* hero = save->HeroFactory();
+    QPixmap image = hero->getImage();
+    ui->saveImage->setPixmap(image);
+    ui->saveName->setText(save->GetId());
+    delete hero;
+
+    mSave = save;
 }
 
 void Frag_Save::setSelectable(bool mode)

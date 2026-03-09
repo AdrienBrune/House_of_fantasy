@@ -169,7 +169,7 @@
              </property>
              <property name="styleSheet">
               <string notr="true">QLabel{
-	border-image:url(:/icons/lifeStat.png);
+	border-image:url(:/icons/Ressources/lifeStat.png);
 }</string>
              </property>
              <property name="text">
@@ -314,7 +314,7 @@ QPushButton:disabled{
              </property>
              <property name="styleSheet">
               <string notr="true">QLabel{
-	border-image:url(:/icons/manaStat.png);
+	border-image:url(:/icons/Ressources/manaStat.png);
 }</string>
              </property>
              <property name="text">
@@ -459,7 +459,7 @@ QPushButton:disabled{
              </property>
              <property name="styleSheet">
               <string notr="true">QLabel{
-	border-image:url(:/icons/staminaStat.png);
+	border-image:url(:/icons/Ressources/staminaStat.png);
 }</string>
              </property>
              <property name="text">
