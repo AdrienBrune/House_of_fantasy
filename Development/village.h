@@ -488,8 +488,6 @@ public:
     QList<Item*> getItems();
     void addItem(Item*);
     Item * takeItem(Item*);
-    void openChest(bool);
-    bool isOpen(); 
 public:
     void serialize(QDataStream& stream)const
     {
@@ -563,7 +561,6 @@ private:
     void setGraphicStuff();
 private:
     QList<Item*> mItems;
-    bool mIsOpen;
 };
 
 class HeroHouse
@@ -640,6 +637,7 @@ signals:
     void sig_villageShowInfo(QGraphicsItem*);
     void sig_LaoShanLungSummoned();
 public:
+    virtual int type() const override { return eQGraphicItemType::village; }
     void addInScene(QGraphicsScene*);
     void removeFromScene(QGraphicsScene*);
     void setPosition(QPointF);

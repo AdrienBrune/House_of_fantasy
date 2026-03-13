@@ -4,8 +4,48 @@
 #include <QObject>
 #include <QGraphicsItem>
 #include <QGraphicsItemGroup>
+#include <QGraphicsPixmapItem>
+#include <QGraphicsScene>
+#include <QPainter>
 #include <QTimer>
 #include <QElapsedTimer>
+#include "toolfunctions.h"
+
+// Custom scene that draws a varied grass background using a pool of tile variants.
+// drawBackground() picks a variant per tile position via a hash, eliminating
+// the obvious repetition of setBackgroundBrush().
+class GrassScene : public QGraphicsScene
+{
+public:
+    explicit GrassScene(QObject* parent = nullptr) : QGraphicsScene(parent)
+    {
+        for (int i = 0; i < VARIANT_COUNT; i++)
+            mTiles.append(ToolFunctions::generateGrassTile(256, static_cast<quint32>(i * 2654435761u)));
+    }
+
+protected:
+    void drawBackground(QPainter* p, const QRectF& rect) override
+    {
+        const int S = 256;
+        int x0 = static_cast<int>(qFloor(rect.left()   / S)) - 1;
+        int y0 = static_cast<int>(qFloor(rect.top()    / S)) - 1;
+        int x1 = static_cast<int>(qCeil (rect.right()  / S)) + 1;
+        int y1 = static_cast<int>(qCeil (rect.bottom() / S)) + 1;
+        for (int ty = y0; ty <= y1; ty++) {
+            for (int tx = x0; tx <= x1; tx++) {
+                // Deterministic hash of (tx, ty) → variant index
+                quint32 h = static_cast<quint32>(tx * 1664525 + ty * 1013904223);
+                p->drawPixmap(tx * S, ty * S, mTiles[h % VARIANT_COUNT]);
+            }
+        }
+    }
+
+private:
+    static constexpr int VARIANT_COUNT = 16;
+    QVector<QPixmap> mTiles;
+};
+
+
 #include "hero.h"
 #include "monster.h"
 #include "mapitem.h"
@@ -97,7 +137,10 @@ private:
     void putItemsInMap();
     void putGoblinVillageInMap();
     void putLakesInMap();
+    void generateGroundVariations();
     void initMonsterConnection(Monster*);
+    void initMapElementsConnections();
+    void initItemsInMapConnections();
 public:
     inline void toJson(QJsonObject &json) const
     {
@@ -132,6 +175,10 @@ public:
         {
             QJsonObject jsonItem;
             item->toJson(jsonItem);
+            QJsonObject jsonPos;
+            jsonPos["x"] = item->x();
+            jsonPos["y"] = item->y();
+            jsonItem["map_position"] = jsonPos;
             jsonItems.append(jsonItem);
         }
         jsonElements["items"] = jsonItems;
@@ -189,8 +236,9 @@ public:
                     MapItem* item = MapItem::Factory(jsonItem["type"].toInt());
                     mScene->addItem(item);
                     item->fromJson(jsonItem);
-                    mElementsInMap.append(item);                
+                    mElementsInMap.append(item);
                 }
+                initMapElementsConnections(); 
             }
             if (jsonElements.contains("items") && jsonElements["items"].isArray())
             {
@@ -209,9 +257,15 @@ public:
                     }
                     Item* item = Item::Factory(jsonItem["type"].toInt());
                     item->fromJson(jsonItem);
+                    if (jsonItem.contains("map_position") && jsonItem["map_position"].isObject())
+                    {
+                        QJsonObject jsonPos = jsonItem["map_position"].toObject();
+                        item->setPos(jsonPos["x"].toDouble(), jsonPos["y"].toDouble());
+                    }
+                    mScene->addItem(item);
                     mItemsInMap.append(item);
                 }
-                putItemsInMap();
+                initItemsInMapConnections();
             }
         }
 
@@ -257,6 +311,9 @@ private:
     QTimer * t_monstersActions;
     int monsterActionIndex;
     QTimer * t_monsterMove;
+
+    // Ground variation decorations (dirt patches, gravel zones) — not saved, regenerated each time
+    QList<QGraphicsPixmapItem*> mGroundPatches;
 };
 
 #endif // MAP_H

@@ -4,6 +4,9 @@
 #include <QWidget>
 #include <QGraphicsView>
 #include <QGraphicsItem>
+#include <QPainter>
+#include <QPixmap>
+#include <QRandomGenerator>
 #include <QtMath>
 #include "mapitem.h"
 
@@ -38,6 +41,14 @@ public:
             for(int col = 0; col < matrix[row].size(); col++)
                 matrix[row][col] = value;
     }
+    static QPixmap generateGrassTile(int size = 256, quint32 seed = 42);
+    static QPixmap generateDirtPatch(int w, int h, quint32 seed);
+    static QPixmap generateGravelPatch(int w, int h, quint32 seed);
+    static QPixmap generateSandPatch(int w, int h, quint32 seed);
+    static QPixmap generateForestFloor(int w, int h, quint32 seed);
+    static QPixmap generateMossyRocks(int w, int h, quint32 seed);
+    static QPixmap generateUndergrowth(int w, int h, quint32 seed);
+    static QPixmap generateFlowerField(int w, int h, quint32 seed);
 };
 
 #endif // TOOLS_H

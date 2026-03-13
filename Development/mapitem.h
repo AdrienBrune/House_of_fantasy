@@ -47,6 +47,7 @@ public:
     QRectF boundingRect()const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public:
+    virtual int type() const override { return eQGraphicItemType::mapitem; }
     inline virtual bool isMovable() { return false; }
     bool isObstacle();
     bool isDestroyed();
@@ -129,7 +130,7 @@ signals:
     void sig_itemPositionFixed(MapItem*);
     void sig_deleteItem(MapItemMovable*);
 public:
-    inline virtual bool isMovable() override { return true; }
+    inline virtual bool isMovable() override { return mMove; }
     void setInitialPosition(QPointF);
     void setReadyToDelete();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -200,6 +201,7 @@ public:
     Bush();
     ~Bush();
 public:
+    virtual int type() const override { return eQGraphicItemType::bush; }
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public:
     void startAnimation();

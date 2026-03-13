@@ -19,6 +19,8 @@ public:
     MapEvent();
     virtual ~MapEvent();
 public:
+    virtual int type() const override { return eQGraphicItemType::mapevent; }
+
     QList<Item*> getItems();
     QList<Item*> takeItems();
     Item * takeItem(Item*);
@@ -123,6 +125,7 @@ public:
     BushEventCoin();
     ~BushEventCoin();
 public:
+    virtual int type() const override { return eQGraphicItemType::bushcoin; }
     void itemsTook();
 private:
     void initGraphicStuff();
@@ -135,6 +138,7 @@ public:
     BushEventEquipment();
     ~BushEventEquipment();
 public:
+    virtual int type() const override { return eQGraphicItemType::bushequipment; }
     void itemsTook();
 private:
     void initGraphicStuff();
@@ -211,8 +215,6 @@ public:
     QList<Item*> getItems();
     void revealChest();
     bool isRevealed();
-    void openChest(bool);
-    bool isOpen();
     void addExtraItems();
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -222,32 +224,24 @@ public:
     {
         MapEvent::toJson(json);
 
-        json["opened"] = mIsOpen;
         json["revealed"] = mRevealChest;
     }
     inline virtual void fromJson(const QJsonObject &json) override
     {
         MapEvent::fromJson(json);
 
-        if (json.contains("opened"))
-        {
-            mIsOpen = json["opened"].toBool();
-        }
-
         if (json.contains("revealed"))
         {
-            mRevealChest = json["revealed"].toInt();
-            if (mRevealChest == 1)
+            int status = json["revealed"].toInt();
+            if (status >= 1)
             {
-                setAcceptHoverEvents(true);
+                revealChest();
             }
-            else if (mRevealChest == 2)
+            if (status >= 2)
             {
-                setAcceptHoverEvents(false);
+                itemsTook();
             }
         }
-
-        setShape();
     }
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *);
@@ -256,7 +250,6 @@ protected:
 private:
     void setShape();
 protected:
-    bool mIsOpen;
     int mRevealChest;
     bool mHover;
 };

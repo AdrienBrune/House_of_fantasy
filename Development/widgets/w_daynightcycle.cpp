@@ -1,4 +1,5 @@
 #include "w_daynightcycle.h"
+#include "daynightcycle.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -44,30 +45,15 @@ void W_DayNightCycle::paintEvent(QPaintEvent *)
     const qreal trackW = outerR * 0.20;
     const qreal midR   = outerR - trackW * 0.5;
 
-    // color list
-    struct Key { qreal pos; int r, g, b; };
+    struct Key { qreal pos; qreal span; int r, g, b; };
     static const Key keys[] = {
-        {0.00,  15,  20,  75},  // minuit (gauche)
-        {0.16,  45,  80, 190},  // aube
-        {0.26, 255, 150,  55},  // lever de soleil
-        {0.38, 255, 225, 100},  // matin clair
-        {0.50, 255, 245, 130},  // midi (zénith)
-        {0.62, 255, 210,  80},  // après-midi
-        {0.74, 235, 110,  25},  // coucher de soleil
-        {0.88,  35,  25,  90},  // crépuscule
-        {1.00,  15,  20,  75},  // minuit (droite)
+        {0.00, 0.20,  35,  33, 50},  // night
+        {0.20, 0.10, 255, 150, 40},  // dawn
+        {0.30, 0.40, 255, 215, 85},  // noon
+        {0.70, 0.10, 255, 150, 40},  // dusk
+        {0.80, 0.20,  35,  33, 50},  // night
     };
     const int nK = static_cast<int>(sizeof(keys) / sizeof(keys[0]));
-
-    auto colorAt = [&](qreal pos) -> QColor {
-        int i = 0;
-        while(i < nK - 2 && keys[i + 1].pos <= pos) i++;
-        qreal f = (pos - keys[i].pos) / (keys[i + 1].pos - keys[i].pos);
-        auto lp = [](int a, int b, qreal t){ return static_cast<int>(a + t * (b - a)); };
-        return QColor(lp(keys[i].r, keys[i+1].r, f),
-                      lp(keys[i].g, keys[i+1].g, f),
-                      lp(keys[i].b, keys[i+1].b, f));
-    };
 
     // shadown halo
     {
@@ -82,16 +68,15 @@ void W_DayNightCycle::paintEvent(QPaintEvent *)
     // panel colored
     {
         QRectF r(cx - midR, cy - midR, midR * 2, midR * 2);
-        const int segs = 10;
-        for(int i = 0; i < segs; i++)
+        for(int i = 0; i < nK; i++)
         {
-            qreal p0 = (qreal)i / segs;
-            qreal p1 = (qreal)(i + 1) / segs;
-            QColor c = colorAt((p0 + p1) * 0.5);
+            qreal p0 = (qreal)i / nK;
+            qreal p1 = (qreal)(i + 1) / nK;
+            QColor c = QColor(keys[i].r, keys[i].g, keys[i].b);
             p.setPen(QPen(c, trackW - 1.0, Qt::SolidLine, Qt::FlatCap));
 
-            int startAngle = (int)((1.0 - p1) * 180.0 * 16);
-            int spanAngle  = (int)((p1 - p0) * 180.0 * 16) + 1;
+            int startAngle = (int)((1-keys[i].pos) * 180.0 * 16);
+            int spanAngle  = (int)(-keys[i].span * 180.0 * 16);
             p.drawArc(r, startAngle, spanAngle);
         }
     }
@@ -135,7 +120,7 @@ void W_DayNightCycle::paintEvent(QPaintEvent *)
 
         QString tooltipMsg;
 
-        if(mTime < 0.15 || mTime > 0.85)
+        if(mTime < 0.20 || mTime > 0.80)
         {
             // moon
             QPainterPath moon;
@@ -148,7 +133,7 @@ void W_DayNightCycle::paintEvent(QPaintEvent *)
             p.drawPath(moon.subtracted(cutout));
             tooltipMsg = "Nuit\nles monstres seront agressifs";
         }
-        else if(mTime < 0.28 || mTime > 0.72)
+        else if(mTime < 0.30 || mTime > 0.70)
         {
             // rising sun
             p.setBrush(QColor(255, 155, 50, 220));

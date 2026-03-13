@@ -8,7 +8,6 @@
 DayNightCycle::DayNightCycle(QGraphicsScene* scene, QObject* parent)
     : QObject(parent),
       mTime(TIME_DAWN),
-      mDarkness(0.0),
       mWasNight(false)
 {
     mOverlay = new DayNightOverlay(scene->sceneRect());
@@ -66,9 +65,6 @@ void DayNightCycle::onTick()
 
 void DayNightCycle::updateOverlay()
 {
-    // Logical darkness: 1.0 at midnight, 0.0 at noon (used for isNight())
-    mDarkness = (qCos(2.0 * M_PI * mTime) + 1.0) / 2.0;
-
     // Color keyframes {time, RGBA overlay color}
     struct KeyFrame { qreal t; int r, g, b, a; };
     static const KeyFrame frames[] = {

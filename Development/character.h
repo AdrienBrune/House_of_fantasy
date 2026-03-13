@@ -131,6 +131,8 @@ public:
         jsonPosition["x"] = mPositionInMap.x();
         jsonPosition["y"] = mPositionInMap.y();
         json["position"] = jsonPosition;
+
+        json["z_value"] = zValue();
     }
 
     inline virtual void fromJson(const QJsonObject &json)
@@ -207,6 +209,11 @@ public:
             mPositionInMap.setY(jsonPosition["y"].toDouble());
         }
         setPos(mPositionInMap);
+
+        if (json.contains("z_value") && json["z_value"].isDouble())
+        {
+            setZValue(json["z_value"].toDouble());
+        }
     }
 
 protected:

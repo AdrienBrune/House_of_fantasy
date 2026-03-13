@@ -225,7 +225,7 @@ bool Hero::isFreeze()
 
 void Hero::checkMapInteractions()
 {
-    int zOffset;
+    int zOffset = Z_GROUND_FOREGROUND;
     bool mapEventFound = false;
     QList<QGraphicsItem*> list;
 
@@ -241,90 +241,142 @@ void Hero::checkMapInteractions()
         }
     }
 
-    list = collidingItems();
-    zOffset = list.isEmpty() ? Z_HERO : Z_GROUND_FOREGROUND ;
+    list = scene()->collidingItems(this);
     for(QGraphicsItem * item : qAsConst(list))
     {
-        Monster * monsterDead = dynamic_cast<Monster*>(item);
-        if(monsterDead)
+        if(item->type() == eQGraphicItemType::monster)
         {
-            if(monsterDead->isDead())
-                mapEventFound = true;
-            if(!mIsInMapEvent && monsterDead->isDead() && !monsterDead->isSkinned())
+            Monster * monsterDead = dynamic_cast<Monster*>(item);
+            if(monsterDead)
             {
-                Tool * tool  = dynamic_cast<Tool*>(getBag()->getKnife());
-                if(tool)
-                    emit sig_enterMapEvent(tool);
-            }
-            zOffset = Z_HERO;
-        }
-
-        MapItem * mapItem = dynamic_cast<MapItem*>(item);
-        if(mapItem)
-        {
-            Bush * bush = dynamic_cast<Bush*>(item);
-            if(bush)
-            {
-                if(!bush->isAnimated())
-                {
-                    emit sig_movedInBush(bush);
-                }
-            }
-            BushEventCoin * bushCoinEvent = dynamic_cast<BushEventCoin*>(item);
-            if(bushCoinEvent)
-            {
-                if(!bushCoinEvent->isAnimated())
-                {
-                    emit sig_movedInBushEvent(bushCoinEvent);
-                }
-            }
-            BushEventEquipment * bushEquipmentEvent = dynamic_cast<BushEventEquipment*>(item);
-            if(bushEquipmentEvent)
-            {
-                if(!bushEquipmentEvent->isAnimated())
-                {
-                    emit sig_movedInBushEvent(bushEquipmentEvent);
-                }
-            }
-
-            // Check map event
-            MapEvent* mapEvent = dynamic_cast<MapEvent*>(mapItem);
-            if(mapEvent)
-            {
-                if(mapEvent->eventIsActive())
+                if(monsterDead->isDead())
                     mapEventFound = true;
-                if(!mIsInMapEvent && mapEvent->eventIsActive())
+                if(!mIsInMapEvent && monsterDead->isDead() && !monsterDead->isSkinned())
                 {
-                    Tool * tool = nullptr;
-
-                    ChestEvent * chestEvent = dynamic_cast<ChestEvent*>(mapEvent);
-                    if(chestEvent)
-                    {
-                        tool = dynamic_cast<Tool*>(getBag()->getShovel());
-                    }
-
-                    OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
-                    if(oreSpot)
-                    {
-                        tool = dynamic_cast<Tool*>(getBag()->getPickaxe());
-                    }
-
-                    FishingEvent * fishes = dynamic_cast<FishingEvent*>(mapEvent);
-                    if(fishes)
-                    {
-                        tool = dynamic_cast<Tool*>(getBag()->getFishingrod());
-                    }
-
+                    Tool * tool  = dynamic_cast<Tool*>(getBag()->getKnife());
                     if(tool)
                         emit sig_enterMapEvent(tool);
                 }
             }
+        }
 
-            // Update Z position
-            if(y() + this->boundingRect().height() < mapItem->y() + mapItem->getZOffset())
-                zOffset = (zOffset < mapItem->zValue() - 1) ? mapItem->zValue() - 1 : zOffset ;
-            else
-                zOffset = (zOffset < mapItem->zValue() + 1) ? mapItem->zValue() + 1 : zOffset ;
+        if (IsMapitemTypeOrDerived(item))
+        {
+            MapItem * mapItem = dynamic_cast<MapItem*>(item);
+            if(mapItem)
+            {
+                if(item->type() == eQGraphicItemType::bush)
+                {
+                    Bush * bush = dynamic_cast<Bush*>(item);
+                    if(bush)
+                    {
+                        if(!bush->isAnimated())
+                        {
+                            emit sig_movedInBush(bush);
+                        }
+                    }
+                }
+                else if(item->type() == eQGraphicItemType::bushcoin)
+                {
+                    BushEventCoin * bushCoinEvent = dynamic_cast<BushEventCoin*>(item);
+                    if(bushCoinEvent)
+                    {
+                        if(!bushCoinEvent->isAnimated())
+                        {
+                            emit sig_movedInBushEvent(bushCoinEvent);
+                        }
+                    }
+                }
+                else if(item->type() == eQGraphicItemType::bushequipment)
+                {
+                    BushEventEquipment * bushEquipmentEvent = dynamic_cast<BushEventEquipment*>(item);
+                    if(bushEquipmentEvent)
+                    {
+                        if(!bushEquipmentEvent->isAnimated())
+                        {
+                            emit sig_movedInBushEvent(bushEquipmentEvent);
+                        }
+                    }
+                }
+                else if(item->type() == eQGraphicItemType::mapevent)
+                {
+                    // Check map event
+                    MapEvent* mapEvent = dynamic_cast<MapEvent*>(mapItem);
+                    if(mapEvent)
+                    {
+                        if(mapEvent->eventIsActive())
+                            mapEventFound = true;
+                        if(!mIsInMapEvent && mapEvent->eventIsActive())
+                        {
+                            Tool * tool = nullptr;
+
+                            ChestEvent * chestEvent = dynamic_cast<ChestEvent*>(mapEvent);
+                            if(chestEvent)
+                            {
+                                tool = dynamic_cast<Tool*>(getBag()->getShovel());
+                            }
+
+                            OreSpot * oreSpot = dynamic_cast<OreSpot*>(mapEvent);
+                            if(oreSpot)
+                            {
+                                tool = dynamic_cast<Tool*>(getBag()->getPickaxe());
+                            }
+
+                            FishingEvent * fishes = dynamic_cast<FishingEvent*>(mapEvent);
+                            if(fishes)
+                            {
+                                tool = dynamic_cast<Tool*>(getBag()->getFishingrod());
+                            }
+
+                            if(tool)
+                                emit sig_enterMapEvent(tool);
+                        }
+                    }
+                }
+
+                // Update Z position
+                if(y() + this->boundingRect().height() < mapItem->y() + mapItem->getZOffset())
+                    zOffset = (zOffset < mapItem->zValue() - 1) ? mapItem->zValue() - 1 : zOffset ;
+                else
+                    zOffset = (zOffset < mapItem->zValue() + 1) ? mapItem->zValue() + 1 : zOffset ;
+            }
+        }
+
+        // Update Z layer
+        for(QGraphicsItem* item : qAsConst(list))
+        {
+            if (IsMapitemTypeOrDerived(item))
+            {
+                MapItem *mapItem = dynamic_cast<MapItem*>(item);
+                if (mapItem)
+                {
+                    // update only when ZOffset is increased
+                    if(y() + this->boundingRect().height() < mapItem->y() + mapItem->getZOffset())
+                    {
+                        zOffset = (zOffset < mapItem->zValue() - 1) ? mapItem->zValue() - 1 : zOffset ;
+                    }
+                    else
+                    {
+                        zOffset = (zOffset < mapItem->zValue() + 1) ? mapItem->zValue() + 1 : zOffset ;
+                    }
+                }
+            }
+            else if (item->type() == eQGraphicItemType::monster)
+            {
+                Monster* monster = dynamic_cast<Monster*>(item);
+                if (monster)
+                {
+                    // update only when ZOffset is increased
+                    if(y() + this->boundingRect().height() < monster->y() + monster->getZOffset())
+                    {
+                        zOffset = (zOffset < monster->zValue() - 1) ? monster->zValue() - 1 : zOffset ;
+                    }
+                    else
+                    {
+                        zOffset = (zOffset < monster->zValue() + 1) ? monster->zValue() + 1 : zOffset ;
+                    }
+                }
+            }
         }
     }
 

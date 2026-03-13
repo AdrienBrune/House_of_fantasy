@@ -1,13 +1,6 @@
 #include "monster.h"
 
-#include <QVector2D>
 #include "monsterfightview.h"
-
-int mSounds[6];
-QTimer * t_isWalking;
-int mSkin;
-
-QList<Item*> mItems;
 
 Monster::Monster(QGraphicsView * view):
     Character (),
@@ -23,6 +16,7 @@ Monster::Monster(QGraphicsView * view):
     mMove(MovementHandler()),
     mPixmap(ImageHandler()),
     t_isWalking(nullptr),
+    t_isRunning(nullptr),
     mSkin(0),
     mItems(QList<Item*>()),
     mFightView(nullptr)
@@ -38,6 +32,9 @@ Monster::Monster(QGraphicsView * view):
 
     t_isWalking = new QTimer(this);
     t_isWalking->setSingleShot(true);
+
+    t_isRunning = new QTimer(this);
+    t_isRunning->setSingleShot(true);
 
     connect(&t_fight, &QTimer::timeout, this, &Monster::onStaminaRecovery);
 
@@ -59,16 +56,36 @@ void Monster::setAngle(int angle)
     }
 
     setRotation(static_cast<qreal>(ToolFunctions::correct(angle)));
-    mMove.currentAngle = angle;
 }
 
-void Monster::setTargetAngle(int angle)
+void Monster::applyZigzagStep()
 {
-    mMove.targetAngle = angle;
-    if(ToolFunctions::isOppositeDirection(mMove.currentAngle, mMove.targetAngle))
+    constexpr float ZIGZAG_OFFSET = 45.0f;
+    float sideAngleDeg;
+
+    if(qAbs(mMove.netDirection.y()) > qAbs(mMove.netDirection.x()))
     {
-        setAngle((mMove.currentAngle + 180) % 360);
+        // Direction verticale : alterne entre côté DROIT et côté GAUCHE
+        // Les deux angles résultants restent toujours à ±45° de l'horizontal
+        // vertSign > 0 = vers le bas, < 0 = vers le haut
+        float vertSign = (mMove.netDirection.y() >= 0.0f) ? 1.0f : -1.0f;
+
+        if(!mMove.zigzagSide)
+            sideAngleDeg = vertSign * ZIGZAG_OFFSET;              // ex: +45° (bas-droite) ou -45° (haut-droite)
+        else
+            sideAngleDeg = 180.0f - vertSign * ZIGZAG_OFFSET;     // ex: 135° (bas-gauche) ou 225° (haut-gauche)
     }
+    else
+    {
+        // Direction horizontale : ligne droite, pas de zigzag
+        sideAngleDeg = qRadiansToDegrees(qAtan2(mMove.netDirection.y(), mMove.netDirection.x()));
+    }
+
+    float rad = qDegreesToRadians(sideAngleDeg);
+    mMove.stepDirection = QVector2D(qCos(rad), qSin(rad));
+
+    int visualAngle = (static_cast<int>(sideAngleDeg) % 360 + 360) % 360;
+    setAngle(visualAngle);
 }
 
 void Monster::setBoundingRect(QRectF bounding)
@@ -162,7 +179,6 @@ QList<Item *> Monster::skinMonster()
     while(!mItems.isEmpty())
         itemList.append(mItems.takeLast());
 
-    setZValue(Z_MONSTER_BACKGROUND);
     mAction = Action::skinned;
     mCurrentPixmap = mPixmap.skinned;
     mNumberFrame = Monster::getNumberFrame();
@@ -249,6 +265,27 @@ void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     // arrowHeadUp << p4 << arrowTopLeft << arrowTopRight;
     // painter->drawPolygon(arrowHeadUp);
 
+    // Collision avoidance vector
+    if (!mCollisionVector.isNull())
+    {
+        QPointF center = boundingRect().center();
+        // Convert scene-space direction to item-space (handles rotation + flip)
+        QPointF sceneOrigin = mapToScene(center);
+        QPointF sceneTip = sceneOrigin + QPointF(mCollisionVector.x(), mCollisionVector.y()) * 60.0f;
+        QPointF localTip = mapFromScene(sceneTip);
+        QPen vectorPen(QColor(255, 140, 0), 3);
+        painter->setPen(vectorPen);
+        painter->setBrush(QColor(255, 140, 0));
+        painter->drawLine(center, localTip);
+        // Arrowhead
+        double arrowAngle = qAtan2(localTip.y() - center.y(), localTip.x() - center.x());
+        QPointF arrowP1 = localTip - QPointF(qCos(arrowAngle + M_PI / 6) * 10, qSin(arrowAngle + M_PI / 6) * 10);
+        QPointF arrowP2 = localTip - QPointF(qCos(arrowAngle - M_PI / 6) * 10, qSin(arrowAngle - M_PI / 6) * 10);
+        QPolygonF arrowTip;
+        arrowTip << localTip << arrowP1 << arrowP2;
+        painter->drawPolygon(arrowTip);
+    }
+
     Q_UNUSED(widget)
     Q_UNUSED(option)
 }
@@ -287,26 +324,105 @@ void Monster::onStaminaRecovery()
     }
 }
 
-void Monster::chooseAction(Hero * hero)
+void Monster::nextAction(Hero * hero, DayNightCycle * daynightCycle)
+{
+    if(mAction == Action::dead || mAction == Action::skinned)
+        return;
+
+    if(!isInBiggerView()){
+        if(mAction!=Action::stand){
+            mAction = Action::stand;
+            mCurrentPixmap = mPixmap.stand;
+            t_animation->stop();
+            mNextFrame = 0;
+            mNumberFrame = Monster::getNumberFrame();
+        }
+        return;
+    }
+
+    chooseAction(hero, daynightCycle);
+
+    // Action behaviour
+    switch(mAction)
+    {
+    case Action::moving:
+        mCurrentPixmap = mPixmap.walk;
+        mSpeed = getSpeed();
+        t_animation->stop();
+        t_animation->start(150);
+        break;
+    case Action::aggro:
+        mCurrentPixmap = mPixmap.run;
+        mSpeed = getBoostedSpeed();
+        t_animation->stop();
+        t_animation->start(100);
+        break;
+    case Action::stand:
+        mCurrentPixmap = mPixmap.stand;
+        t_animation->stop();
+        break;
+    default:
+        break;
+    }
+    mNextFrame = 0;
+    mNumberFrame = getNumberFrame();
+    update();
+}
+
+void Monster::chooseAction(Hero * hero, DayNightCycle * daynightCycle)
 {
     int angle = ToolFunctions::getAngleBetween(hero, this);
     int distanceWithHero = ToolFunctions::getDistanceBeetween(hero, this);
 
-    // Monster rush on Hero
-    if(distanceWithHero < DISTANCE_AGGRO && ToolFunctions::isAllowedAngle(angle) && !hero->isInVillage())
+    if(t_isRunning->isActive())
     {
-        t_isWalking->stop(); // Cut walking action to set running action
-
-        mAction = Action::aggro;
         emit sig_monsterSound(getSoundIndexFor(AGGRO));
-
-        // Don't override direction when blocked by an obstacle (chevaux de frise, village...):
-        // doCollision() already handles avoidance; overriding targetAngle here causes the
-        // monster to oscillate left-right on the barrier.
         if(mMove.obstacles.isEmpty())
-            setTargetAngle(angle);
-
+        {
+            float rad = qDegreesToRadians(static_cast<float>(angle));
+            mMove.netDirection = QVector2D(qCos(rad), qSin(rad));
+            applyZigzagStep();
+        }
         return;
+    }
+
+    if(distanceWithHero < DISTANCE_AGGRO && !hero->isInVillage())
+    {
+        bool aggro = false;
+        switch(daynightCycle->getDayTime())
+        {
+            case DayNightCycle::eDayTime::noon:
+                if(QRandomGenerator::global()->bounded(100) < 5)
+                    aggro = true;
+                break;
+            case DayNightCycle::eDayTime::dusk:
+            case DayNightCycle::eDayTime::dawn:
+                if(QRandomGenerator::global()->bounded(100) < 20)
+                    aggro = true;
+                break;
+            case DayNightCycle::eDayTime::night:
+            default:
+                aggro = true;
+                break;
+        }
+
+        if(aggro)
+        {
+            t_isWalking->stop();
+            t_isRunning->start(QRandomGenerator::global()->bounded(RUNNING_TIME_MIN, RUNNING_TIME_MAX));
+            mAction = Action::aggro;
+
+            emit sig_monsterSound(getSoundIndexFor(AGGRO));
+            if(mMove.obstacles.isEmpty())
+            {
+                float rad = qDegreesToRadians(static_cast<float>(angle));
+                mMove.netDirection = QVector2D(qCos(rad), qSin(rad));
+                mMove.zigzagSide = false;
+                mMove.zigzagCounter = 0;
+                applyZigzagStep();
+            }
+            return;
+        }
     }
 
     if(t_isWalking->isActive())
@@ -315,20 +431,27 @@ void Monster::chooseAction(Hero * hero)
     // Monster choose new action (walk, stand, ...)
     switch(QRandomGenerator::global()->bounded(3))
     {
-        case 0: // 33%
+        case 0: // 33% — déplacement
+        {
             mAction = Action::moving;
             t_isWalking->start(QRandomGenerator::global()->bounded(MOVING_TIME_MIN, MOVING_TIME_MAX));
             if(distanceWithHero < DISTANCE_SOUND)
                 emit sig_monsterSound(getSoundIndexFor(SOUND));
 
-            angle = ToolFunctions::getRandomAngle();
-            setTargetAngle(angle);
-        break;
-
-        default:// 66%
+            if(mMove.obstacles.isEmpty())
+            {
+                int netAngle = QRandomGenerator::global()->bounded(360);
+                float rad = qDegreesToRadians(static_cast<float>(netAngle));
+                mMove.netDirection = QVector2D(qCos(rad), qSin(rad));
+                mMove.zigzagSide = false;
+                mMove.zigzagCounter = 0;
+                applyZigzagStep();
+            }
+            break;
+        }
+        default: // 66% — immobile
             mAction = Monster::Action::stand;
-            setZValue(Z_MONSTERS);
-        break;
+            break;
     }
 }
 
@@ -361,24 +484,26 @@ void Monster::advance(int phase)
     if(mAction == Action::dead || mAction == Action::skinned || (mAction == Action::stand && !mIsInView))
         return;
 
-    // Set new angle
-    int angle = (mMove.currentAngle + 90) % 360;
-    int targetAngle = (mMove.targetAngle + 90) % 360;
-
-    if(angle != targetAngle)
-        angle < targetAngle ? angle ++ : angle--;
-
-    setAngle((angle + 270) % 360);
-
-    // Compute collision
     doCollision();
 
-    // Start movement
-    qreal dx = static_cast<qreal>(mSpeed) * qCos(qDegreesToRadians(static_cast<double>(mMove.currentAngle)));
-    qreal dy = static_cast<qreal>(mSpeed) * qSin(qDegreesToRadians(static_cast<double>(mMove.currentAngle)));
+    if((mAction == Action::moving || mAction == Action::aggro) && qAbs(mMove.netDirection.y()) > qAbs(mMove.netDirection.x()))
+    {
+        // switch direction (45° to -45°) every ZIGZAG_FRAMES ~1sec
+        constexpr int ZIGZAG_FRAMES = 45;
+        if(++mMove.zigzagCounter >= ZIGZAG_FRAMES)
+        {
+            mMove.zigzagCounter = 0;
+            mMove.zigzagSide = !mMove.zigzagSide;
+            applyZigzagStep();
+        }
+    }
 
-    dx = (dx > 0) ? ceil(dx) : -ceil(abs(dx));
-    dy = (dy > 0) ? ceil(dy) : -ceil(abs(dy));
+    // Move along current zigzag step direction
+    qreal dx = static_cast<qreal>(mSpeed) * static_cast<qreal>(mMove.stepDirection.x());
+    qreal dy = static_cast<qreal>(mSpeed) * static_cast<qreal>(mMove.stepDirection.y());
+
+    dx = (dx > 0) ? ceil(dx) : -ceil(qAbs(dx));
+    dy = (dy > 0) ? ceil(dy) : -ceil(qAbs(dy));
 
     Character::setPos(x() + dx, y() + dy);
 }
@@ -391,10 +516,9 @@ void Monster::doCollision()
 
     // Set Z value when monster interaction
     zOffset = itemsColliding.isEmpty() ? Z_MONSTERS : Z_GROUND_FOREGROUND ;
-    for(QGraphicsItem * item : qAsConst(itemsColliding))
+    for(QGraphicsItem * monster : qAsConst(itemsColliding))
     {
-        Monster * monster = dynamic_cast<Monster*>(item);
-        if(monster)
+        if(monster->type() == eQGraphicItemType::monster)
         {
             if(pos().y()+boundingRect().height() > monster->y()+monster->boundingRect().height())
                 zOffset = Z_MONSTER_FOREGROUND;
@@ -404,8 +528,13 @@ void Monster::doCollision()
     }
 
     // Process map items which are not obstacles
-    for(QGraphicsItem * item : qAsConst(itemsColliding))
+    for(QGraphicsItem* item : qAsConst(itemsColliding))
     {
+        if(!IsMapitemTypeOrDerived(item))
+        {
+            continue;
+        }
+
         MapItem * mapitem = dynamic_cast<MapItem*>(item);
         if(mapitem)
         {
@@ -417,32 +546,26 @@ void Monster::doCollision()
                 else
                     zOffset = (zOffset < mapitem->zValue() + 1) ? mapitem->zValue() + 1 : zOffset ;
 
-                Bush * bush = dynamic_cast<Bush*>(mapitem);
-                if(bush)
+                if(isInView())
                 {
-                    if(isInView())
+                    Bush * bush = dynamic_cast<Bush*>(mapitem);
+                    if(bush)
                     {
                         if(!bush->isAnimated())
                             emit sig_movedInBush(bush);
 
                         continue;
                     }
-                }
-                BushEventCoin * bushEventCoin = dynamic_cast<BushEventCoin*>(mapitem);
-                if(bushEventCoin)
-                {
-                    if(isInView())
+                    BushEventCoin * bushEventCoin = dynamic_cast<BushEventCoin*>(mapitem);
+                    if(bushEventCoin)
                     {
                         if(!bushEventCoin->isAnimated())
                             emit sig_movedInBushEvent(bushEventCoin);
 
                         continue;
                     }
-                }
-                BushEventEquipment * bushEventEquipment = dynamic_cast<BushEventEquipment*>(mapitem);
-                if(bushEventEquipment)
-                {
-                    if(isInView())
+                    BushEventEquipment * bushEventEquipment = dynamic_cast<BushEventEquipment*>(mapitem);
+                    if(bushEventEquipment)
                     {
                         if(!bushEventEquipment->isAnimated())
                             emit sig_movedInBushEvent(bushEventEquipment);
@@ -458,21 +581,32 @@ void Monster::doCollision()
     QList<QGraphicsItem*> obstacles;
     for(QGraphicsItem * item : qAsConst(itemsColliding))
     {
-        MapItem * mapitem = dynamic_cast<MapItem*>(item);
-        if(mapitem)
+        if (IsMapitemTypeOrDerived(item))
         {
-            if(mapitem->isObstacle())
-                obstacles.append(mapitem);
+            MapItem* mapitem = dynamic_cast<MapItem*>(item);
+            if(mapitem)
+            {
+                if(mapitem->isObstacle())
+                {
+                    obstacles.append(mapitem);
+                }
+            }
         }
-        Village * village = dynamic_cast<Village*>(item);
-        if(village)
+        else if (item->type() == eQGraphicItemType::village)
         {
-            obstacles.append(village);
+            Village * village = dynamic_cast<Village*>(item);
+            if(village)
+            {
+                obstacles.append(village);
+                t_isRunning->stop();
+                t_isWalking->start(1000);
+                mAction = Action::moving;
+            }
         }
     }
 
     // Remove old obstacles
-    for(Obstacle & obstacle : mMove.obstacles)
+    for(Obstacle& obstacle : mMove.obstacles)
     {
         for(QGraphicsItem * currentObstacle : qAsConst(obstacles))
         {
@@ -482,7 +616,7 @@ void Monster::doCollision()
                 continue;
             }
         }
-        if(!obstacle.vanishing--)
+        if(--obstacle.vanishing < 0)
             mMove.obstacles.removeOne(obstacle);
     }
 
@@ -510,25 +644,24 @@ void Monster::doCollision()
     }
 
     // Try to avoid collisions
+    mCollisionVector = QVector2D(0, 0);
     if(!mMove.obstacles.isEmpty())
     {
         int angle;
-        QVector2D vectorSum(0, 0);
         for(Obstacle & obstacle : mMove.obstacles)
         {
             angle = ToolFunctions::getAngleBetween(this, obstacle.item);
             QVector2D vectorObstacle( qCos(qDegreesToRadians(static_cast<double>(angle))),
                                       qSin(qDegreesToRadians(static_cast<double>(angle))));
-            vectorSum += vectorObstacle;
+            mCollisionVector += vectorObstacle;
         }
 
-        vectorSum.normalize();
+        mCollisionVector.normalize();
 
-        angle = static_cast<int>(qRadiansToDegrees(qAtan2(vectorSum.y(), vectorSum.x())));
-        if(angle < 0)
-            angle += 360;
-
-        setTargetAngle(angle);
+        // Obstacle : on redirige la trajectoire nette et on recalcule le step zigzag
+        mMove.netDirection = mCollisionVector;
+        mMove.zigzagSide = false;
+        applyZigzagStep();
     }
 
     setZValue(zOffset);
@@ -700,51 +833,6 @@ void Spider::addExtraLoots()
     }
 }
 
-void Spider::nextAction(Hero * hero)
-{
-    if(mAction == Action::dead || mAction == Action::skinned)
-        return;
-
-    if(!isInBiggerView()){
-        if(mAction!=Action::stand){
-            mAction = Action::stand;
-            mCurrentPixmap = mPixmap.stand;
-            t_animation->stop();
-            mNextFrame = 0;
-            mNumberFrame = Monster::getNumberFrame();
-        }
-        return;
-    }
-
-    Monster::chooseAction(hero);
-
-    // Action behaviour
-    switch(mAction)
-    {
-    case Action::moving:
-        mCurrentPixmap = mPixmap.walk;
-        mSpeed = getSpeed();
-        t_animation->stop();
-        t_animation->start(150);
-        break;
-    case Action::aggro:
-        mCurrentPixmap = mPixmap.run;
-        mSpeed = getBoostedSpeed();
-        t_animation->stop();
-        t_animation->start(60);
-        break;
-    case Action::stand:
-        mCurrentPixmap = mPixmap.stand;
-        t_animation->stop();
-        break;
-    default:
-        break;
-    }
-    mNextFrame = 0;
-    mNumberFrame = Monster::getNumberFrame();
-    update();
-}
-
 int Spider::getSpeed()
 {
     return SPEED_SPIDER;
@@ -828,51 +916,6 @@ void Wolf::addExtraLoots()
         mItems.append(new WolfMeat);
         mItems.append(new WolfFang);
     }
-}
-
-void Wolf::nextAction(Hero * hero)
-{
-    if(mAction == Action::dead || mAction == Action::skinned)
-        return;
-
-    if(!isInBiggerView()){
-        if(mAction!=Action::stand){
-            mAction = Action::stand;
-            mCurrentPixmap = mPixmap.stand;
-            t_animation->stop();
-            mNextFrame = 0;
-            mNumberFrame = Monster::getNumberFrame();
-        }
-        return;
-    }
-
-    Monster::chooseAction(hero);
-
-    // Action behaviour
-    switch(mAction)
-    {
-    case Action::moving:
-        mCurrentPixmap = mPixmap.walk;
-        mSpeed = getSpeed();
-        t_animation->stop();
-        t_animation->start(150);
-        break;
-    case Action::aggro:
-        mCurrentPixmap = mPixmap.run;
-        mSpeed = getBoostedSpeed();
-        t_animation->stop();
-        t_animation->start(60);
-        break;
-    case Action::stand:
-        mCurrentPixmap = mPixmap.stand;
-        t_animation->stop();
-        break;
-    default:
-        break;
-    }
-    mNextFrame = 0;
-    mNumberFrame = Monster::getNumberFrame();
-    update();
 }
 
 int Wolf::getSpeed()
@@ -1016,51 +1059,6 @@ void Goblin::addExtraLoots()
     }
 }
 
-void Goblin::nextAction(Hero * hero)
-{
-    if(mAction == Action::dead || mAction == Action::skinned)
-        return;
-
-    if(!isInBiggerView()){
-        if(mAction!=Action::stand){
-            mAction = Action::stand;
-            mCurrentPixmap = mPixmap.stand;
-            t_animation->stop();
-            mNextFrame = 0;
-            mNumberFrame = Monster::getNumberFrame();
-        }
-        return;
-    }
-
-    Monster::chooseAction(hero);
-
-    // Action behaviour
-    switch(mAction)
-    {
-    case Action::moving:
-        mCurrentPixmap = mPixmap.walk;
-        mSpeed = getSpeed();
-        t_animation->stop();
-        t_animation->start(160);
-        break;
-    case Action::aggro:
-        mCurrentPixmap = mPixmap.run;
-        mSpeed = getBoostedSpeed();
-        t_animation->stop();
-        t_animation->start(80);
-        break;
-    case Action::stand:
-        mCurrentPixmap = mPixmap.stand;
-        t_animation->stop();
-        break;
-    default:
-        break;
-    }
-    mNextFrame = 0;
-    mNumberFrame = Monster::getNumberFrame();
-    update();
-}
-
 int Goblin::getSpeed()
 {
     return SPEED_GOBLIN;
@@ -1155,51 +1153,6 @@ void Bear::addExtraLoots()
     }
 }
 
-void Bear::nextAction(Hero * hero)
-{
-    if(mAction == Action::dead || mAction == Action::skinned)
-        return;
-
-    if(!isInBiggerView()){
-        if(mAction!=Action::stand){
-            mAction = Action::stand;
-            mCurrentPixmap = mPixmap.stand;
-            t_animation->stop();
-            mNextFrame = 0;
-            mNumberFrame = Monster::getNumberFrame();
-        }
-        return;
-    }
-
-    Monster::chooseAction(hero);
-
-    // Action behaviour
-    switch(mAction)
-    {
-    case Action::moving:
-        mCurrentPixmap = mPixmap.walk;
-        mSpeed = getSpeed();
-        t_animation->stop();
-        t_animation->start(150);
-        break;
-    case Action::aggro:
-        mCurrentPixmap = mPixmap.run;
-        mSpeed = getBoostedSpeed();
-        t_animation->stop();
-        t_animation->start(50);
-        break;
-    case Action::stand:
-        mCurrentPixmap = mPixmap.stand;
-        t_animation->stop();
-        break;
-    default:
-        break;
-    }
-    mNextFrame = 0;
-    mNumberFrame = Monster::getNumberFrame();
-    update();
-}
-
 int Bear::getSpeed()
 {
     return SPEED_BEAR;
@@ -1288,52 +1241,6 @@ void Troll::addExtraLoots()
         mItems.append(new TrollMeat);
         mItems.append(new TrollSkull);
     }
-}
-
-void Troll::nextAction(Hero * hero)
-{
-    if(mAction == Action::dead || mAction == Action::skinned)
-        return;
-
-    if(!isInBiggerView()){
-        if(mAction!=Action::stand){
-            mAction = Action::stand;
-            mCurrentPixmap = mPixmap.stand;
-            t_animation->stop();
-            mNextFrame = 0;
-            mNumberFrame = Monster::getNumberFrame();
-        }
-        return;
-    }
-
-
-    Monster::chooseAction(hero);
-
-    // Action behaviour
-    switch(mAction)
-    {
-    case Action::moving:
-        mCurrentPixmap = mPixmap.walk;
-        mSpeed = getSpeed();
-        t_animation->stop();
-        t_animation->start(150);
-        break;
-    case Action::aggro:
-        mCurrentPixmap = mPixmap.run;
-        mSpeed = getBoostedSpeed();
-        t_animation->stop();
-        t_animation->start(100);
-        break;
-    case Action::stand:
-        mCurrentPixmap = mPixmap.stand;
-        t_animation->stop();
-        break;
-    default:
-        break;
-    }
-    mNextFrame = 0;
-    mNumberFrame = Monster::getNumberFrame();
-    update();
 }
 
 int Troll::getSpeed()
@@ -1426,51 +1333,6 @@ void Oggre::addExtraLoots()
         mItems.append(new OggreSkull);
 }
 
-void Oggre::nextAction(Hero * hero)
-{
-    if(mAction == Action::dead || mAction == Action::skinned)
-        return;
-
-    if(!isInBiggerView()){
-        if(mAction!=Action::stand){
-            mAction = Action::stand;
-            mCurrentPixmap = mPixmap.stand;
-            t_animation->stop();
-            mNextFrame = 0;
-            mNumberFrame = Monster::getNumberFrame();
-        }
-        return;
-    }
-
-    Monster::chooseAction(hero);
-
-    // Action behaviour
-    switch(mAction)
-    {
-    case Action::moving:
-        mCurrentPixmap = mPixmap.walk;
-        mSpeed = getSpeed();
-        t_animation->stop();
-        t_animation->start(150);
-        break;
-    case Action::aggro:
-        mCurrentPixmap = mPixmap.run;
-        mSpeed = getBoostedSpeed();
-        t_animation->stop();
-        t_animation->start(110);
-        break;
-    case Action::stand:
-        mCurrentPixmap = mPixmap.stand;
-        t_animation->stop();
-        break;
-    default:
-        break;
-    }
-    mNextFrame = 0;
-    mNumberFrame = Monster::getNumberFrame();
-    update();
-}
-
 int Oggre::getSpeed()
 {
     return SPEED_OGGRE;
@@ -1555,51 +1417,6 @@ void LaoShanLung::addExtraLoots()
     {
         mItems.append(new LaoshanlungHeart);
     }
-}
-
-void LaoShanLung::nextAction(Hero * hero)
-{
-    if(mAction == Action::dead || mAction == Action::skinned)
-        return;
-
-    if(!isInBiggerView()){
-        if(mAction!=Action::stand){
-            mAction = Action::stand;
-            mCurrentPixmap = mPixmap.stand;
-            t_animation->stop();
-            mNextFrame = 0;
-            mNumberFrame = Monster::getNumberFrame();
-        }
-        return;
-    }
-
-    Monster::chooseAction(hero);
-
-    // Action behaviour
-    switch(mAction)
-    {
-    case Action::moving:
-        mCurrentPixmap = mPixmap.walk;
-        mSpeed = getSpeed();
-        t_animation->stop();
-        t_animation->start(150);
-        break;
-    case Action::aggro:
-        mCurrentPixmap = mPixmap.run;
-        mSpeed = getBoostedSpeed();
-        t_animation->stop();
-        t_animation->start(80);
-        break;
-    case Action::stand:
-        mCurrentPixmap = mPixmap.stand;
-        t_animation->stop();
-        break;
-    default:
-        break;
-    }
-    mNextFrame = 0;
-    mNumberFrame = Monster::getNumberFrame();
-    update();
 }
 
 int LaoShanLung::getSpeed()

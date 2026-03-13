@@ -739,8 +739,7 @@ void Taverne::setGraphicStuff()
 
 HeroChest::HeroChest():
     House (),
-    mItems(QList<Item*>()),
-    mIsOpen(false)
+    mItems(QList<Item*>())
 {
     setGraphicStuff();
     setZValue(Z_VILLAGE);
@@ -777,16 +776,6 @@ Item * HeroChest::takeItem(Item * item)
 {
     mItems.removeOne(item);
     return item;
-}
-
-void HeroChest::openChest(bool toggle)
-{
-    mIsOpen = toggle;
-}
-
-bool HeroChest::isOpen()
-{
-    return mIsOpen;
 }
 
 void HeroChest::setGraphicStuff()
