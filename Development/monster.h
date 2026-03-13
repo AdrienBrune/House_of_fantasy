@@ -3,6 +3,8 @@
 
 #include "character.h"
 #include "village.h"
+#include "daynightcycle.h"
+#include "constants.h"
 
 #define VANISHING_COUNTERS 10
 
@@ -26,8 +28,10 @@ public:
     struct MovementHandler
     {
         QList<Obstacle> obstacles;
-        int currentAngle = 0;
-        int targetAngle = 0;
+        QVector2D netDirection = QVector2D(1, 0);  // direction nette souhaitée (normalisée)
+        QVector2D stepDirection = QVector2D(1, 0); // direction du segment en cours (normalisée)
+        bool zigzagSide = false;                   // côté actuel du zigzag
+        int zigzagCounter = 0;                     // compteur de frames du segment actuel
     };
 
     struct ImageHandler
@@ -72,6 +76,9 @@ signals:
     void sig_lightAttack();
 
 public:
+    virtual int type() const override { return eQGraphicItemType::monster; }
+
+public:
     virtual const QString GetName()=0;
  
     int getDamage();
@@ -84,11 +91,11 @@ public:
     QString getDescription();
     ImageHandler getImageHandler();
     IMonsterFightView *getFightView();
+    inline int getZOffset() { return mBoundingRect.height()/2; }
 
     void setDamage(int);
     QList<Item*> skinMonster();
     void setAngle(int);
-    void setTargetAngle(int);
     void setBoundingRect(QRectF);
 
     bool isSkinned();
@@ -115,14 +122,15 @@ public:
         }
     }
 
-public:
-    virtual void nextAction(Hero*)=0;
+    virtual void nextAction(Hero*, DayNightCycle*);
     virtual void addExtraLoots()=0;
 
 public:
     inline virtual void toJson(QJsonObject &json) const override
     {
         Character::toJson(json);
+
+        json["status"] = static_cast<int>(mAction);
 
         json.remove("life");
         json.remove("mana");
@@ -137,13 +145,19 @@ public:
     inline virtual void fromJson(const QJsonObject &json) override
     {
         Character::fromJson(json);
+
+        if (json.contains("status") && json["status"].isDouble())
+        {
+            mAction = static_cast<Action>(json["status"].toInt());
+        }
     }
 
 protected:
     int getNumberFrame();
-    void chooseAction(Hero*);
+    void chooseAction(Hero*, DayNightCycle*);
     void advance(int);
     virtual void doCollision();
+    void applyZigzagStep();
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *);
@@ -173,12 +187,15 @@ protected:
     ImageHandler mPixmap;
     int mSounds[6] = {0,0,0,0,0,0};
     QTimer * t_isWalking;
+    QTimer * t_isRunning;
     int mSkin;
 
     QList<Item*> mItems;
 
     IMonsterFightView * mFightView;
     QTimer t_fight;
+
+    QVector2D mCollisionVector;
 };
 
 
@@ -193,7 +210,6 @@ public:
     inline static const QString Name() { return "Araignée"; }
     void addExtraLoots();
 private:
-    void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();
@@ -211,7 +227,6 @@ public:
     inline static const QString Name() { return "Loup"; }
     void addExtraLoots();
 private:
-    void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();
@@ -242,7 +257,6 @@ public:
     inline static const QString Name() { return "Gobelin"; }
     void addExtraLoots();
 private:
-    void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();
@@ -261,7 +275,6 @@ public:
     inline static const QString Name() { return "Ours"; }
     void addExtraLoots();
 private:
-    void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();
@@ -280,7 +293,6 @@ public:
     inline static const QString Name() { return "Troll"; }
     void addExtraLoots();
 private:
-    void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();
@@ -298,7 +310,6 @@ public:
     inline static const QString Name() { return "Ogre"; }
     void addExtraLoots();
 private:
-    void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();
@@ -316,7 +327,6 @@ public:
     inline static const QString Name() { return "Lao Shan Lung"; }
     void addExtraLoots();
 private:
-    void nextAction(Hero*);
     int getSpeed();
     int getBoostedSpeed();
     void generateRandomLoots();

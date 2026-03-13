@@ -1,4 +1,5 @@
 #include "map.h"
+#include "toolfunctions.h"
 
 #include <QElapsedTimer>
 #include <QRandomGenerator>
@@ -23,9 +24,8 @@ Map::Map(QWidget * parent, QGraphicsView * view):
 {
     connect(this, SIGNAL(sig_loadingGameUpdate(quint8)), parent, SIGNAL(sig_loadingGameUpdate(quint8)));
 
-    mScene = new QGraphicsScene(this);
+    mScene = new GrassScene(this);
     mScene->setSceneRect(QRect(0,0,MAP_WIDTH,MAP_HEIGHT));
-    mScene->setBackgroundBrush(QPixmap(":/map/Ressources/background.png"));
 
     mDayNightCycle = new DayNightCycle(mScene, this);
     connect(mDayNightCycle, &DayNightCycle::sig_timeChanged, this, &Map::sig_timeChanged);
@@ -54,7 +54,7 @@ void Map::monstersActionHandler()
     if(monsterActionIndex >= mMonsters.length()){
         monsterActionIndex = 0;
     }
-    mMonsters[monsterActionIndex]->nextAction(mHero);
+    mMonsters[monsterActionIndex]->nextAction(mHero, mDayNightCycle);
     monsterActionIndex++;
 }
 
@@ -158,7 +158,7 @@ void Map::itemInMapClicked(Item * item)
 
 void Map::tryToOpenChest(ChestEvent * chest)
 {
-    if(ToolFunctions::getDistanceBeetween(mHero, chest) < 100 && chest->isRevealed() && !chest->isOpen())
+    if(ToolFunctions::getDistanceBeetween(mHero, chest) < 100 && chest->isRevealed())
     {
         emit sig_openInterface(chest);
     }
@@ -222,7 +222,8 @@ void Map::generateRandomMap()
     DEBUG("GENERATING : Map elements");
 
     timer.start();
-    generateGround();
+    // generateGround();
+    generateGroundVariations();
     DEBUG("GENERATED : Ground             [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
@@ -313,7 +314,10 @@ void Map::generateRandomMap()
 
     DEBUG("GENERATED : Elements(" << mElementsInMap.size() << ")");
 
-    mDayNightCycle->resetTime(TIME_DAWN);
+    initMapElementsConnections();
+    DEBUG("Connect all elements");
+
+    mDayNightCycle->resetTime();
 }
 
 void Map::removeMapElements()
@@ -328,6 +332,9 @@ void Map::removeMapElements()
     }
     while(!mItemsInMap.isEmpty()){
         delete mItemsInMap.takeLast();
+    }
+    while(!mGroundPatches.isEmpty()){
+        delete mGroundPatches.takeLast();
     }
     while(!mMonsters.isEmpty()){
         delete mMonsters.takeLast();
@@ -383,6 +390,76 @@ void Map::generateGround()
         ground->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
         mScene->addItem(ground);
         mElementsInMap.append(ground);
+    }
+}
+
+void Map::generateGroundVariations()
+{
+    QRandomGenerator rng(QRandomGenerator::global()->generate());
+
+    // dirt patches
+    for (int i = 0; i < 30; i++) {
+        int w    = 160 + static_cast<int>(rng.bounded(180u));
+        int h    = w * (55 + static_cast<int>(rng.bounded(35u))) / 100; // irregular aspect
+        quint32 seed = rng.generate();
+        QGraphicsPixmapItem* item = mScene->addPixmap(ToolFunctions::generateDirtPatch(w, h, seed));
+        item->setPos(rng.bounded(300u, static_cast<quint32>(MAP_WIDTH  - 300)),
+                     rng.bounded(300u, static_cast<quint32>(MAP_HEIGHT - 300)));
+        item->setZValue(Z_GROUND);
+        mGroundPatches.append(item);
+    }
+
+    // gravel zones
+    for (int i = 0; i < 60; i++) {
+        int w    = 260 + static_cast<int>(rng.bounded(220u));  // 260–480 px wide
+        int h    = w * (60 + static_cast<int>(rng.bounded(30u))) / 100;
+        quint32 seed = rng.generate();
+        QGraphicsPixmapItem* item = mScene->addPixmap(ToolFunctions::generateGravelPatch(w, h, seed));
+        item->setPos(rng.bounded(300u, static_cast<quint32>(MAP_WIDTH  - 300)),
+                     rng.bounded(300u, static_cast<quint32>(MAP_HEIGHT - 300)));
+        item->setZValue(Z_GROUND);
+        mGroundPatches.append(item);
+    }
+
+    // sand patches
+    for (int i = 0; i < 12; i++) {
+        int w    = 520 + static_cast<int>(rng.bounded(440u));
+        int h    = w * (60 + static_cast<int>(rng.bounded(30u))) / 100;
+        quint32 seed = rng.generate();
+        QGraphicsPixmapItem* item = mScene->addPixmap(ToolFunctions::generateSandPatch(w, h, seed));
+        item->setPos(rng.bounded(400u, static_cast<quint32>(MAP_WIDTH  - 400)),
+                     rng.bounded(400u, static_cast<quint32>(MAP_HEIGHT - 400)));
+        item->setZValue(Z_GROUND);
+        mGroundPatches.append(item);
+    }
+
+    // vegetation chunks (forest floor, mossy rocks, undergrowth)
+    auto addVegChunk = [&](auto genFn, int count, int minW, int maxW) {
+        for (int i = 0; i < count; i++) {
+            int w    = minW + static_cast<int>(rng.bounded(static_cast<quint32>(maxW - minW)));
+            int h    = w * (60 + static_cast<int>(rng.bounded(35u))) / 100;
+            quint32 seed = rng.generate();
+            QGraphicsPixmapItem* item = mScene->addPixmap(genFn(w, h, seed));
+            item->setPos(rng.bounded(300u, static_cast<quint32>(MAP_WIDTH  - 300)),
+                         rng.bounded(300u, static_cast<quint32>(MAP_HEIGHT - 300)));
+            item->setZValue(Z_GROUND);
+            mGroundPatches.append(item);
+        }
+    };
+    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateForestFloor(w, h, s); }, 18, 200, 420);
+    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateMossyRocks(w, h, s);  }, 14, 180, 380);
+    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateUndergrowth(w, h, s); }, 20, 220, 450);
+
+    // flower fields
+    for (int i = 0; i < 12; i++) {
+        int w    = 1200 + static_cast<int>(rng.bounded(600u));  // 1200–1800 px
+        int h    = w * (75 + static_cast<int>(rng.bounded(25u))) / 100;
+        quint32 seed = rng.generate();
+        QGraphicsPixmapItem* item = mScene->addPixmap(ToolFunctions::generateFlowerField(w, h, seed));
+        item->setPos(rng.bounded(500u, static_cast<quint32>(MAP_WIDTH  - 500)),
+                     rng.bounded(500u, static_cast<quint32>(MAP_HEIGHT - 500)));
+        item->setZValue(Z_GROUND);
+        mGroundPatches.append(item);
     }
 }
 
@@ -521,7 +598,6 @@ void Map::generateTrees()
         }
         trees.append(tree);
         mElementsInMap.append(tree);
-        connect(tree, SIGNAL(sig_playSound(int)), this, SIGNAL(sig_playSound(int)));
     }
 }
 
@@ -584,7 +660,6 @@ void Map::generateRocks()
         }
         rocks.append(rock);
         mElementsInMap.append(rock);
-        connect(rock, SIGNAL(sig_playSound(int)), this, SIGNAL(sig_playSound(int)));
     }
 }
 
@@ -592,7 +667,6 @@ void Map::generateChestBurriedEvent()
 {
     for(int i=0;i<NUM_CHEST_BURRIED_EVENT;i++){
         ChestBurried * chest = new ChestBurried();
-        connect(chest, SIGNAL(sig_clicToOpenChest(ChestEvent*)), this, SLOT(tryToOpenChest(ChestEvent*)));
         mScene->addItem(chest);
         chest->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
 
@@ -767,8 +841,6 @@ void Map::generatePlanks()
 {
     for(int i=0;i<NUM_PLANK;i++){
         Plank * plank = new Plank();
-        connect(plank, SIGNAL(sig_itemMoved(MapItem*)), this, SLOT(itemMoved(MapItem*)));
-        connect(plank, SIGNAL(sig_itemPositionFixed(MapItem*)), this, SLOT(checkItemMovedPosition(MapItem*)));
         mScene->addItem(plank);
         plank->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
 
@@ -795,8 +867,6 @@ void Map::generateStones()
 {
     for(int i=0;i<NUM_STONE;i++){
         Stone * stone = new Stone();
-        connect(stone, SIGNAL(sig_itemMoved(MapItem*)), this, SLOT(itemMoved(MapItem*)));
-        connect(stone, SIGNAL(sig_itemPositionFixed(MapItem*)), this, SLOT(checkItemMovedPosition(MapItem*)));
         mScene->addItem(stone);
         stone->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
 
@@ -867,11 +937,18 @@ void Map::putItemsInMap()
             item->setPos(mapItem->x()+mapItem->boundingRect().width()/2-item->boundingRect().width()/2,
                         mapItem->y()+mapItem->boundingRect().height()/2-item->boundingRect().height()/2);
 
-            connect(item, SIGNAL(sig_itemClicked(Item*)), this, SLOT(itemInMapClicked(Item*)));
-            connect(item, SIGNAL(sig_showItemInfo(Item*)), this, SIGNAL(sig_showItemInfo(Item*)));
-
             itemIndex++;
         }
+    }
+    initItemsInMapConnections();
+}
+
+void Map::initItemsInMapConnections()
+{
+    for (Item* item : mItemsInMap)
+    {
+        connect(item, SIGNAL(sig_itemClicked(Item*)), this, SLOT(itemInMapClicked(Item*)));
+        connect(item, SIGNAL(sig_showItemInfo(Item*)), this, SIGNAL(sig_showItemInfo(Item*)));
     }
 }
 
@@ -948,6 +1025,33 @@ void Map::initMonsterConnection(Monster * monster)
     connect(monster, SIGNAL(sig_movedInBush(Bush*)), this, SLOT(startBushAnimation(Bush*)));
     connect(monster, SIGNAL(sig_movedInBushEvent(BushEvent*)), this, SLOT(startBushEventAnimation(BushEvent*)));
     connect(monster, SIGNAL(sig_showMonsterData(Monster*)), this, SIGNAL(sig_displayMonsterData(Monster*)));
+}
+
+void Map::initMapElementsConnections()
+{
+    for (MapItem* mapItem : mElementsInMap)
+    {
+        connect(mapItem, SIGNAL(sig_playSound(int)), this, SIGNAL(sig_playSound(int)));
+
+        if (mapItem->type() == eQGraphicItemType::mapitem_movable)
+        {
+            MapItemMovable* mapItemMovable = dynamic_cast<MapItemMovable*>(mapItem);
+            if (mapItemMovable)
+            {
+                connect(mapItemMovable, SIGNAL(sig_itemMoved(MapItem*)), this, SLOT(itemMoved(MapItem*)));
+                connect(mapItemMovable, SIGNAL(sig_itemPositionFixed(MapItem*)), this, SLOT(checkItemMovedPosition(MapItem*)));
+            }
+        }
+
+        if (mapItem->type() == eQGraphicItemType::mapevent)
+        {
+            ChestEvent* chest = dynamic_cast<ChestEvent*>(mapItem);
+            if (chest)
+            {
+                connect(chest, SIGNAL(sig_clicToOpenChest(ChestEvent*)), this, SLOT(tryToOpenChest(ChestEvent*)));
+            }
+        }
+    }
 }
 
 void Map::generateMonsters()

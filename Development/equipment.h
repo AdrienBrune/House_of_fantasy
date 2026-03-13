@@ -8,7 +8,7 @@
 class Equipment : public Item
 {
 public:
-    Equipment(QString name, QString imagePath, int weight, int price, uint32_t usable = 0x0000000F);
+    Equipment(QString name, QString imagePath, int weight, int price, uint32_t usable = 0xFFFFFFFF);
     Equipment();
     virtual ~Equipment();
 public:

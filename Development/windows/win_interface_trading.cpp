@@ -41,7 +41,6 @@ Win_Chest::Win_Chest(QWidget *parent, ChestEvent * chest) :
 {
     mItemTrader = new Frag_Interface_ItemTrader(this);
     ui->setupUi(this);
-    mChest->openChest(true);
     initInterface();
     emit sig_playSound(SOUND_OPENCHEST);
 }
@@ -59,7 +58,6 @@ void Win_Chest::closeChest()
     {
         mHero->takeItem(mChest->takeItem(item));
     }
-    mChest->openChest(false);
     emit sig_playSound(SOUND_CLOSECHEST);
 }
 
@@ -726,7 +724,6 @@ Win_HeroChest::Win_HeroChest(QWidget *parent) :
     mChest = EntitiesHandler::getInstance().getMap()->getVillage()->getHeroHouse()->getChest();
     mItemTrader = new Frag_Interface_ItemTrader(this, QPixmap(":/images/Ressources/bag.png"), QPixmap(":/images/Ressources/chest.png"));
     ui->setupUi(this);
-    mChest->openChest(true);
     initInterface();
     emit sig_playSound(SOUND_OPENCHEST);
 }
@@ -763,7 +760,6 @@ void Win_HeroChest::closeChest()
             mChest->addItem(mHero->getBag()->takeItem(item));
         }
     }
-    mChest->openChest(false);
     emit sig_playSound(SOUND_CLOSECHEST);
 }
 

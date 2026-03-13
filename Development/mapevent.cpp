@@ -345,16 +345,6 @@ bool ChestEvent::isRevealed()
     }
 }
 
-void ChestEvent::openChest(bool toggle)
-{
-    mIsOpen = toggle;
-}
-
-bool ChestEvent::isOpen()
-{
-    return mIsOpen;
-}
-
 void ChestEvent::addExtraItems()
 {
     if(gItemGenerator == nullptr)

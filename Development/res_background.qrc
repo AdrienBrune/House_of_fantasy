@@ -1,7 +1,4 @@
 <RCC>
-    <qresource prefix="/map">
-        <file>Ressources/background.png</file>
-    </qresource>
     <qresource prefix="/grounds">
         <file>Ressources/grounds/ground_0.png</file>
         <file>Ressources/grounds/ground_1.png</file>

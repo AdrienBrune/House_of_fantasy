@@ -1,5 +1,6 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#pragma once
+
+#include <QGraphicsItem>
 
 #define ENABLE_DEBUG
 #ifdef ENABLE_DEBUG
@@ -38,6 +39,8 @@
 
 #define MOVING_TIME_MIN 3000
 #define MOVING_TIME_MAX 10000
+#define RUNNING_TIME_MIN 4000
+#define RUNNING_TIME_MAX 7000
 
 #define TIMER_MOVE              30 // 33 FPS
 #define TIMER_MONSTERS_MOVE     30
@@ -106,26 +109,28 @@
 #define RES_LAKE        1
 #define RES_ORE_SPOT    4
 
-#define Z_GROUND                1
-#define Z_GROUND_FOREGROUND     2
-#define Z_CHEST_BURRIED         3
-#define Z_ORESPOT               3
-#define Z_PLANK                 4
-#define Z_STONE                 5
-#define Z_ROCK                  6
-#define Z_BUSH                  7
-#define Z_TREE_FALLEN           8
-#define Z_TREE                  14
+#define Z_GROUND                2
+#define Z_GROUND_FOREGROUND     4
+#define Z_CHEST_BURRIED         6
+#define Z_ORESPOT               6
+#define Z_PLANK                 8
+#define Z_STONE                 8
+#define Z_ROCK                  10
+#define Z_BUSH                  12
+#define Z_TREE_FALLEN           14
+#define Z_TREE                  16
 #define Z_ITEM                  Z_GROUND_FOREGROUND
-#define Z_ITEM_FOREGROUND       Z_HERO-4
-#define Z_LAKE                  8
+#define Z_ITEM_FOREGROUND       Z_VILLAGE
+#define Z_LAKE                  18
 #define Z_FISH_EVENT            Z_LAKE+1
+#define Z_VILLAGE               Z_MONSTER_BACKGROUND-1
 
-#define Z_VILLAGE               Z_HERO-4
-#define Z_MONSTER_BACKGROUND    10
-#define Z_MONSTERS              11
-#define Z_MONSTER_FOREGROUND    12
-#define Z_HERO                  15
+#define Z_MONSTER_BACKGROUND    20
+#define Z_MONSTERS              21
+#define Z_MONSTER_FOREGROUND    22
+
+#define Z_HERO                  23
+
 #define Z_DAYNIGHT_CYCLE        100
 
 // Sounds
@@ -321,14 +326,44 @@
 #define MAPITEM_SAPHIRSPOT              (MAPITEM_EMERALDSPOT + 1)
 #define MAPITEM_RUBISSPOT               (MAPITEM_SAPHIRSPOT + 1)
 
+// Type for type() override function of QGraphicItem
+
+enum eQGraphicItemType
+{
+    monster = QGraphicsItem::UserType + 1,
+    mapitem,
+    mapevent,
+    mapitem_movable,
+    bush,
+    bushcoin,
+    bushequipment,
+    village
+};
+
+inline bool IsMapitemTypeOrDerived(QGraphicsItem* item)
+{
+    switch (item->type())
+    {
+    case eQGraphicItemType::mapitem:
+    case eQGraphicItemType::bush:
+    case eQGraphicItemType::bushcoin:
+    case eQGraphicItemType::bushequipment:
+    case eQGraphicItemType::mapevent:
+    case eQGraphicItemType::mapitem_movable:
+        return true;
+    
+    default:
+        return false;
+    }
+}
+
 #define ABLE(hero)                          (1<<hero)
 #define IS_ABLE(heroClass, classesAble)     ((classesAble>>heroClass)&1)
 
-enum HeroAbleToUSe{
+enum HeroAbleToUSe
+{
     eSwordman,
     eArcher,
     eWizard,
     eNbHeroClasses
 };
-
-#endif // CONSTANTS_H

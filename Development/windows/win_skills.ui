@@ -604,7 +604,7 @@ QPushButton:disabled{
              </property>
              <property name="styleSheet">
               <string notr="true">QLabel{
-	border-image:url(:/images/bag.png);
+	border-image:url(:/images/Ressources/bag.png);
 }</string>
              </property>
              <property name="text">

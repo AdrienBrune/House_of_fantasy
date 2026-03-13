@@ -30,15 +30,47 @@ public:
 class DayNightCycle : public QObject
 {
     Q_OBJECT
+
 public:
+    enum eDayTime {
+        night,
+        dawn,
+        noon,
+        dusk
+    };
+
     explicit DayNightCycle(QGraphicsScene* scene, QObject* parent = nullptr);
     ~DayNightCycle();
 
-    qreal timeOfDay() const { return mTime; }
-    bool  isNight() const { return mDarkness > TIME_NOON; }
-    qreal darkness() const { return mDarkness; }
+    inline qreal timeOfDay() const { return mTime; }
+    inline bool isNight() const { return getDayTime() == night ? true : false; }
+    inline eDayTime getDayTime() const
+    {
+        const qreal TIME_DAWN_DURATION = 0.1;
+        const qreal TIME_DUSK_DURATION = 0.1;
+        const qreal TIME_NOON_DURATION = 0.4;
+        const qreal TIME_NIGHT_DURATION = 0.4;
+        assert((int)(TIME_DAWN_DURATION + TIME_DUSK_DURATION + TIME_NOON_DURATION + TIME_NIGHT_DURATION) == 1);
 
-    void resetTime(qreal time = TIME_DAWN);
+        if (mTime < TIME_DAWN - TIME_DAWN_DURATION/2.0 || mTime > TIME_DUSK + TIME_DUSK_DURATION/2.0)
+        {
+            return night;
+        }
+        else if (mTime < TIME_NOON - TIME_NOON_DURATION/2.0)
+        {
+            return dawn;
+        }
+        else if (mTime < TIME_DUSK - TIME_DUSK_DURATION/2.0)
+        {
+            return noon;
+        }
+        else
+        {
+            return dusk;
+        }
+
+    }
+    void resetTime(qreal time = 0.2); // start at dawn
 
 signals:
     void sig_nightBegins();
@@ -69,7 +101,6 @@ private:
     class DayNightOverlay* mOverlay;
     QTimer* mTimer;
     qreal mTime;
-    qreal mDarkness;
     bool mWasNight;
 
     void updateOverlay();
