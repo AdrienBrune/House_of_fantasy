@@ -2,7 +2,7 @@
 
 #include <QGraphicsItem>
 
-#define ENABLE_DEBUG
+// #define ENABLE_DEBUG
 #ifdef ENABLE_DEBUG
 #define DEBUG(str)      qDebug() << str
 #define DEBUG_ERR(str)  qDebug() << str
@@ -55,18 +55,35 @@
 #define MOVE_STOP           1
 #define MOVE_AGGRO_PLAYER   2
 
-#define MAP_WIDTH   15000
-#define MAP_HEIGHT  15000
+// Map size ratio system (1.0 = default size)
+namespace MapConfig {
+    inline float& _ratio() { static float r = 1.0f; return r; }
+    inline float  ratio()             { return _ratio(); }
+    inline void   setRatio(float r)   { _ratio() = r; }
+}
+
+#define MAP_BASE_WIDTH  15000
+#define MAP_BASE_HEIGHT 15000
+#define MAP_WIDTH   ((int)(MAP_BASE_WIDTH  * MapConfig::ratio()))
+#define MAP_HEIGHT  ((int)(MAP_BASE_HEIGHT * MapConfig::ratio()))
 
 #define HERO_DEFENSE_MAX    1500
 #define HERO_RAW_DAMAGE     5
 
-#define NUM_WOLFPACK        16
-#define NUM_GOBLIN          30
-#define NUM_SPIDER          20
-#define NUM_BEAR            20
-#define NUM_TROLL           20
-#define NUM_OGGRE           8
+// Monsters — scale with ratio² to preserve density
+#define NUM_BASE_WOLFPACK   16
+#define NUM_BASE_GOBLIN     30
+#define NUM_BASE_SPIDER     20
+#define NUM_BASE_BEAR       20
+#define NUM_BASE_TROLL      20
+#define NUM_BASE_OGGRE       8
+
+#define NUM_WOLFPACK    ((int)(NUM_BASE_WOLFPACK * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_GOBLIN      ((int)(NUM_BASE_GOBLIN   * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_SPIDER      ((int)(NUM_BASE_SPIDER   * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_BEAR        ((int)(NUM_BASE_BEAR     * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_TROLL       ((int)(NUM_BASE_TROLL    * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_OGGRE       ((int)(NUM_BASE_OGGRE    * MapConfig::ratio() * MapConfig::ratio()))
 
 #define DEFAULT_SKIN_NUM    1
 #define GOBLIN_SKIN_NUM     3
@@ -75,24 +92,61 @@
 #define TROLL_SKIN_NUM      3
 #define OGGRE_SKIN_NUM      2
 
-#define NUM_GROUND          220
-#define NUM_FLOWERS         20
-#define NUM_TREES           250
-#define NUM_TREES_FALLEN    80
-#define NUM_BUSHES          800
-#define NUM_ROCKS           200
-#define NUM_PLANK           50
-#define NUM_STONE           80
-#define NUM_LAKES           5
+// Map elements — scale with ratio² to preserve density
+#define NUM_BASE_GROUND         220
+#define NUM_BASE_FLOWERS         20
+#define NUM_BASE_TREES          250
+#define NUM_BASE_TREES_FALLEN    80
+#define NUM_BASE_BUSHES         800
+#define NUM_BASE_ROCKS          200
+#define NUM_BASE_PLANK           50
+#define NUM_BASE_STONE           80
+#define NUM_BASE_LAKES            5
 
-#define NUM_BUSHES_COIN_EVENT       40
-#define NUM_BUSHES_EQUIPMENT_EVENT  20
-#define NUM_CHEST_BURRIED_EVENT     8
-#define NUM_STONE_ORE               15
-#define NUM_IRON_ORE                10
-#define NUM_SAPHIR_ORE              4
-#define NUM_EMERALD_ORE             3
-#define NUM_RUBIS_ORE               2
+#define NUM_GROUND          ((int)(NUM_BASE_GROUND        * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_FLOWERS         ((int)(NUM_BASE_FLOWERS       * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_TREES           ((int)(NUM_BASE_TREES         * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_TREES_FALLEN    ((int)(NUM_BASE_TREES_FALLEN  * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_BUSHES          ((int)(NUM_BASE_BUSHES        * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_ROCKS           ((int)(NUM_BASE_ROCKS         * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_PLANK           ((int)(NUM_BASE_PLANK         * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_STONE           ((int)(NUM_BASE_STONE         * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_LAKES           ((int)(NUM_BASE_LAKES         * MapConfig::ratio() * MapConfig::ratio()))
+
+#define NUM_BASE_BUSHES_COIN_EVENT      40
+#define NUM_BASE_BUSHES_EQUIPMENT_EVENT 20
+#define NUM_BASE_CHEST_BURRIED_EVENT     8
+#define NUM_BASE_STONE_ORE              15
+#define NUM_BASE_IRON_ORE               10
+#define NUM_BASE_SAPHIR_ORE              4
+#define NUM_BASE_EMERALD_ORE             3
+#define NUM_BASE_RUBIS_ORE               2
+
+#define NUM_BUSHES_COIN_EVENT       ((int)(NUM_BASE_BUSHES_COIN_EVENT      * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_BUSHES_EQUIPMENT_EVENT  ((int)(NUM_BASE_BUSHES_EQUIPMENT_EVENT * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_CHEST_BURRIED_EVENT     ((int)(NUM_BASE_CHEST_BURRIED_EVENT    * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_STONE_ORE               ((int)(NUM_BASE_STONE_ORE              * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_IRON_ORE                ((int)(NUM_BASE_IRON_ORE               * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_SAPHIR_ORE              ((int)(NUM_BASE_SAPHIR_ORE             * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_EMERALD_ORE             ((int)(NUM_BASE_EMERALD_ORE            * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_RUBIS_ORE               ((int)(NUM_BASE_RUBIS_ORE              * MapConfig::ratio() * MapConfig::ratio()))
+
+// Ground variations — scale with ratio²
+#define NUM_BASE_GROUND_DIRT         45
+#define NUM_BASE_GROUND_GRAVEL       40
+#define NUM_BASE_GROUND_SAND         12
+#define NUM_BASE_GROUND_FOREST       35
+#define NUM_BASE_GROUND_MOSSY        35
+#define NUM_BASE_GROUND_UNDERGROWTH  35
+#define NUM_BASE_GROUND_FLOWERS      18
+
+#define NUM_GROUND_DIRT         ((int)(NUM_BASE_GROUND_DIRT        * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_GROUND_GRAVEL       ((int)(NUM_BASE_GROUND_GRAVEL      * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_GROUND_SAND         ((int)(NUM_BASE_GROUND_SAND        * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_GROUND_FOREST       ((int)(NUM_BASE_GROUND_FOREST      * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_GROUND_MOSSY        ((int)(NUM_BASE_GROUND_MOSSY       * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_GROUND_UNDERGROWTH  ((int)(NUM_BASE_GROUND_UNDERGROWTH * MapConfig::ratio() * MapConfig::ratio()))
+#define NUM_GROUND_FLOWERS      ((int)(NUM_BASE_GROUND_FLOWERS     * MapConfig::ratio() * MapConfig::ratio()))
 
 #define DIRECTION_LEFT  0
 #define DIRECTION_RIGHT 1
@@ -342,6 +396,11 @@ enum eQGraphicItemType
 
 inline bool IsMapitemTypeOrDerived(QGraphicsItem* item)
 {
+    if(!item)
+    {
+        return false;
+    }
+
     switch (item->type())
     {
     case eQGraphicItemType::mapitem:

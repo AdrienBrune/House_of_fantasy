@@ -69,12 +69,12 @@ public:
     void setManaMax(int);
     void setStamina(int);
     void setStaminaMax(int);
-    inline void setPos(qreal x, qreal y)
+    inline void setPosition(qreal x, qreal y)
     {
         QGraphicsItem::setPos(x, y);
         mPositionInMap = QPointF(x, y);
     }
-    inline void setPos(QPointF position)
+    inline void setPosition(QPointF position)
     {
         QGraphicsItem::setPos(position);
         mPositionInMap = position;
@@ -208,7 +208,7 @@ public:
             mPositionInMap.setX(jsonPosition["x"].toDouble());
             mPositionInMap.setY(jsonPosition["y"].toDouble());
         }
-        setPos(mPositionInMap);
+        setPosition(mPositionInMap);
 
         if (json.contains("z_value") && json["z_value"].isDouble())
         {

@@ -23,9 +23,12 @@ Map::Map(QWidget * parent, QGraphicsView * view):
     t_monsterMove(nullptr)
 {
     connect(this, SIGNAL(sig_loadingGameUpdate(quint8)), parent, SIGNAL(sig_loadingGameUpdate(quint8)));
+    connect(this, SIGNAL(sig_loadingGameStep(const QString&)), parent, SIGNAL(sig_loadingGameStep(const QString&)));
+
+    MapConfig::setRatio(1.5f);
 
     mScene = new GrassScene(this);
-    mScene->setSceneRect(QRect(0,0,MAP_WIDTH,MAP_HEIGHT));
+    mScene->setSceneRect(QRect(0, 0, MAP_WIDTH, MAP_HEIGHT));
 
     mDayNightCycle = new DayNightCycle(mScene, this);
     connect(mDayNightCycle, &DayNightCycle::sig_timeChanged, this, &Map::sig_timeChanged);
@@ -209,11 +212,13 @@ void Map::generateRandomMap()
 {
     QElapsedTimer timer;
 
+    emit sig_loadingGameStep("Génération du village...");
     timer.start();
     putVillageInMap();
     DEBUG("GENERATED : HeroVillage        [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération du village gobelin...");
     timer.start();
     putGoblinVillageInMap();
     DEBUG("GENERATED : GoblinVillage      [" << QString("%1").arg(timer.elapsed()) << "]ms");
@@ -221,23 +226,26 @@ void Map::generateRandomMap()
 
     DEBUG("GENERATING : Map elements");
 
+    emit sig_loadingGameStep("Génération du terrain...");
     timer.start();
-    // generateGround();
     generateGroundVariations();
     DEBUG("GENERATED : Ground             [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des lacs...");
     timer.start();
     putLakesInMap();
     DEBUG("GENERATED : Lakes              [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des arbres...");
     timer.start();
     generateTrees();
     DEBUG("GENERATED : Trees              [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     QList<MapItem*> bushes;
+    emit sig_loadingGameStep("Génération des buissons...");
     timer.start();
     generateBushes(bushes);
     DEBUG("GENERATED : Bushes             [" << QString("%1").arg(timer.elapsed()) << "]ms");
@@ -251,11 +259,13 @@ void Map::generateRandomMap()
     DEBUG("GENERATED : BushEquipment      [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des rochers...");
     timer.start();
     generateRocks();
     DEBUG("GENERATED : Rocks              [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des planches et pierres...");
     timer.start();
     generatePlanks();
     DEBUG("GENERATED : Planks             [" << QString("%1").arg(timer.elapsed()) << "]ms");
@@ -266,21 +276,25 @@ void Map::generateRandomMap()
     DEBUG("GENERATED : Stones             [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des coffres enterrés...");
     timer.start();
     generateChestBurriedEvent();
     DEBUG("GENERATED : ChestBurried       [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des arbres tombés...");
     timer.start();
     generateFallenTrees();
     DEBUG("GENERATED : FallenTrees        [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des gisements de minerais...");
     timer.start();
     generateOreSpots();
     DEBUG("GENERATED : OreSpots           [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Nettoyage de la carte...");
     timer.start();
     // Remove mapItems colliding with village
     for(MapItem * item : qAsConst(mElementsInMap))
@@ -306,6 +320,7 @@ void Map::generateRandomMap()
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     // Hide items in the map
+    emit sig_loadingGameStep("Génération des objets cachés...");
     timer.start();
     generateItems();
     putItemsInMap();
@@ -327,22 +342,19 @@ void Map::removeMapElements()
         delete mGoblinVillage;
     }
 
-    while(!mElementsInMap.isEmpty()){
+    while(!mElementsInMap.isEmpty())
+    {
         delete mElementsInMap.takeLast();
     }
-    while(!mItemsInMap.isEmpty()){
+    while(!mItemsInMap.isEmpty())
+    {
         delete mItemsInMap.takeLast();
     }
-    while(!mGroundPatches.isEmpty()){
+    while(!mGroundPatches.isEmpty())
+    {
         delete mGroundPatches.takeLast();
     }
-    while(!mMonsters.isEmpty()){
-        delete mMonsters.takeLast();
-    }
-}
 
-void Map::removeMonsters()
-{
     t_monstersActions->stop();
     while(!mMonsters.isEmpty())
     {
@@ -383,24 +395,14 @@ void Map::removeMapElement(MapItem * item)
     item->deleteLater();
 }
 
-void Map::generateGround()
-{
-    for(int i=0;i<NUM_GROUND;i++){
-        Ground * ground = new Ground();
-        ground->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-        mScene->addItem(ground);
-        mElementsInMap.append(ground);
-    }
-}
-
 void Map::generateGroundVariations()
 {
     QRandomGenerator rng(QRandomGenerator::global()->generate());
 
     // dirt patches
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < NUM_GROUND_DIRT; i++) {
         int w    = 160 + static_cast<int>(rng.bounded(180u));
-        int h    = w * (55 + static_cast<int>(rng.bounded(35u))) / 100; // irregular aspect
+        int h    = w * (55 + static_cast<int>(rng.bounded(35u))) / 100;
         quint32 seed = rng.generate();
         QGraphicsPixmapItem* item = mScene->addPixmap(ToolFunctions::generateDirtPatch(w, h, seed));
         item->setPos(rng.bounded(300u, static_cast<quint32>(MAP_WIDTH  - 300)),
@@ -410,8 +412,8 @@ void Map::generateGroundVariations()
     }
 
     // gravel zones
-    for (int i = 0; i < 60; i++) {
-        int w    = 260 + static_cast<int>(rng.bounded(220u));  // 260–480 px wide
+    for (int i = 0; i < NUM_GROUND_GRAVEL; i++) {
+        int w    = 260 + static_cast<int>(rng.bounded(220u));
         int h    = w * (60 + static_cast<int>(rng.bounded(30u))) / 100;
         quint32 seed = rng.generate();
         QGraphicsPixmapItem* item = mScene->addPixmap(ToolFunctions::generateGravelPatch(w, h, seed));
@@ -422,7 +424,7 @@ void Map::generateGroundVariations()
     }
 
     // sand patches
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < NUM_GROUND_SAND; i++) {
         int w    = 520 + static_cast<int>(rng.bounded(440u));
         int h    = w * (60 + static_cast<int>(rng.bounded(30u))) / 100;
         quint32 seed = rng.generate();
@@ -446,13 +448,13 @@ void Map::generateGroundVariations()
             mGroundPatches.append(item);
         }
     };
-    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateForestFloor(w, h, s); }, 18, 200, 420);
-    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateMossyRocks(w, h, s);  }, 14, 180, 380);
-    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateUndergrowth(w, h, s); }, 20, 220, 450);
+    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateForestFloor(w, h, s); }, NUM_GROUND_FOREST,      200, 420);
+    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateMossyRocks(w, h, s);  }, NUM_GROUND_MOSSY,       180, 380);
+    addVegChunk([](int w, int h, quint32 s){ return ToolFunctions::generateUndergrowth(w, h, s); }, NUM_GROUND_UNDERGROWTH, 220, 450);
 
     // flower fields
-    for (int i = 0; i < 12; i++) {
-        int w    = 1200 + static_cast<int>(rng.bounded(600u));  // 1200–1800 px
+    for (int i = 0; i < NUM_GROUND_FLOWERS; i++) {
+        int w    = 1200 + static_cast<int>(rng.bounded(600u));
         int h    = w * (75 + static_cast<int>(rng.bounded(25u))) / 100;
         quint32 seed = rng.generate();
         QGraphicsPixmapItem* item = mScene->addPixmap(ToolFunctions::generateFlowerField(w, h, seed));
@@ -463,70 +465,86 @@ void Map::generateGroundVariations()
     }
 }
 
-void Map::generateBushes(QList<MapItem*> bushes)
+bool Map::tryPlaceMonsterRandomly(Monster* item, int margin, int maxTries)
 {
-    bool validateEmplacement;
-    for(int i=0;i<NUM_BUSHES;i++){
-        Bush * bush = new Bush();
-        bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        validateEmplacement = false;
-        while(!validateEmplacement && i!=0)
+    auto hasBlockingCollision = [](QGraphicsItem* item)
+    {
+        for (QGraphicsItem* other : item->scene()->collidingItems(item))
         {
-            bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-            QList<QGraphicsItem*> list = mScene->collidingItems(bush);
-            while(!list.isEmpty())
+            if (other->type() == eQGraphicItemType::village)
             {
-                bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                list = mScene->collidingItems(bush);
+                return true;
             }
-            for(MapItem * b : bushes){
-                int dx = static_cast<int>(bush->x() - b->x());
-                int dy = static_cast<int>(bush->y() - b->y());
-                    if( (dy < 0 && dy > -b->boundingRect().height()) && (abs(dx) < b->boundingRect().width()) ){
-                        break;
-                    }
-                if(bushes.last() == b){
-                    validateEmplacement = true;
+            if (IsMapitemTypeOrDerived(other))
+            {
+                MapItem* mapItem = dynamic_cast<MapItem*>(other);
+                if (mapItem && mapItem->isObstacle())
+                {
+                    return true;
                 }
             }
         }
-        bushes.append(bush);
+        return false;
+    };
+
+    for (int i = 0; i < maxTries; i++)
+    {
+        item->setPosition(QRandomGenerator::global()->bounded(margin, MAP_WIDTH - margin),
+                          QRandomGenerator::global()->bounded(margin, MAP_HEIGHT - margin));
+        if (!hasBlockingCollision(item))
+            return true;
+    }
+
+    DEBUG_ERR(QString("tryPlaceMonsterRandomly: impossible to place monster"));
+    return false;
+}
+
+bool Map::tryPlaceMapItemRandomly(MapItem* item, int margin, int maxTries)
+{
+    auto hasRelevantCollision = [](QGraphicsItem* item) {
+        for (QGraphicsItem* other : item->scene()->collidingItems(item))
+        {
+            if (other->type() >= QGraphicsItem::UserType)
+                return true;
+        }
+        return false;
+    };
+
+    for (int i = 0; i < maxTries; i++)
+    {
+        item->setPosition(QRandomGenerator::global()->bounded(margin, MAP_WIDTH - margin),
+                     QRandomGenerator::global()->bounded(margin, MAP_HEIGHT - margin));
+        if (!hasRelevantCollision(item))
+            return true;
+    }
+
+    MapItem* mapItem = dynamic_cast<MapItem*>(item);
+    if(mapItem)
+    {
+        DEBUG_ERR(QString("impossible to place %1").arg(mapItem->getName()));
+    }
+    return false;
+}
+
+void Map::generateBushes(QList<MapItem*> bushes)
+{
+    for (int i = 0; i < NUM_BUSHES; i++)
+    {
+        Bush* bush = new Bush();
         mScene->addItem(bush);
+        tryPlaceMapItemRandomly(bush, 100);
+        bushes.append(bush);
         mElementsInMap.append(bush);
     }
 }
 
 void Map::generateBushCoinEvent(QList<MapItem*> bushes)
 {
-    bool validateEmplacement;
-    for(int i=0;i<NUM_BUSHES_COIN_EVENT;i++){
-        BushEventCoin * bush = new BushEventCoin();
-        bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        validateEmplacement = false;
-        while(!validateEmplacement && i!=0)
-        {
-            bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-            QList<QGraphicsItem*> list = mScene->collidingItems(bush);
-            while(!list.isEmpty())
-            {
-                bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                list = mScene->collidingItems(bush);
-            }
-
-            for(MapItem * b : bushes){
-                int dx = static_cast<int>(bush->x() - b->x());
-                int dy = static_cast<int>(bush->y() - b->y());
-                    if( (dy < 0 && dy > -b->boundingRect().height()) && (abs(dx) < b->boundingRect().width()) ){
-                        break;
-                    }
-                if(bushes.last() == b){
-                    validateEmplacement = true;
-                }
-            }
-        }
+    for (int i = 0; i < NUM_BUSHES_COIN_EVENT; i++)
+    {
+        BushEventCoin* bush = new BushEventCoin();
         mScene->addItem(bush);
+        tryPlaceMapItemRandomly(bush, 100);
         bushes.append(bush);
         mElementsInMap.append(bush);
     }
@@ -534,276 +552,78 @@ void Map::generateBushCoinEvent(QList<MapItem*> bushes)
 
 void Map::generateBushEquipmentEvent(QList<MapItem*> bushes)
 {
-    bool validateEmplacement;
-    QList<BushEventEquipment*> list;
-    for(int i=0;i<NUM_BUSHES_EQUIPMENT_EVENT;i++){
-        BushEventEquipment * bush = new BushEventEquipment();
-        bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        validateEmplacement = false;
-        while(!validateEmplacement && i!=0)
-        {
-            bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-            QList<QGraphicsItem*> list = mScene->collidingItems(bush);
-            while(!list.isEmpty())
-            {
-                bush->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                list = mScene->collidingItems(bush);
-            }
-
-            for(MapItem * b : bushes){
-                int dx = static_cast<int>(bush->x() - b->x());
-                int dy = static_cast<int>(bush->y() - b->y());
-                    if( (dy < 0 && dy > -b->boundingRect().height()) && (abs(dx) < b->boundingRect().width()) ){
-                        break;
-                    }
-                if(bushes.last() == b){
-                    validateEmplacement = true;
-                }
-            }
-        }
-        list.append(bush);
+    for (int i = 0; i < NUM_BUSHES_EQUIPMENT_EVENT; i++)
+    {
+        BushEventEquipment* bush = new BushEventEquipment();
         mScene->addItem(bush);
-        mElementsInMap.append(bush);
+        tryPlaceMapItemRandomly(bush, 100);
         bushes.append(bush);
+        mElementsInMap.append(bush);
     }
 }
 
 void Map::generateTrees()
 {
-    QList<Tree*> trees;
-    bool validateEmplacement;
-    for(int i=0;i<NUM_TREES;i++){
-        Tree * tree = new Tree();
+    for (int i = 0; i < NUM_TREES; i++)
+    {
+        Tree* tree = new Tree();
         mScene->addItem(tree);
-
-        validateEmplacement = false;
-        while(!validateEmplacement && i!=0)
-        {
-            tree->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-            while(!mScene->collidingItems(tree).isEmpty()){
-                tree->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-            }
-
-            for(Tree * t : trees){
-                int dx = static_cast<int>(tree->x() - t->x());
-                int dy = static_cast<int>(tree->y() - t->y());
-                    if( (dy < 0 && dy > -t->boundingRect().height()) && (abs(dx) < t->boundingRect().width()) ){
-                        break;
-                    }
-                if(trees.last() == t){
-                    validateEmplacement = true;
-                }
-            }
-        }
-        trees.append(tree);
+        tryPlaceMapItemRandomly(tree, 100);
         mElementsInMap.append(tree);
     }
 }
 
 void Map::generateFallenTrees()
 {
-    for(int i=0;i<NUM_TREES_FALLEN;i++){
-        TreeFallen * treeFallen = new TreeFallen();
+    for (int i = 0; i < NUM_TREES_FALLEN; i++)
+    {
+        TreeFallen* treeFallen = new TreeFallen();
         mScene->addItem(treeFallen);
-        treeFallen->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(treeFallen, item))
-                {
-                    validatePosition = false;
-                    treeFallen->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
+        tryPlaceMapItemRandomly(treeFallen, 100);
         mElementsInMap.append(treeFallen);
     }
 }
 
 void Map::generateRocks()
 {
-    QList<Rock*> rocks;
-    for(int i=0;i<NUM_ROCKS;i++)
+    for (int i = 0; i < NUM_ROCKS; i++)
     {
-        Rock * rock = new Rock();
+        Rock* rock = new Rock();
         mScene->addItem(rock);
-        rock->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validateEmplacement = false;
-        while(!validateEmplacement && i!=0)
-        {
-            rock->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-            QList<QGraphicsItem*> list = mScene->collidingItems(rock);
-            while(!list.isEmpty())
-            {
-                rock->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                list = mScene->collidingItems(rock);
-            }
-
-
-            for(Rock * r : rocks){
-                int dx = static_cast<int>(rock->x() - r->x());
-                int dy = static_cast<int>(rock->y() - r->y());
-                    if( (dy < 0 && dy > -r->boundingRect().height()) && (abs(dx) < r->boundingRect().width()) ){
-                        break;
-                    }
-                if(rocks.last() == r){
-                    validateEmplacement = true;
-                }
-            }
-        }
-        rocks.append(rock);
+        tryPlaceMapItemRandomly(rock, 100);
         mElementsInMap.append(rock);
     }
 }
 
 void Map::generateChestBurriedEvent()
 {
-    for(int i=0;i<NUM_CHEST_BURRIED_EVENT;i++){
-        ChestBurried * chest = new ChestBurried();
+    for (int i = 0; i < NUM_CHEST_BURRIED_EVENT; i++)
+    {
+        ChestBurried* chest = new ChestBurried();
         mScene->addItem(chest);
-        chest->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(chest, item))
-                {
-                    validatePosition = false;
-                    chest->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
+        tryPlaceMapItemRandomly(chest, 100);
+        connect(chest, SIGNAL(sig_clicToOpenChest(ChestEvent*)), this, SLOT(tryToOpenChest(ChestEvent*)));
         mElementsInMap.append(chest);
     }
 }
 
 void Map::generateOreSpots()
 {
-    int rubisSpots = QRandomGenerator::global()->bounded(NUM_RUBIS_ORE);
-    int saphirSpots = QRandomGenerator::global()->bounded(NUM_SAPHIR_ORE);
-    int emeraldSpots = QRandomGenerator::global()->bounded(NUM_EMERALD_ORE);
+    int rubisSpots  = QRandomGenerator::global()->bounded(NUM_RUBIS_ORE)   + 1;
+    int saphirSpots = QRandomGenerator::global()->bounded(NUM_SAPHIR_ORE)  + 1;
+    int emeraldSpots= QRandomGenerator::global()->bounded(NUM_EMERALD_ORE) + 1;
 
-    for(int i=0;i<NUM_IRON_ORE;i++){
-        IronOreSpot * ironOre = new IronOreSpot();
-        mScene->addItem(ironOre);
-        ironOre->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(ironOre, item))
-                {
-                    validatePosition = false;
-                    ironOre->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
-        mElementsInMap.append(ironOre);
-    }
-
-    for(int i=0;i<NUM_STONE_ORE;i++){
-        StoneOreSpot * stoneOre = new StoneOreSpot();
-        mScene->addItem(stoneOre);
-        stoneOre->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(stoneOre, item))
-                {
-                    validatePosition = false;
-                    stoneOre->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
-        mElementsInMap.append(stoneOre);
-    }
-
-    for(int i=0;i<saphirSpots;i++){
-        SaphirOreSpot * ore = new SaphirOreSpot();
+    auto placeOre = [&](MapItem* ore) {
         mScene->addItem(ore);
-        ore->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(ore, item))
-                {
-                    validatePosition = false;
-                    ore->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
+        tryPlaceMapItemRandomly(ore, 100);
         mElementsInMap.append(ore);
-    }
+    };
 
-    for(int i=0;i<emeraldSpots;i++){
-        EmeraldOreSpot * ore = new EmeraldOreSpot();
-        mScene->addItem(ore);
-        ore->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(ore, item))
-                {
-                    validatePosition = false;
-                    ore->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
-        mElementsInMap.append(ore);
-    }
-
-    for(int i=0;i<rubisSpots;i++){
-        RubisOreSpot * ore = new RubisOreSpot();
-        mScene->addItem(ore);
-        ore->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(ore, item))
-                {
-                    validatePosition = false;
-                    ore->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
-        mElementsInMap.append(ore);
-    }
-
+    for (int i = 0; i < NUM_IRON_ORE;   i++) placeOre(new IronOreSpot());
+    for (int i = 0; i < NUM_STONE_ORE;  i++) placeOre(new StoneOreSpot());
+    for (int i = 0; i < saphirSpots;    i++) placeOre(new SaphirOreSpot());
+    for (int i = 0; i < emeraldSpots;   i++) placeOre(new EmeraldOreSpot());
+    for (int i = 0; i < rubisSpots;     i++) placeOre(new RubisOreSpot());
 }
 
 void Map::generateLaoShanLung()
@@ -812,24 +632,7 @@ void Map::generateLaoShanLung()
     initMonsterConnection(monster);
     mMonsters.append(monster);
     mScene->addItem(monster);
-    bool locationValid = true;
-
-    do
-    {
-        locationValid = true;
-        monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH-1000), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT-1000));
-        QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-        for(QGraphicsItem * item : qAsConst(list))
-        {
-            MapItem * mapItem = dynamic_cast<MapItem*>(item);
-            if(mapItem)
-            {
-                if(mapItem->isObstacle())
-                    locationValid = false;
-            }
-        }
-
-    }while(!locationValid);
+    tryPlaceMonsterRandomly(monster, 1000);
 }
 
 bool Map::isNight()
@@ -839,25 +642,11 @@ bool Map::isNight()
 
 void Map::generatePlanks()
 {
-    for(int i=0;i<NUM_PLANK;i++){
-        Plank * plank = new Plank();
+    for (int i = 0; i < NUM_PLANK; i++)
+    {
+        Plank* plank = new Plank();
         mScene->addItem(plank);
-        plank->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(plank, item))
-                {
-                    validatePosition = false;
-                    plank->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
+        tryPlaceMapItemRandomly(plank, 100);
         plank->setInitialPosition(plank->pos());
         mElementsInMap.append(plank);
     }
@@ -865,25 +654,11 @@ void Map::generatePlanks()
 
 void Map::generateStones()
 {
-    for(int i=0;i<NUM_STONE;i++){
-        Stone * stone = new Stone();
+    for (int i = 0; i < NUM_STONE; i++)
+    {
+        Stone* stone = new Stone();
         mScene->addItem(stone);
-        stone->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(stone, item))
-                {
-                    validatePosition = false;
-                    stone->setPos(QRandomGenerator::global()->bounded(100, MAP_WIDTH-100), QRandomGenerator::global()->bounded(100, MAP_HEIGHT-100));
-                    break;
-                }
-            }
-        }
+        tryPlaceMapItemRandomly(stone, 100);
         stone->setInitialPosition(stone->pos());
         mElementsInMap.append(stone);
     }
@@ -993,28 +768,13 @@ void Map::putGoblinVillageInMap()
 
 void Map::putLakesInMap()
 {
-    for(int i=0;i<NUM_LAKES;i++){
+    for(int i=0;i<NUM_LAKES;i++)
+    {
         Lake * lake = new Lake();
         mScene->addItem(lake);
         mScene->addItem(lake->getEvent());
-        lake->setPos(QRandomGenerator::global()->bounded(500, MAP_WIDTH), QRandomGenerator::global()->bounded(500, MAP_HEIGHT));
-        lake->getEvent()->setPos(lake->pos().x()-60, lake->pos().y()+lake->boundingRect().height()/2);
-
-        bool validatePosition = false;
-        while(!validatePosition)
-        {
-            validatePosition = true;
-            for(MapItem * item : qAsConst(mElementsInMap))
-            {
-                if(!checkCollisionBeetween(lake, item))
-                {
-                    validatePosition = false;
-                    lake->setPos(QRandomGenerator::global()->bounded(500, MAP_WIDTH), QRandomGenerator::global()->bounded(500, MAP_HEIGHT));
-                    lake->getEvent()->setPos(lake->pos().x()-60, lake->pos().y()+lake->boundingRect().height()/2);
-                    break;
-                }
-            }
-        }
+        tryPlaceMapItemRandomly(lake, 500);
+        lake->getEvent()->setPosition(lake->pos().x()-60, lake->pos().y()+lake->boundingRect().height()/2);
         mElementsInMap.append(lake);
     }
 }
@@ -1059,6 +819,7 @@ void Map::generateMonsters()
     DEBUG("GENERATING : Monsters");
     int WolfPackNumber = NUM_WOLFPACK, BearNumber = NUM_BEAR, SpiderNumber = NUM_SPIDER, GoblinNumber = NUM_GOBLIN, TrollNumber = NUM_TROLL, OggreNumber = NUM_OGGRE;
 
+    emit sig_loadingGameStep("Génération des meutes de loups...");
     int chunkSize = 500, wolfCount = 0, nTry = 0;
     QList<QGraphicsItem*> toAvoid {mVillage, mGoblinVillage};
     for(int n=0;n<WolfPackNumber;n++)
@@ -1072,11 +833,11 @@ void Map::generateMonsters()
         mScene->addItem(monster);
 
         // Alpha Wolf placement
-        monster->setPos(QPointF(wolfPackArea.x()+QRandomGenerator::global()->bounded(wolfPackArea.width()), wolfPackArea.y()+QRandomGenerator::global()->bounded(wolfPackArea.height())));
+        monster->setPosition(QPointF(wolfPackArea.x()+QRandomGenerator::global()->bounded(wolfPackArea.width()), wolfPackArea.y()+QRandomGenerator::global()->bounded(wolfPackArea.height())));
         QList<QGraphicsItem*> list = mScene->collidingItems(monster);
         while(!list.isEmpty())
         {
-            monster->setPos(QPointF(wolfPackArea.x()+QRandomGenerator::global()->bounded(wolfPackArea.width()), wolfPackArea.y()+QRandomGenerator::global()->bounded(wolfPackArea.height())));
+            monster->setPosition(QPointF(wolfPackArea.x()+QRandomGenerator::global()->bounded(wolfPackArea.width()), wolfPackArea.y()+QRandomGenerator::global()->bounded(wolfPackArea.height())));
             list = mScene->collidingItems(monster);
             if(nTry++ > 200){ // Echec area already full of obstacles
                 DEBUG_ERR("placement du loup ALPHA impossible");
@@ -1102,11 +863,11 @@ void Map::generateMonsters()
             mScene->addItem(monster);
 
             // Wolfs placement
-            monster->setPos(QPointF(wolfPackArea.x()+QRandomGenerator::global()->bounded(wolfPackArea.width()), wolfPackArea.y()+QRandomGenerator::global()->bounded(wolfPackArea.height())));
+            monster->setPosition(QPointF(wolfPackArea.x()+QRandomGenerator::global()->bounded(wolfPackArea.width()), wolfPackArea.y()+QRandomGenerator::global()->bounded(wolfPackArea.height())));
             QList<QGraphicsItem*> list = mScene->collidingItems(monster);
             while(!list.isEmpty() && (nTry++ < 200))
             {
-                monster->setPos(QPointF(wolfPackArea.x()+QRandomGenerator::global()->bounded(wolfPackArea.width()), wolfPackArea.y()+QRandomGenerator::global()->bounded(wolfPackArea.height())));
+                monster->setPosition(QPointF(wolfPackArea.x()+QRandomGenerator::global()->bounded(wolfPackArea.width()), wolfPackArea.y()+QRandomGenerator::global()->bounded(wolfPackArea.height())));
                 list = mScene->collidingItems(monster);
             }
             if(nTry >= 200){ // Area now full, spawning wolf must cease
@@ -1121,6 +882,7 @@ void Map::generateMonsters()
     DEBUG("GENERATED : Wolfs              [" + QString("%1").arg(wolfCount) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des gobelins...");
     for(int m = 0; m < GoblinNumber; m++)
     {
         Monster * monster = new Goblin(mView);
@@ -1130,72 +892,45 @@ void Map::generateMonsters()
 
         if(m < GoblinNumber/2)
         {
-            monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-            QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-            while(!list.isEmpty())
-            {
-                monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-                list = mScene->collidingItems(monster);
-            }
+            tryPlaceMonsterRandomly(monster, 1000);
         }else{
 #ifndef PUT_GOBLIN_VILLAGE_NEXT_TO_VILLAGE
-            monster->setPos(mGoblinVillage->getVillage().x()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().width())),
-                            mGoblinVillage->getVillage().y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().height())));
-
-            QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-            while(1)
-            {
-                if(monster->collidesWithItem(&mGoblinVillage->getVillage()) && list.size()==2)
-                {
-                    break;
-                }
-
-                monster->setPos(mGoblinVillage->getVillage().x()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().width())),
+            int nTry = 0;
+            do {
+                monster->setPosition(mGoblinVillage->getVillage().x()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().width())),
                                 mGoblinVillage->getVillage().y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().height())));
-                list = mScene->collidingItems(monster);
-            }
+            } while(!monster->collidesWithItem(&mGoblinVillage->getVillage()) && ++nTry < 200);
 #endif
         }
     }
     DEBUG("GENERATED : Goblins            [" + QString("%1").arg(GoblinNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des ours...");
     for(int m = 0; m < BearNumber; m++)
     {
         Monster * monster = new Bear(mView);
         initMonsterConnection(monster);
         mMonsters.append(monster);
         mScene->addItem(monster);
-
-        monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-        QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-        while(!list.isEmpty())
-        {
-            monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-            list = mScene->collidingItems(monster);
-        }
+        tryPlaceMonsterRandomly(monster, 1000);
     }
     DEBUG("GENERATED : Bears              [" + QString("%1").arg(BearNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des araignées...");
     for(int m = 0; m < SpiderNumber; m++)
     {
         Monster * monster = new Spider(mView);
         initMonsterConnection(monster);
         mMonsters.append(monster);
         mScene->addItem(monster);
-
-        monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-        QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-        while(!list.isEmpty())
-        {
-            monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-            list = mScene->collidingItems(monster);
-        }
+        tryPlaceMonsterRandomly(monster, 1000);
     }
     DEBUG("GENERATED : Spiders              [" + QString("%1").arg(SpiderNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des trolls...");
     for(int m = 0; m < TrollNumber; m++)
     {
         Monster * monster = new Troll(mView);
@@ -1205,77 +940,72 @@ void Map::generateMonsters()
 
         if(m < TrollNumber*3/4)
         {
-            monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-            QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-            while(!list.isEmpty())
-            {
-                monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-                list = mScene->collidingItems(monster);
-            }
-        }else{
+            tryPlaceMonsterRandomly(monster, 1000);
+        }
+        else
+        {
 #ifndef PUT_GOBLIN_VILLAGE_NEXT_TO_VILLAGE
-            monster->setPos(mGoblinVillage->getVillage().x()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().width())),
-                            mGoblinVillage->getVillage().y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().height())));
-
-            QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-            while(1)
-            {
-                if(monster->collidesWithItem(&mGoblinVillage->getVillage()) && list.size() == 2)
-                {
-                    break;
-                }
-
-                monster->setPos(mGoblinVillage->getVillage().x()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().width())),
+            int nTry = 0;
+            do {
+                monster->setPosition(mGoblinVillage->getVillage().x()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().width())),
                                 mGoblinVillage->getVillage().y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->getVillage().boundingRect().height())));
-                list = mScene->collidingItems(monster);
-            }
+            } while(!monster->collidesWithItem(&mGoblinVillage->getVillage()) && ++nTry < 200);
 #endif
         }
     }
     DEBUG("GENERATED : Trolls             [" + QString("%1").arg(TrollNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
+    emit sig_loadingGameStep("Génération des ogres...");
     for(int m = 0; m < OggreNumber; m++)
     {
         Monster * monster = new Oggre(mView);
         initMonsterConnection(monster);
         mMonsters.append(monster);
         mScene->addItem(monster);
-        monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
+        monster->setPosition(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
 
-        if(m == 0)
+        if(m < 2) // 2 ogres in goblin village
         {
-            monster->setPos(mGoblinVillage->x()-QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().width()/2)),
-                            mGoblinVillage->y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().height()/2)));
-
-            QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-            while(!list.isEmpty())
+            int nTry = 0;
+            while(1)
             {
-                monster->setPos(mGoblinVillage->x()-QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().width()/2)),
-                                mGoblinVillage->y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().height()/2)));
-                list = mScene->collidingItems(monster);
-            }
-        }else if(m == 1)
-        {
-#ifndef PUT_GOBLIN_VILLAGE_NEXT_TO_VILLAGE
-            monster->setPos(mGoblinVillage->x()+mGoblinVillage->boundingRect().width()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().width()/2)),
-                            mGoblinVillage->y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().height()/2)));
+                if(nTry++ > 200)
+                {
+                    DEBUG_ERR(QString("tryPlaceMonsterRandomly: impossible to place monster"));
+                    break;
+                }
 
-            QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-            while(!list.isEmpty())
-            {
-                monster->setPos(mGoblinVillage->x()+mGoblinVillage->boundingRect().width()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().width()/2)),
-                                mGoblinVillage->y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().height()/2)));
-                list = mScene->collidingItems(monster);
+                monster->setPosition(mGoblinVillage->x()-QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().width()*3/4)),
+                                     mGoblinVillage->y()+QRandomGenerator::global()->bounded(static_cast<int>(mGoblinVillage->boundingRect().height()*3/4)));
+
+                bool validPosition = true;
+                QList<QGraphicsItem*> items = mScene->collidingItems(monster);
+                for (QGraphicsItem* item : items)
+                {
+                    if (IsMapitemTypeOrDerived(item))
+                    {
+                        MapItem* mapItem = dynamic_cast<MapItem*>(item);
+                        if (mapItem)
+                        {
+                            if (mapItem->isObstacle())
+                            {
+                                validPosition = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (validPosition)
+                {
+                    break;
+                }
             }
-#endif
         }
-
-        QList<QGraphicsItem*> list = mScene->collidingItems(monster);
-        while(!list.isEmpty())
+        else
         {
-            monster->setPos(QRandomGenerator::global()->bounded(1000, MAP_WIDTH), QRandomGenerator::global()->bounded(1000, MAP_HEIGHT));
-            list = mScene->collidingItems(monster);
+            tryPlaceMonsterRandomly(monster, 1000);
         }
     }
     DEBUG("GENERATED : Oggres             [" + QString("%1").arg(OggreNumber) + "]");
@@ -1345,7 +1075,6 @@ void Map::setHero(Hero * h)
 void Map::reGenerateMap()
 {
     removeMapElements();
-    removeMonsters();
 
     generateRandomMap();
     generateMonsters();

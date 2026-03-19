@@ -1,19 +1,12 @@
 #include "w_messagelogger.h"
 #include "ui_w_messagelogger.h"
 
-#define LOG_MESSAGE_NUMBER_MAX  5
-
 W_MessageLogger::W_MessageLogger(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::W_MessageLogger)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_TransparentForMouseEvents);
-
-    QTimer * t_timer = new QTimer(this);
-    t_timer->setInterval(200);
-    connect(t_timer, &QTimer::timeout, this, &W_MessageLogger::onTryToLogPendingMessage);
-    t_timer->start();
 }
 
 W_MessageLogger::~W_MessageLogger()
@@ -23,65 +16,68 @@ W_MessageLogger::~W_MessageLogger()
 
 void W_MessageLogger::log(LogMessage * message)
 {
+    message->setParent(this);
     connect(message, SIGNAL(sig_timeout()), this, SLOT(onRemoveMessage()));
-    if(ui->layout->count() < LOG_MESSAGE_NUMBER_MAX)
-    {
-        message->setVisible(true);
-        ui->layout->addWidget(message, 0, Qt::AlignRight);
-    }
-    else
-    {
-        message->setVisible(false);
-        mWaitingList << message;
-    }
+    mMessages.append(message);
+    updateDisplay();
 }
 
 void W_MessageLogger::setVisible(bool toggle)
 {
-    for(int i = 0 ; i < ui->layout->count(); i++)
-    {
-        LogMessage * message = static_cast<LogMessage*>(ui->layout->itemAt(0)->widget());
-        message->setVisible(toggle);
-    }
+    for (LogMessage* msg : mMessages)
+        msg->setVisible(toggle);
     QWidget::setVisible(toggle);
-}
-
-
-void W_MessageLogger::onTryToLogPendingMessage()
-{
-    if(mWaitingList.isEmpty())
-        return;
-
-    if(ui->layout->count() < LOG_MESSAGE_NUMBER_MAX)
-    {
-        LogMessage * message = mWaitingList.takeFirst();
-        ui->layout->addWidget(message, 0, Qt::AlignRight);
-        message->setVisible(true);
-    }
-#ifdef DISABLE_WAITING_LIST
-    else
-    {
-        LogMessage * message = dynamic_cast<LogMessage*>(ui->layout->itemAt(0)->widget());
-        message->setVisible(false);
-        ui->layout->removeWidget(message);
-        if(message)
-            delete message;
-
-        message = mWaitingList.takeFirst();
-        ui->layout->addWidget(message, 0, Qt::AlignRight);
-        message->setVisible(true);
-    }
-#endif
-
-    if(!ui->layout->count())
-        emit sig_closeWindow();
 }
 
 void W_MessageLogger::onRemoveMessage()
 {
-    LogMessage * message = static_cast<LogMessage*>(sender());
+    LogMessage* message = static_cast<LogMessage*>(sender());
+    mMessages.removeOne(message);
+    message->deleteLater();
 
-    ui->layout->removeWidget(message);
-    if(message)
-        delete message;
+    if (mMessages.isEmpty())
+        emit sig_closeWindow();
+    else
+        updateDisplay();
+}
+
+void W_MessageLogger::updateDisplay()
+{
+    const int spacing = 5;
+    int yBottom = height();
+
+    for (int i = 0; i < mMessages.size(); i++)
+    {
+        LogMessage* msg = mMessages[i];
+
+        msg->setFixedWidth(width());
+
+        if (i < VISIBLE_MESSAGES)
+        {
+            msg->setHeaderVisible(false);
+            msg->setBodyVisible(true);
+
+            msg->setMinimumHeight(0);
+            msg->setMaximumHeight(QWIDGETSIZE_MAX);
+            msg->adjustSize();
+
+            yBottom -= msg->height();
+            msg->move(0, yBottom);
+            yBottom -= spacing;
+            msg->raise();
+        }
+        else
+        {
+            msg->setHeaderVisible(true);
+            msg->setBodyVisible(false);
+
+            msg->setFixedHeight(HEADER_HEIGHT_PX);
+
+            LogMessage* lastVisible = mMessages[VISIBLE_MESSAGES - 1];
+            int peekIndex = i - VISIBLE_MESSAGES + 1;
+            msg->move(0, lastVisible->y() - peekIndex * HEADER_HEIGHT_PX);
+            msg->lower();
+        }
+        msg->setVisible(true);
+    }
 }

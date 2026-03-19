@@ -192,7 +192,6 @@ set(FORMS
 # Resources
 # =========================
 set(RESOURCES 
-    ${QRC_DIR}/res_background.qrc
     ${QRC_DIR}/res_mapitems.qrc
     ${QRC_DIR}/res_equipment.qrc
     ${QRC_DIR}/res_items.qrc

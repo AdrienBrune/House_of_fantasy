@@ -69,6 +69,11 @@ public:
                     mItems.append(item);
                 }
             }
+            
+            if (mItems.isEmpty())
+            {
+                itemsTook();
+            }
         }
     }
 protected:

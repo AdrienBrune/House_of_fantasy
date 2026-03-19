@@ -5,7 +5,7 @@
 Monster::Monster(QGraphicsView * view):
     Character (),
     mView(view),
-    mIsInView(true),
+    mIsInView(false),
     mHover(0),
     mDamage(0),
     mThreatLevel(0),
@@ -92,6 +92,7 @@ void Monster::setBoundingRect(QRectF bounding)
 {
     mBoundingRect.setRect(bounding.x(), bounding.y(), bounding.width(), bounding.height());
     setTransformOriginPoint(boundingRect().center());
+    mShape = QPainterPath();
     mShape.addEllipse(0,0,boundingRect().width(), boundingRect().height());
 }
 
@@ -265,26 +266,26 @@ void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     // arrowHeadUp << p4 << arrowTopLeft << arrowTopRight;
     // painter->drawPolygon(arrowHeadUp);
 
-    // Collision avoidance vector
-    if (!mCollisionVector.isNull())
-    {
-        QPointF center = boundingRect().center();
-        // Convert scene-space direction to item-space (handles rotation + flip)
-        QPointF sceneOrigin = mapToScene(center);
-        QPointF sceneTip = sceneOrigin + QPointF(mCollisionVector.x(), mCollisionVector.y()) * 60.0f;
-        QPointF localTip = mapFromScene(sceneTip);
-        QPen vectorPen(QColor(255, 140, 0), 3);
-        painter->setPen(vectorPen);
-        painter->setBrush(QColor(255, 140, 0));
-        painter->drawLine(center, localTip);
-        // Arrowhead
-        double arrowAngle = qAtan2(localTip.y() - center.y(), localTip.x() - center.x());
-        QPointF arrowP1 = localTip - QPointF(qCos(arrowAngle + M_PI / 6) * 10, qSin(arrowAngle + M_PI / 6) * 10);
-        QPointF arrowP2 = localTip - QPointF(qCos(arrowAngle - M_PI / 6) * 10, qSin(arrowAngle - M_PI / 6) * 10);
-        QPolygonF arrowTip;
-        arrowTip << localTip << arrowP1 << arrowP2;
-        painter->drawPolygon(arrowTip);
-    }
+    // // Collision avoidance vector
+    // if (!mCollisionVector.isNull())
+    // {
+    //     QPointF center = boundingRect().center();
+    //     // Convert scene-space direction to item-space (handles rotation + flip)
+    //     QPointF sceneOrigin = mapToScene(center);
+    //     QPointF sceneTip = sceneOrigin + QPointF(mCollisionVector.x(), mCollisionVector.y()) * 60.0f;
+    //     QPointF localTip = mapFromScene(sceneTip);
+    //     QPen vectorPen(QColor(255, 140, 0), 3);
+    //     painter->setPen(vectorPen);
+    //     painter->setBrush(QColor(255, 140, 0));
+    //     painter->drawLine(center, localTip);
+    //     // Arrowhead
+    //     double arrowAngle = qAtan2(localTip.y() - center.y(), localTip.x() - center.x());
+    //     QPointF arrowP1 = localTip - QPointF(qCos(arrowAngle + M_PI / 6) * 10, qSin(arrowAngle + M_PI / 6) * 10);
+    //     QPointF arrowP2 = localTip - QPointF(qCos(arrowAngle - M_PI / 6) * 10, qSin(arrowAngle - M_PI / 6) * 10);
+    //     QPolygonF arrowTip;
+    //     arrowTip << localTip << arrowP1 << arrowP2;
+    //     painter->drawPolygon(arrowTip);
+    // }
 
     Q_UNUSED(widget)
     Q_UNUSED(option)
@@ -505,7 +506,7 @@ void Monster::advance(int phase)
     dx = (dx > 0) ? ceil(dx) : -ceil(qAbs(dx));
     dy = (dy > 0) ? ceil(dy) : -ceil(qAbs(dy));
 
-    Character::setPos(x() + dx, y() + dy);
+    Character::setPosition(x() + dx, y() + dy);
 }
 
 
@@ -670,33 +671,16 @@ void Monster::doCollision()
 
 bool Monster::isInView()
 {
-    QRectF area = ToolFunctions::getVisibleView(mView);
-    QList<QGraphicsItem*> list = mView->scene()->items(QRectF(area.x(),area.y(),area.width(),area.height()));
-    for(QGraphicsItem * item : qAsConst(list))
-    {
-        if(dynamic_cast<Monster*>(item) == this)
-        {
-            return true;
-        }
-    }
-    return false;
+    return ToolFunctions::getVisibleView(mView).intersects(sceneBoundingRect());
 }
 
 
 bool Monster::isInBiggerView()
 {
     QRectF area = ToolFunctions::getBiggerView(mView);
-    QList<QGraphicsItem*> list = mView->scene()->items(QRectF(area.x()-area.width()/2,area.y()-area.height()/2,area.width()*2,area.height()*2));
-    for(QGraphicsItem * item : qAsConst(list))
-    {
-        if(dynamic_cast<Monster*>(item) == this)
-        {
-            mIsInView = true;
-            return true;
-        }
-    }
-    mIsInView = false;
-    return false;
+    QRectF bigArea(area.x() - area.width() / 2, area.y() - area.height() / 2, area.width() * 2, area.height() * 2);
+    mIsInView = bigArea.intersects(sceneBoundingRect());
+    return mIsInView;
 }
 
 void Monster::enableMonsterAnimation(bool toggle)

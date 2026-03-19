@@ -605,40 +605,57 @@ void MapScroll::updateDiscovery()
     // Update monster list
     QGraphicsView * view = EntitiesHandler::getInstance().getView();
     QList<QGraphicsItem*> list = view->scene()->items(ToolFunctions::getVisibleView(view));
-    for(QGraphicsItem * object : qAsConst(list))
+    for (QGraphicsItem * object : qAsConst(list))
     {
-        MapItem * mapItem = dynamic_cast<MapItem*>(object);
-        if(mapItem)
+        if (IsMapitemTypeOrDerived(object))
         {
-            Lake * lake = dynamic_cast<Lake*>(object);
-            if(lake)
+            if (object->type() == eQGraphicItemType::mapevent)
             {
-                if(mMapDiscovery.mapItem.contains(lake))
-                    continue;
+                MapEvent * mapEvent = dynamic_cast<MapEvent*>(object);
+                if(mapEvent)
+                {
+                    if (mapEvent->type() == eQGraphicItemType::bush
+                     || mapEvent->type() == eQGraphicItemType::bushcoin
+                     || mapEvent->type() == eQGraphicItemType::bushequipment)
+                    {
+                        continue; // ignore bushes among mapevent
+                    }
 
-                mMapDiscovery.mapItem.append(lake);
+                    if(mMapDiscovery.mapItem.contains(mapEvent))
+                    {
+                        continue;
+                    }
+
+                    mMapDiscovery.mapItem.append(mapEvent);
+                }
             }
-            continue;
+            else
+            {
+                Lake * lake = dynamic_cast<Lake*>(object);
+                if(lake)
+                {
+                    if(mMapDiscovery.mapItem.contains(lake))
+                    {
+                        continue;
+                    }
+
+                    mMapDiscovery.mapItem.append(lake);
+                }
+            }
         }
-        Monster * monster = dynamic_cast<Monster*>(object);
-        if(monster)
+
+        if (object->type() == eQGraphicItemType::monster)
         {
-            if(mMapDiscovery.monsters.contains(monster))
-                continue;
+            Monster * monster = dynamic_cast<Monster*>(object);
+            if (monster)
+            {
+                if(mMapDiscovery.monsters.contains(monster))
+                {
+                    continue;
+                }
 
-            mMapDiscovery.monsters.append(monster);
-        }
-        MapEvent * mapEvent = dynamic_cast<MapEvent*>(object);
-        if(mapEvent)
-        {
-            BushEvent * bush = dynamic_cast<BushEvent*>(mapEvent);
-            if(bush)
-                continue;
-
-            if(mMapDiscovery.mapItem.contains(mapEvent))
-                continue;
-
-            mMapDiscovery.mapItem.append(mapEvent);
+                mMapDiscovery.monsters.append(monster);
+            }
         }
     }
 
