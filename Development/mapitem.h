@@ -42,6 +42,7 @@ public:
     static MapItem* Factory(quint32 identifier);
     void setImage(QPixmap image, bool trueShape = false, bool scale = false);
     QPixmap getImage();
+    const QString& getName() const { return mMapItemName; }
     QString invocName();
     QPainterPath shape() const;
     QRectF boundingRect()const;
@@ -53,12 +54,12 @@ public:
     bool isDestroyed();
     CollisionShape * getObstacleShape();
     const int & getZOffset();
-    void setPos(QPointF position)
+    void setPosition(QPointF position)
     {
         QGraphicsPixmapItem::setPos(position);
         mPosition = position;
     }
-    void setPos(qreal x, qreal y)
+    void setPosition(qreal x, qreal y)
     {
         QGraphicsPixmapItem::setPos(x, y);
         mPosition = QPointF(x, y);
@@ -101,7 +102,7 @@ public:
                 mPosition.setY(jsonPosition["y"].toDouble());
             }
         }
-        setPos(mPosition);
+        setPosition(mPosition);
     }
 protected:
     int mIdentifier;

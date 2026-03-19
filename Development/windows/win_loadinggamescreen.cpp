@@ -26,6 +26,12 @@ void Win_LoadingGameScreen::updateLoadingProgress(quint8 value)
     ui->loading->setValue(value);
 }
 
+void Win_LoadingGameScreen::updateLoadingStep(const QString& text)
+{
+    ui->loadingStepLabel->setText(text);
+    ui->loadingStepLabel->repaint();
+}
+
 void Win_LoadingGameScreen::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);

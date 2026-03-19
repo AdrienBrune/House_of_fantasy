@@ -6,14 +6,17 @@
 #include <QPainter>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include "item.h"
 #include "w_itemdisplayer.h"
 
-#define DISABLE_WAITING_LIST
-
-#define TIMEOUT_MESSAGE 10000
+#define TIMEOUT_MESSAGE_MS      10000
+#define VISIBLE_MESSAGES        3
+#define HEADER_HEIGHT_PX        26
+#define ITEM_DISPLAY_SIZE_PX    200
 
 #define COLOR_BLACK_LIGHT   QColor(40,40,40)
+#define COLOR_HEADER_BG     QColor(30,30,38)
 
 /* List all messages */
 #define LM_SHOW_MERCHANT_RESPLENISH()   new LogMessageType_2(this, QString("Le marchand a reçu une nouvelle cargaison de fournitures\nPassez le voir !"), QPixmap(":/images/Ressources/ship.png"))
@@ -47,7 +50,7 @@ class QTimerCustom : public QTimer
 {
     Q_OBJECT
 public:
-    explicit QTimerCustom(QWidget *parent = nullptr):QTimer(parent), mRemainingTime(TIMEOUT_MESSAGE){ setSingleShot(true); setInterval(TIMEOUT_MESSAGE); };
+    explicit QTimerCustom(QWidget *parent = nullptr):QTimer(parent), mRemainingTime(TIMEOUT_MESSAGE_MS){ setSingleShot(true); setInterval(TIMEOUT_MESSAGE_MS); };
     ~QTimerCustom(){};
 public:
     int getRemainingTime()const{ return mRemainingTime; }
@@ -66,34 +69,101 @@ public:
     explicit LogMessage(QWidget *parent = nullptr, QString message = QString()):
         QWidget(parent),
         mMessage(message),
-        t_timer(nullptr)
+        t_timer(nullptr),
+        mAccentColor(Qt::gray),
+        mHeaderVisible(true),
+        mHeader(nullptr),
+        mHeaderLabel(nullptr),
+        mBody(nullptr)
     {
         t_timer = new QTimerCustom(this);
         t_timer->setSingleShot(true);
         connect(t_timer, SIGNAL(timeout()), this, SIGNAL(sig_timeout()));
         setVisible(false);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+
+        QVBoxLayout * outerLayout = new QVBoxLayout(this);
+        outerLayout->setContentsMargins(0, 0, 0, 0);
+        outerLayout->setSpacing(0);
+        setLayout(outerLayout);
+
+        // Header
+        mHeader = new QWidget(this);
+        mHeader->setFixedHeight(HEADER_HEIGHT_PX);
+        mHeader->setAttribute(Qt::WA_TransparentForMouseEvents);
+        {
+            QHBoxLayout * hl = new QHBoxLayout(mHeader);
+            hl->setContentsMargins(8, 0, 4, 0);
+            hl->setSpacing(0);
+            mHeaderLabel = new QLabel(mHeader);
+            mHeaderLabel->setStyleSheet("QLabel{ color: rgba(255,255,255,200); }");
+            mHeaderLabel->setFont(QFont("Poor Richard", 10));
+            mHeaderLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+            hl->addWidget(mHeaderLabel);
+        }
+        outerLayout->addWidget(mHeader);
+
+        // Content area
+        mBody = new QWidget(this);
+        mBody->setAttribute(Qt::WA_TransparentForMouseEvents);
+        outerLayout->addWidget(mBody);
     }
     ~LogMessage(){};
 signals:
     void sig_timeout();
 public:
-    void setVisible(bool toggle)override
+    void setVisible(bool toggle) override
     {
         toggle ? t_timer->resume() : t_timer->pause();
         QWidget::setVisible(toggle);
     }
-protected:
-    void paintEvent(QPaintEvent*)override
+    void setHeaderVisible(bool visible)
     {
-        QPainter painter(this);
-        painter.setOpacity(0.9);
-        painter.setBrush(QBrush(COLOR_BLACK_LIGHT));
-        painter.drawRect(0,0,width(),height());
+        mHeaderVisible = visible;
+        mHeader->setVisible(visible);
+        mHeader->setFixedHeight(visible ? HEADER_HEIGHT_PX : 0);
+        update();
+    }
+    void setBodyVisible(bool visible)
+    {
+        mBody->setVisible(visible);
     }
 protected:
-    QString mMessage;
-    QTimerCustom * t_timer;
+    void setupHeader(const QString & title, QColor accentColor)
+    {
+        mAccentColor = accentColor;
+        mHeaderLabel->setText(title.section('\n', 0, 0)); // first raw only
+    }
+
+    void paintEvent(QPaintEvent*) override
+    {
+        QPainter painter(this);
+        painter.setPen(Qt::NoPen);
+
+        if (mHeaderVisible)
+        {
+            painter.setOpacity(0.97);
+            painter.setBrush(COLOR_HEADER_BG);
+            painter.drawRect(0, 0, width(), HEADER_HEIGHT_PX);
+
+            // color bar on the left
+            painter.setOpacity(1.0);
+            painter.setBrush(mAccentColor);
+            painter.drawRect(0, 0, 4, HEADER_HEIGHT_PX);
+        }
+
+        painter.setOpacity(0.90);
+        painter.setBrush(COLOR_BLACK_LIGHT);
+        painter.drawRect(0, mHeaderVisible ? HEADER_HEIGHT_PX : 0, width(), height() - (mHeaderVisible ? HEADER_HEIGHT_PX : 0));
+    }
+protected:
+    QString       mMessage;
+    QTimerCustom* t_timer;
+    QColor        mAccentColor;
+    bool          mHeaderVisible;
+    QWidget*      mHeader;
+    QLabel*       mHeaderLabel;
+    QWidget*      mBody;
 };
 
 
@@ -105,15 +175,17 @@ class LogMessageType_1 : public LogMessage
 public:
     explicit LogMessageType_1(QWidget *parent = nullptr, QString message = QString()):LogMessage(parent, message)
     {
-        QLabel * label = new QLabel(this);
+        setupHeader(mMessage, QColor(100, 120, 210));
+
+        QLabel * label = new QLabel(mBody);
         label->setWordWrap(true);
         label->setText(mMessage);
         label->setStyleSheet("QLabel{color:white;}");
         label->setFont(QFont("Poor Richard", 12));
         label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-        QVBoxLayout * layout = new QVBoxLayout(this);
-        setLayout(layout);
+        QVBoxLayout * layout = new QVBoxLayout(mBody);
+        mBody->setLayout(layout);
         layout->addWidget(label);
     }
     ~LogMessageType_1(){};
@@ -126,7 +198,9 @@ class LogMessageType_2 : public LogMessage
 public:
     explicit LogMessageType_2(QWidget *parent = nullptr, QString message = QString(), QPixmap pixmap = QPixmap()):LogMessage(parent, message)
     {
-        QLabel * label = new QLabel(this);
+        setupHeader(mMessage, QColor(80, 170, 100));
+
+        QLabel * label = new QLabel(mBody);
         label->setWordWrap(true);
         label->setText(mMessage);
         label->setStyleSheet("QLabel{color:white;}");
@@ -134,14 +208,14 @@ public:
         label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
         label->setAlignment(Qt::AlignCenter);
 
-        QLabel * image = new QLabel(this);
+        QLabel * image = new QLabel(mBody);
         image->setScaledContents(true);
         image->setPixmap(pixmap);
-        image->setMinimumSize(QSize(150, 150));
-        image->setMaximumSize(QSize(150, 150));
+        image->setMinimumSize(QSize(80, 80));
+        image->setMaximumSize(QSize(80, 80));
 
-        QHBoxLayout * layout = new QHBoxLayout(this);
-        setLayout(layout);
+        QHBoxLayout * layout = new QHBoxLayout(mBody);
+        mBody->setLayout(layout);
         layout->addWidget(image);
         layout->addWidget(label);
     }
@@ -153,20 +227,24 @@ class LogMessageType_3 : public LogMessage
 {
     Q_OBJECT
 public:
-    explicit LogMessageType_3(QWidget *parent = nullptr, Item * item = nullptr):LogMessage(parent, QString())
+    explicit LogMessageType_3(QWidget *parent = nullptr, Item * item = nullptr):LogMessage(parent, QString()), mWItem(nullptr)
     {
-        W_ItemDisplayer * wItem = new W_ItemDisplayer(this, item);
-        setMinimumSize(QSize(300,300));
-        setMaximumSize(QSize(300,300));
-        wItem->hideUseButton();
+        setupHeader(item ? item->getName() : QString("Objet"), QColor(200, 170, 50));
+
+        mWItem = new W_ItemDisplayer(mBody, item);
+        mWItem->setFixedSize(ITEM_DISPLAY_SIZE_PX, ITEM_DISPLAY_SIZE_PX);
+        mWItem->hideUseButton();
         connect(item, SIGNAL(destroyed(QObject*)), this, SIGNAL(sig_timeout()));
 
-        QVBoxLayout * layout = new QVBoxLayout(this);
+        QVBoxLayout * layout = new QVBoxLayout(mBody);
         layout->setMargin(0);
-        setLayout(layout);
-        layout->addWidget(wItem);
+        layout->setAlignment(Qt::AlignCenter);
+        mBody->setLayout(layout);
+        layout->addWidget(mWItem);
     }
     ~LogMessageType_3(){};
+private:
+    W_ItemDisplayer * mWItem;
 };
 
 
@@ -183,10 +261,11 @@ public:
     void log(LogMessage*);
     void setVisible(bool)override;
 private slots:
-    void onTryToLogPendingMessage();
     void onRemoveMessage();
 private:
-    QList<LogMessage*> mWaitingList;
+    void updateDisplay();
+private:
+    QList<LogMessage*> mMessages;
 private:
     Ui::W_MessageLogger *ui;
 };

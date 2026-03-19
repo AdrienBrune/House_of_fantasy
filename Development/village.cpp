@@ -163,7 +163,7 @@ void Blacksmith::replenish()
 
 void Blacksmith::setPosition(QPointF position)
 {
-    mHouse->setPos(position);
+    mHouse->setPosition(position);
 }
 
 BlacksmithHouse *Blacksmith::getHouse()
@@ -295,7 +295,7 @@ void Merchant::replenish()
 
 void Merchant::setPosition(QPointF position)
 {
-    mHouse->setPos(position);
+    mHouse->setPosition(position);
 }
 
 MerchantHouse *Merchant::getHouse()
@@ -493,7 +493,7 @@ void Alchemist::onCookingDone(PotionCookingSlot * potionSlot)
 
 void Alchemist::setPosition(QPointF position)
 {
-    mHouse->setPos(position);
+    mHouse->setPosition(position);
 }
 
 AlchemistHouse *Alchemist::getHouse()
@@ -649,7 +649,7 @@ Altar::~Altar()
 
 void Altar::setPosition(QPointF position)
 {
-    mBuilding->setPos(position);
+    mBuilding->setPosition(position);
 }
 
 AltarBuilding *Altar::getBuilding()
@@ -813,8 +813,8 @@ HeroChest *HeroHouse::getChest()
 
 void HeroHouse::setPosition(QPointF position)
 {
-    mHouse->setPos(position);
-    mChest->setPos(position.x()+20, position.y()+300);
+    mHouse->setPosition(position);
+    mChest->setPosition(position.x()+20, position.y()+300);
 }
 
 

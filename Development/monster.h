@@ -131,6 +131,7 @@ public:
         Character::toJson(json);
 
         json["status"] = static_cast<int>(mAction);
+        json["skin"] = mSkin;
 
         json.remove("life");
         json.remove("mana");
@@ -149,6 +150,20 @@ public:
         if (json.contains("status") && json["status"].isDouble())
         {
             mAction = static_cast<Action>(json["status"].toInt());
+            if (mAction == Action::dead)
+            {
+                killMonster();
+            }
+            if (mAction == Action::skinned)
+            {
+                QList<Item*> items = skinMonster();
+                qDeleteAll(items);
+                items.clear();
+            }
+        }
+        if (json.contains("skin") && json["skin"].isDouble())
+        {
+            mSkin = json["skin"].toInt();
         }
     }
 

@@ -22,6 +22,7 @@ public:
 
 public slots:
     void updateLoadingProgress(quint8);
+    void updateLoadingStep(const QString&);
 
 protected:
     void paintEvent(QPaintEvent*);

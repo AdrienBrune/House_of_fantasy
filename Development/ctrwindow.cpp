@@ -49,6 +49,7 @@ CTRWindow::CTRWindow(QWidget *parent) :
 
     w_loadingScreen = new Win_LoadingGameScreen();
     connect(this, &CTRWindow::sig_loadingGameUpdate, w_loadingScreen, &Win_LoadingGameScreen::updateLoadingProgress);
+    connect(this, &CTRWindow::sig_loadingGameStep, w_loadingScreen, &Win_LoadingGameScreen::updateLoadingStep);
     w_loadingScreen->hide();
 
     hide();
@@ -123,6 +124,7 @@ void CTRWindow::generateNewGame()
     DEBUG("GENERATED : Map");
 
     // SOUND EFFECTS
+    emit sig_loadingGameStep("Initialisation du son...");
     mSoundManager = new SoundManager(this);
     connect(mMap, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
     connect(mMap, SIGNAL(sig_heroEnterVillage()), mSoundManager, SLOT(heroEnterVillage()));
@@ -133,13 +135,14 @@ void CTRWindow::generateNewGame()
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
 
     // HERO CREATION
+    emit sig_loadingGameStep("Chargement du héros...");
     mHero = mCurrentSave->HeroFactory();
     if(!mHero)
     {
         assert(false && "le hero doit exister dans la sauvegarde !!");
     }
     mMap->setHero(mHero);
-    mHero->setPos(mHero->getLocation() != QPointF(0,0) ? mHero->getLocation() : QPointF(mMap->getVillage()->pos().x()+500, mMap->getVillage()->pos().y()+800));
+    mHero->setPosition(mHero->getLocation() != QPointF(0,0) ? mHero->getLocation() : QPointF(mMap->getVillage()->pos().x()+500, mMap->getVillage()->pos().y()+800));
     mHero->getAdventurerMap().map.init();
     connect(mHero, SIGNAL(sig_bagFull()), this, SLOT(showBagFull()));
     connect(mHero, SIGNAL(sig_playSound(int)), mSoundManager, SLOT(playSound(int)));
@@ -155,6 +158,7 @@ void CTRWindow::generateNewGame()
     //     mapScroll->init();
 
     // HERO INTERFACE
+    emit sig_loadingGameStep("Initialisation de l'interface...");
     w_heroStats = new W_HeroStats(this, mHero);
     w_heroStats->setGeometry(0,0,500,300);
     w_heroStats->show();
@@ -975,7 +979,7 @@ void CTRWindow::useTool(Tool * tool)
 
 void CTRWindow::useScroll(Scroll* scroll)
 {
-    mHero->setPos(mMap->getVillage()->getHeroHouse()->getHouse()->x(), mMap->getVillage()->getHeroHouse()->getHouse()->y()+350);
+    mHero->setPosition(mMap->getVillage()->getHeroHouse()->getHouse()->x(), mMap->getVillage()->getHeroHouse()->getHouse()->y()+350);
     ui->graphicsView->centerOn(mHero);
     mSoundManager->playSound(SOUND_TELEPORT);
 

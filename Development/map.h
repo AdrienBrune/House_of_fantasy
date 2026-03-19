@@ -68,6 +68,7 @@ public:
     ~Map();
 signals:
     void sig_loadingGameUpdate(quint8);
+    void sig_loadingGameStep(const QString&);
     void sig_monsterEncountered(Monster*);
     void sig_heroMoved();
     void sig_playSound(int);
@@ -128,7 +129,6 @@ private:
     void generateTrees();
     void generateFallenTrees();
     void generateRocks();
-    void generateGround();
     void generatePlanks();
     void generateStones();
     void generateChestBurriedEvent();
@@ -141,6 +141,8 @@ private:
     void initMonsterConnection(Monster*);
     void initMapElementsConnections();
     void initItemsInMapConnections();
+    bool tryPlaceMonsterRandomly(Monster* item, int margin, int maxTries = 200);
+    bool tryPlaceMapItemRandomly(MapItem* item, int margin, int maxTries = 200);
 public:
     inline void toJson(QJsonObject &json) const
     {
@@ -306,14 +308,12 @@ private:
     Village_Goblin_Area * mGoblinVillage;
     QList<MapItem*> mElementsInMap;
     QList<Item*> mItemsInMap;
+    QList<QGraphicsPixmapItem*> mGroundPatches;
 
     QList<Monster*> mMonsters;
     QTimer * t_monstersActions;
     int monsterActionIndex;
     QTimer * t_monsterMove;
-
-    // Ground variation decorations (dirt patches, gravel zones) — not saved, regenerated each time
-    QList<QGraphicsPixmapItem*> mGroundPatches;
 };
 
 #endif // MAP_H

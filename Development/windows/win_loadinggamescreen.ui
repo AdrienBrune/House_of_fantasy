@@ -49,7 +49,7 @@
     </spacer>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,8,1,1">
+    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,8,1,0,1">
      <property name="spacing">
       <number>0</number>
      </property>
@@ -101,6 +101,19 @@ QProgressBar::chunk { /* Filling */
        </property>
        <property name="textVisible">
         <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="loadingStepLabel">
+       <property name="styleSheet">
+        <string notr="true">color: rgba(255, 255, 255, 150); font-style: italic; font-size: 11px;</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>

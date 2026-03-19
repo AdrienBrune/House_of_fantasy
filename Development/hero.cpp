@@ -235,7 +235,7 @@ void Hero::checkMapInteractions()
         CollisionShape * obstacle = dynamic_cast<CollisionShape*>(item);
         if(obstacle)
         {
-            Character::setPos(mMoveHandler.lastPos.x(), mMoveHandler.lastPos.y());
+            setPosition(mMoveHandler.lastPos.x(), mMoveHandler.lastPos.y());
             stopMoving();
             break;
         }
@@ -419,7 +419,7 @@ void Hero::move()
 {
     double dx = static_cast<double>(SPEED_HERO)*qSin(qDegreesToRadians(mMoveHandler.angle));
     double dy = -static_cast<double>(SPEED_HERO)*qCos(qDegreesToRadians(mMoveHandler.angle));
-    Character::setPos(x()+dx, y()+dy);
+    setPosition(x()+dx, y()+dy);
 
     if(gEnableMovementWithMouseClic)
         if( (abs(mMoveHandler.destPos.x() - x()) < 1)  || (abs(mMoveHandler.destPos.y() - y()) < 1) )

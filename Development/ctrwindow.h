@@ -49,6 +49,7 @@ public:
     ~CTRWindow();
 signals:
     void sig_loadingGameUpdate(quint8);
+    void sig_loadingGameStep(const QString&);
 private slots:
     void onStartGame(Save*);
     void generateNewGame();
