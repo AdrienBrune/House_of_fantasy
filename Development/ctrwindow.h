@@ -36,6 +36,7 @@
 #include "w_messagelogger.h"
 #include "w_herostats.h"
 #include "w_daynightcycle.h"
+#include "w_gameover.h"
 
 namespace Ui {
 class CTRWindow;
@@ -84,6 +85,7 @@ private slots:
     void hideQuickToolDrawer();
     void onCloseMessageLogger();
     void on_Map_clicked();
+    void showGameOver();
 
 public:
     void ShowPopUpInfo(LogMessage*);
@@ -122,6 +124,7 @@ private:
     W_QuickToolDrawer * w_quickItemDrawer;
     W_MessageLogger * w_messageLogger;
     W_Animation_Night * w_night;
+    W_GameOver * w_gameOver;
 public:
     Ui::CTRWindow *ui;
 };

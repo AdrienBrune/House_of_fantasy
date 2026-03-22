@@ -60,6 +60,7 @@ public:
     Gauge getLife();
     Gauge getMana();
     Gauge getStamina();
+    int getCoin() const { return mCoin; }
     QPixmap getImage();
 
     void setName(QString);
@@ -82,6 +83,7 @@ public:
 
     virtual void setupFight(bool setup)=0;
     void applyStatus(eStatus status, QVariant value = QVariant());
+    static QPair<QString, QString> getStatusDescription(eStatus status);
     void removeStatus(eStatus status);
     bool isApplied(eStatus status) const { return mStatus.contains(status); }
     QVariant getStatus(eStatus status) const { return mStatus.value(status, QVariant()); }
@@ -223,11 +225,11 @@ protected:
     Gauge mStamina;
     Experience mExperience;
     int mCoin;
-    QPointF mPositionInMap; // TODO use it !!
+    QPointF mPositionInMap;
     QMap<eStatus, QVariant> mStatus;
 
-    QTimer * t_poisonning;
-    QTimer * t_healing;
+    QTimer t_poisoned;
+    QTimer t_healing;
 
     QRect mBoundingRect;
     QPainterPath mShape;

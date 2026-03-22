@@ -81,6 +81,8 @@ set(HEADERS
     ${SRC_DIR}/widgets/w_herostats.h
     ${SRC_DIR}/widgets/w_daynightcycle.h
     ${SRC_DIR}/windows/win_fight.h
+    ${SRC_DIR}/windows/w_fightresult.h
+    ${SRC_DIR}/windows/w_gameover.h
     ${SRC_DIR}/windows/win_gear.h
     ${SRC_DIR}/windows/win_heroselection.h
     ${SRC_DIR}/windows/win_interface_trading.h
@@ -143,6 +145,8 @@ set(SOURCES
     ${SRC_DIR}/widgets/w_herostats.cpp
     ${SRC_DIR}/widgets/w_daynightcycle.cpp
     ${SRC_DIR}/windows/win_fight.cpp
+    ${SRC_DIR}/windows/w_fightresult.cpp
+    ${SRC_DIR}/windows/w_gameover.cpp
     ${SRC_DIR}/windows/win_gear.cpp
     ${SRC_DIR}/windows/win_heroselection.cpp
     ${SRC_DIR}/windows/win_interface_trading.cpp
@@ -180,7 +184,6 @@ set(FORMS
     ${UI_DIR}/windows/win_gear.ui
     ${UI_DIR}/windows/win_heroselection.ui
     ${UI_DIR}/windows/win_inventory.ui
-    ${UI_DIR}/windows/win_loadinggamescreen.ui
     ${UI_DIR}/windows/win_loadsave.ui
     ${UI_DIR}/windows/win_merchant.ui
     ${UI_DIR}/windows/win_skillinfo.ui
@@ -248,13 +251,25 @@ if(WIN32)
     )
 
     set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Application")
+    set(TEMP_DIR   "${CMAKE_CURRENT_BINARY_DIR}/saves_backup")
 
     add_custom_command(TARGET House_of_fantasy POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${TEMP_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIR}/saves"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${OUTPUT_DIR}/saves"
+                "${TEMP_DIR}/saves"
+
         COMMAND ${CMAKE_COMMAND} -E remove_directory "${OUTPUT_DIR}"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 "$<TARGET_FILE_DIR:House_of_fantasy>"
                 "${OUTPUT_DIR}"
+
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${TEMP_DIR}/saves"
+                "${OUTPUT_DIR}/saves"
         COMMENT "Deploying Qt and copying runtime..."
         VERBATIM
     )

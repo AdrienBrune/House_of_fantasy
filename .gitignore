@@ -2,7 +2,7 @@ cat .gitignore
 /Development/Ressources
 /Development/House_of_fantasy.pro.user
 *.o
-/Temp
 /Conception
 /Application
 /saves
+/tmp

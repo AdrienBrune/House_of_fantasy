@@ -201,6 +201,7 @@ public:
     ~Shovel();
 public :
     bool use();
+    virtual int type() const override { return eQGraphicItemType::shovel; }
 };
 
 class Pickaxe : public Tool
@@ -210,6 +211,7 @@ public:
     ~Pickaxe();
 public :
     bool use();
+    virtual int type() const override { return eQGraphicItemType::pickaxe; }
 };
 
 class FishingRod : public Tool
@@ -219,6 +221,7 @@ public:
     ~FishingRod();
 public :
     bool use();
+    virtual int type() const override { return eQGraphicItemType::fishingrod; }
 };
 
 class Compass : public Tool
@@ -228,6 +231,7 @@ public:
     ~Compass();
 public :
     bool use();
+    virtual int type() const override { return eQGraphicItemType::compass; }
 };
 
 class Knife : public Tool
@@ -237,6 +241,7 @@ public:
     ~Knife();
 public :
     bool use();
+    virtual int type() const override { return eQGraphicItemType::knife; }
 };
 
 class Monster;

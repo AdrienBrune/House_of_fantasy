@@ -3,6 +3,7 @@
 
 #include <QElapsedTimer>
 #include <QRandomGenerator>
+#include <QApplication>
 
 extern quint8 loadingStep;
 
@@ -217,12 +218,14 @@ void Map::generateRandomMap()
     putVillageInMap();
     DEBUG("GENERATED : HeroVillage        [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération du village gobelin...");
     timer.start();
     putGoblinVillageInMap();
     DEBUG("GENERATED : GoblinVillage      [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     DEBUG("GENERATING : Map elements");
 
@@ -231,18 +234,21 @@ void Map::generateRandomMap()
     generateGroundVariations();
     DEBUG("GENERATED : Ground             [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des lacs...");
     timer.start();
     putLakesInMap();
     DEBUG("GENERATED : Lakes              [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des arbres...");
     timer.start();
     generateTrees();
     DEBUG("GENERATED : Trees              [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     QList<MapItem*> bushes;
     emit sig_loadingGameStep("Génération des buissons...");
@@ -250,49 +256,58 @@ void Map::generateRandomMap()
     generateBushes(bushes);
     DEBUG("GENERATED : Bushes             [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
     timer.start();
     generateBushCoinEvent(bushes);
     DEBUG("GENERATED : BushCoin           [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
     timer.start();
     generateBushEquipmentEvent(bushes);
     DEBUG("GENERATED : BushEquipment      [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des rochers...");
     timer.start();
     generateRocks();
     DEBUG("GENERATED : Rocks              [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des planches et pierres...");
     timer.start();
     generatePlanks();
     DEBUG("GENERATED : Planks             [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     timer.start();
     generateStones();
     DEBUG("GENERATED : Stones             [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des coffres enterrés...");
     timer.start();
     generateChestBurriedEvent();
     DEBUG("GENERATED : ChestBurried       [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des arbres tombés...");
     timer.start();
     generateFallenTrees();
     DEBUG("GENERATED : FallenTrees        [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des gisements de minerais...");
     timer.start();
     generateOreSpots();
     DEBUG("GENERATED : OreSpots           [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Nettoyage de la carte...");
     timer.start();
@@ -318,6 +333,7 @@ void Map::generateRandomMap()
     }
     DEBUG("GENERATED : Removing items     [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     // Hide items in the map
     emit sig_loadingGameStep("Génération des objets cachés...");
@@ -326,6 +342,7 @@ void Map::generateRandomMap()
     putItemsInMap();
     DEBUG("GENERATED : Items              [" << QString("%1").arg(timer.elapsed()) << "]ms");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     DEBUG("GENERATED : Elements(" << mElementsInMap.size() << ")");
 
@@ -820,10 +837,11 @@ void Map::generateMonsters()
     int WolfPackNumber = NUM_WOLFPACK, BearNumber = NUM_BEAR, SpiderNumber = NUM_SPIDER, GoblinNumber = NUM_GOBLIN, TrollNumber = NUM_TROLL, OggreNumber = NUM_OGGRE;
 
     emit sig_loadingGameStep("Génération des meutes de loups...");
-    int chunkSize = 500, wolfCount = 0, nTry = 0;
+    int chunkSize = 500, wolfCount = 0;
     QList<QGraphicsItem*> toAvoid {mVillage, mGoblinVillage};
     for(int n=0;n<WolfPackNumber;n++)
     {
+        int nTry = 0;
         QRect wolfPackArea = ToolFunctions::getSpawnChunk(QSize(chunkSize,chunkSize),toAvoid);
 
         Monster * monster = new WolfAlpha(mView);
@@ -881,6 +899,7 @@ void Map::generateMonsters()
     }
     DEBUG("GENERATED : Wolfs              [" + QString("%1").arg(wolfCount) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des gobelins...");
     for(int m = 0; m < GoblinNumber; m++)
@@ -905,6 +924,7 @@ void Map::generateMonsters()
     }
     DEBUG("GENERATED : Goblins            [" + QString("%1").arg(GoblinNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des ours...");
     for(int m = 0; m < BearNumber; m++)
@@ -917,6 +937,7 @@ void Map::generateMonsters()
     }
     DEBUG("GENERATED : Bears              [" + QString("%1").arg(BearNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des araignées...");
     for(int m = 0; m < SpiderNumber; m++)
@@ -929,6 +950,7 @@ void Map::generateMonsters()
     }
     DEBUG("GENERATED : Spiders              [" + QString("%1").arg(SpiderNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des trolls...");
     for(int m = 0; m < TrollNumber; m++)
@@ -955,6 +977,7 @@ void Map::generateMonsters()
     }
     DEBUG("GENERATED : Trolls             [" + QString("%1").arg(TrollNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     emit sig_loadingGameStep("Génération des ogres...");
     for(int m = 0; m < OggreNumber; m++)
@@ -1010,6 +1033,7 @@ void Map::generateMonsters()
     }
     DEBUG("GENERATED : Oggres             [" + QString("%1").arg(OggreNumber) + "]");
     emit sig_loadingGameUpdate(UPDATE_STEP(loadingStep));
+    QApplication::processEvents();
 
     if(mVillage->getAltar()->isLaoShanLungSummoned())
     {

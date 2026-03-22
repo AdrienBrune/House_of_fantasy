@@ -14,6 +14,7 @@ W_HeroStats::W_HeroStats(QWidget *parent, Hero *hero):
     connect(mHero, SIGNAL(sig_equipmentChanged()), this, SLOT(onUpdateStats()), Qt::ConnectionType::QueuedConnection);
     connect(mHero, SIGNAL(sig_bagEvent()), this, SLOT(onUpdateStats()), Qt::ConnectionType::QueuedConnection);
     connect(mHero, SIGNAL(sig_nameChanged()), this, SLOT(onUpdateStats()), Qt::ConnectionType::QueuedConnection);
+    connect(mHero, SIGNAL(sig_staminaMaxChanged()), this, SLOT(onUpdateStats()), Qt::ConnectionType::QueuedConnection);
 
 }
 
@@ -82,6 +83,16 @@ void W_HeroStats::paintEvent(QPaintEvent *)
     lifeBackground.setPoints(4, pBackground);
     lifeChunk.setPoints(4, pLife);
 
+    /* Stamina vertical bar (left of portrait) */
+    const int stBarW = static_cast<int>(0.012 * width());
+    const int stBarH = static_cast<int>(0.30  * height());
+    const int stBarX = static_cast<int>(experienceBackground.x() - 12);
+    const int stBarY = static_cast<int>(0.18  * height());
+    qreal staminaPct = (mHero->getStamina().maximum > 0)
+        ? static_cast<qreal>(mHero->getStamina().current) / static_cast<qreal>(mHero->getStamina().maximum)
+        : 0.0;
+    const int stFillH = static_cast<int>(staminaPct * stBarH);
+
     /* Drawing --------------------------------------------------------------------------- */
 
     /* Coins */
@@ -139,6 +150,23 @@ void W_HeroStats::paintEvent(QPaintEvent *)
     painter.setBrush(QBrush(colorOrange));
     qreal experiencePourcentage = static_cast<qreal>(mHero->getExperience().points)/static_cast<qreal>(mHero->getExperience().pointsToLevelUp);
     painter.drawChord(experienceBackground, 305*16, -experiencePourcentage*(240*16));
+    /* Stamina bar */
+    if (staminaPct < 1.0)
+    {
+        painter.setPen(QPen(QBrush(), 0));
+        painter.setOpacity(0.35);
+        painter.setBrush(colorWhite);
+        painter.drawRoundedRect(stBarX, stBarY, stBarW, stBarH, 3, 3);
+        if(stFillH > 0)
+        {
+            QLinearGradient stGrad(stBarX, stBarY + stBarH, stBarX, stBarY);
+            stGrad.setColorAt(0.0, QColor(255, 210, 0));
+            stGrad.setColorAt(1.0, QColor(255, 230, 0));
+            painter.setOpacity(1);
+            painter.setBrush(stGrad);
+            painter.drawRoundedRect(stBarX, stBarY + stBarH - stFillH, stBarW, stFillH, 3, 3);
+        }
+    }
     /* Portrait */
     painter.setPen(QPen(QBrush(), 0));
     painter.setBrush(colorGrey);

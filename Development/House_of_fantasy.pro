@@ -67,6 +67,8 @@ SOURCES += \
         w_usetool.cpp \
         w_herostats.cpp \
         win_fight.cpp \
+        w_fightresult.cpp \
+        w_gameover.cpp \
         win_gear.cpp \
         win_heroselection.cpp \
         win_interface_trading.cpp \
@@ -123,6 +125,8 @@ HEADERS += \
         w_usetool.h \
         w_herostats.h \
         win_fight.h \
+        w_fightresult.h \
+        w_gameover.h \
         win_gear.h \
         win_heroselection.h \
         win_interface_trading.h \
@@ -156,7 +160,6 @@ FORMS += \
         win_gear.ui \
         win_heroselection.ui \
         win_inventory.ui \
-        win_loadinggamescreen.ui \
         win_loadsave.ui \
         win_merchant.ui \
         win_skillinfo.ui \

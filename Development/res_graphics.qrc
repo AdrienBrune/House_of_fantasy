@@ -20,7 +20,6 @@
         <file>Ressources/background_menu.png</file>
         <file>Ressources/LaoSprite.png</file>
         <file>Ressources/Lao.png</file>
-        <file>Ressources/loadingImage.png</file>
         <file>Ressources/background_itemInfo_left.png</file>
         <file>Ressources/background_itemInfo_middle.png</file>
         <file>Ressources/background_itemInfo_right.png</file>
@@ -67,6 +66,12 @@
         <file>Ressources/forge_helmet.png</file>
         <file>Ressources/forge_bow.png</file>
         <file>Ressources/forge_staff.png</file>
+        <file>Ressources/loading_1.png</file>
+        <file>Ressources/loading_2.png</file>
+        <file>Ressources/loading_3.png</file>
+        <file>Ressources/loading_4.png</file>
+        <file>Ressources/loading_5.png</file>
+        <file>Ressources/loading_6.png</file>
     </qresource>
     <qresource prefix="/icons/button">
         <file>Ressources/arrow_right.png</file>

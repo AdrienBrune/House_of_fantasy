@@ -7,7 +7,6 @@ Character::Character():
     mLife({100, 100}),
     mMana({100, 100}),
     mStamina({100, 100}),
-    t_poisonning(nullptr),
     mBoundingRect(QRect()),
     mShape(QPainterPath()),
     mCollisionShape(nullptr),
@@ -73,7 +72,7 @@ void Character::setLifeMax(int life)
 
 void Character::setMana(int mana)
 {
-    bool changed = mLife.current != mana ? true : false;
+    bool changed = mMana.current != mana ? true : false;
 
     if(mana > mMana.maximum)
         mMana.current = mMana.maximum;
@@ -106,32 +105,51 @@ void Character::setStaminaMax(int stamina)
     emit sig_staminaMaxChanged();
 }
 
+QPair<QString, QString> Character::getStatusDescription(eStatus status)
+{
+    switch(status)
+    {
+        case eStatus::benediction: return {"Bénédiction des dieux",  "Régénère des points de vie à chaque tour de combat."};
+        case eStatus::confused:    return {"Confusion",              "33% de chance de rater une attaque."};
+        case eStatus::heal:        return {"Soin",                   "Régénère des points de vie."};
+        case eStatus::poisoned:    return {"Empoisonné",             "Perd des points de vie à chaque tour de combat."};
+        case eStatus::shield:      return {"Bouclier Primitif",      "Réduit les dégâts reçus pendant quelques tours."};
+    }
+    return {"", ""};
+}
+
 void Character::applyStatus(eStatus status, QVariant value)
 {
     mStatus[status] = value;
 
     if(status == eStatus::poisoned)
     {
-        t_poisonning = new QTimer(this);
-        connect(t_poisonning, &QTimer::timeout, this, [&]()
+        if (!t_poisoned.isActive())
         {
-            setLife(mLife.current - mLife.maximum * 0.025);
+            connect(&t_poisoned, &QTimer::timeout, this, [&]()
+            {
+                setLife(mLife.current - mLife.maximum * 0.025);
 
-            mStatus[eStatus::poisoned] = mStatus[eStatus::poisoned].toInt() - 1;
-            if(mStatus[eStatus::poisoned].toInt() < 1)
-                removeStatus(eStatus::poisoned);
-        });
-        t_poisonning->start(2000);
+                mStatus[eStatus::poisoned] = mStatus[eStatus::poisoned].toInt() - 1;
+                if(mStatus[eStatus::poisoned].toInt() < 1)
+                    removeStatus(eStatus::poisoned);
+            });
+        }
+        t_poisoned.stop();
+        t_poisoned.start(2000);
     }
 
     if(status == eStatus::heal)
     {
-        t_healing = new QTimer(this);
-        connect(t_healing, &QTimer::timeout, this, [&]()
+        if (!t_healing.isActive())
         {
-            setLife(mLife.current + 1);
-        });
-        t_healing->start(1000);
+            connect(&t_healing, &QTimer::timeout, this, [&]()
+            {
+                setLife(mLife.current + 1);
+            });
+        }
+        t_healing.stop();
+        t_healing.start(1500);
     }
 
     emit sig_statusChanged();
@@ -143,12 +161,14 @@ void Character::removeStatus(eStatus status)
 
     if(status == eStatus::poisoned)
     {
-        if(t_poisonning)
-        {
-            t_poisonning->stop();
-            delete t_poisonning;
-            t_poisonning = nullptr;
-        }
+        disconnect(&t_poisoned, &QTimer::timeout, this, nullptr);
+        t_poisoned.stop();
+    }
+
+    if(status == eStatus::heal)
+    {
+        disconnect(&t_healing, &QTimer::timeout, this, nullptr);
+        t_healing.stop();
     }
 
     emit sig_statusChanged();

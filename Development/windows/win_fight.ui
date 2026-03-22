@@ -55,7 +55,7 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,0">
+        <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,1">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -183,16 +183,16 @@
            </property>
            <item>
             <widget class="MonsterFightView" name="fight_view" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
              <property name="minimumSize">
               <size>
-               <width>800</width>
-               <height>400</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>800</width>
-               <height>400</height>
+               <width>400</width>
+               <height>200</height>
               </size>
              </property>
             </widget>
