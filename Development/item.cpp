@@ -286,7 +286,7 @@ Item *Item::Factory(quint32 identifier)
         return new EmeraldOre();
 
     case ORE_RUBIS:
-        return new EmeraldOre();
+        return new RubisOre();
 
     case MONSTERMATERIAL_POISON_POUCH:
         return new PoisonPouch();
@@ -319,10 +319,10 @@ Item *Item::Factory(quint32 identifier)
         return new WolfAlphaPelt();
 
     case MONSTERMATERIAL_BEAR_MEAT:
-        return new BearPelt();
+        return new BearMeat();
 
     case MONSTERMATERIAL_BEAR_PELT:
-        return new BearMeat();
+        return new BearPelt();
 
     case MONSTERMATERIAL_BEAR_TALON:
         return new BearClaw();

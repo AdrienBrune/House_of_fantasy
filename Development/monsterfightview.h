@@ -39,17 +39,26 @@ public:
     MonsterFightView(QWidget * parent = nullptr);
 
 public:
+    void setBiome(eBiomes biome)
+    {
+        const QString str_biomes[] = {
+            "forest",
+            "plain"
+        };
+        mBiome = biome;
+        mBackground = QPixmap(QString(":/graphicItems/Ressources/fight_map_%1.png").arg(str_biomes[mBiome]));
+    }
     void setMonster(Monster * monster) { mMonster = monster; }
 
 public:
-    void attackedAnimate() { restart(mTimerRestore); mAttack = false; mAttacked = true; update(); }
-    void attackAnimate()   { restart(mTimerRestore); mAttack = true;  mAttacked = false; update(); }
+    void attackedAnimate() { restart(mTimerRestore); mAttack = false; mAttacked = true; if(mMonster) mPrevStamina = mMonster->getStamina().current; update(); }
+    void attackAnimate() { restart(mTimerRestore); mAttack = true;  mAttacked = false; update(); }
 
 protected:
     void paintEvent(QPaintEvent*);
 
 private slots:
-    void onRestore() { mAttack = false; mAttacked = false; update(); }
+    void onRestore() { mAttack = false; mAttacked = false; mPrevStamina = 0; update(); }
 
 private:
     void restart(QTimer & timer) { timer.stop(); timer.start(600); }
@@ -57,9 +66,11 @@ private:
 private:
     Monster *mMonster;
     eBiomes mBiome;
+    QPixmap mBackground;
     bool mAttack;
     bool mAttacked;
     quint32 mAffliction; // Monster::Status
+    quint32 mPrevStamina;
     QTimer mTimerRestore;
 };
 

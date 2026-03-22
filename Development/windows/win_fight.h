@@ -6,12 +6,14 @@
 #include <QPropertyAnimation>
 #include <QPainter>
 #include <QProgressBar>
+#include <QLabel>
 #include "hero.h"
 #include "monster.h"
 #include "w_animation_fight.h"
 #include "w_itemdisplayer.h"
 #include "w_spelllistselection.h"
 #include "w_animationspell.h"
+#include "w_fightresult.h"
 
 #define BORDER_SIZE     2
 #define CORNER_ROUNDED  5
@@ -122,11 +124,14 @@ public:
     {
         mEntity = entity;
         mRightAligned = alignment;
+        setMouseTracking(true);
         update();
     }
 
 protected:
     void paintEvent(QPaintEvent *event);
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 
 private:
     Character * mEntity;
@@ -175,7 +180,7 @@ private slots:
         }
         else if(mMonster->getLife().current <= 0)
         {
-            endFight(mMonster);
+            showVictoryOverlay();
         }
     }
 
@@ -190,6 +195,7 @@ public:
         a->setEndValue(1);
         a->setEasingCurve(QEasingCurve::InBack);
         a->start(QPropertyAnimation::DeleteWhenStopped);
+        connect(a, &QPropertyAnimation::finished, this, [this](){ setGraphicsEffect(nullptr); });
 
         QPropertyAnimation *b = new QPropertyAnimation(this,"geometry");
         b->setDuration(600);
@@ -223,6 +229,8 @@ private:
     void addConsumablesOnScreen();
     void enableButtons(bool);
     void showNotEnoughtStamina();
+    void showVictoryOverlay();
+    void showDamageNumber(int damage, bool onMonster);
     void loadFightAnimationsPixmap()
     {
         pMonsterLightAttack = mMonster->getLightAttackAnimation();
@@ -257,6 +265,7 @@ private:
     QPixmap pMonsterLightAttack;
     W_Animation_Fight * w_fightAnimation;
     W_SpellListSelection * w_spellList;
+    W_FightResult * w_fightResult;
 
     QTimer * t_onHeroStaminaRecovery;
     QTimer * t_monsterStaminaRecovery;

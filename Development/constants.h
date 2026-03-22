@@ -163,27 +163,27 @@ namespace MapConfig {
 #define RES_LAKE        1
 #define RES_ORE_SPOT    4
 
-#define Z_GROUND                2
-#define Z_GROUND_FOREGROUND     4
-#define Z_CHEST_BURRIED         6
-#define Z_ORESPOT               6
-#define Z_PLANK                 8
-#define Z_STONE                 8
-#define Z_ROCK                  10
-#define Z_BUSH                  12
-#define Z_TREE_FALLEN           14
-#define Z_TREE                  16
+#define Z_GROUND                5
+#define Z_GROUND_FOREGROUND     10
+#define Z_CHEST_BURRIED         15
+#define Z_ORESPOT               20
+#define Z_PLANK                 25
+#define Z_STONE                 30
+#define Z_ROCK                  35
+#define Z_BUSH                  40
+#define Z_TREE_FALLEN           45
+#define Z_TREE                  50
 #define Z_ITEM                  Z_GROUND_FOREGROUND
 #define Z_ITEM_FOREGROUND       Z_VILLAGE
-#define Z_LAKE                  18
+#define Z_LAKE                  55
 #define Z_FISH_EVENT            Z_LAKE+1
 #define Z_VILLAGE               Z_MONSTER_BACKGROUND-1
 
-#define Z_MONSTER_BACKGROUND    20
-#define Z_MONSTERS              21
-#define Z_MONSTER_FOREGROUND    22
+#define Z_MONSTER_BACKGROUND    59
+#define Z_MONSTERS              60
+#define Z_MONSTER_FOREGROUND    61
 
-#define Z_HERO                  23
+#define Z_HERO                  65
 
 #define Z_DAYNIGHT_CYCLE        100
 
@@ -391,7 +391,12 @@ enum eQGraphicItemType
     bush,
     bushcoin,
     bushequipment,
-    village
+    village,
+    pickaxe,
+    shovel,
+    fishingrod,
+    knife,
+    compass
 };
 
 inline bool IsMapitemTypeOrDerived(QGraphicsItem* item)

@@ -482,10 +482,10 @@ void Monster::advance(int phase)
         return;
     }
 
-    if(mAction == Action::dead || mAction == Action::skinned || (mAction == Action::stand && !mIsInView))
-        return;
-
     doCollision();
+
+    if(mAction == Action::dead || mAction == Action::skinned || mAction == Action::stand)
+        return;
 
     if((mAction == Action::moving || mAction == Action::aggro) && qAbs(mMove.netDirection.y()) > qAbs(mMove.netDirection.x()))
     {
@@ -549,29 +549,38 @@ void Monster::doCollision()
 
                 if(isInView())
                 {
-                    Bush * bush = dynamic_cast<Bush*>(mapitem);
-                    if(bush)
+                    if (mapitem->type() == eQGraphicItemType::bush)
                     {
-                        if(!bush->isAnimated())
-                            emit sig_movedInBush(bush);
+                        Bush * bush = dynamic_cast<Bush*>(mapitem);
+                        if(bush)
+                        {
+                            if(!bush->isAnimated())
+                                emit sig_movedInBush(bush);
 
-                        continue;
+                            continue;
+                        }
                     }
-                    BushEventCoin * bushEventCoin = dynamic_cast<BushEventCoin*>(mapitem);
-                    if(bushEventCoin)
+                    if (mapitem->type() == eQGraphicItemType::bushcoin)
                     {
-                        if(!bushEventCoin->isAnimated())
-                            emit sig_movedInBushEvent(bushEventCoin);
+                        BushEventCoin * bushEventCoin = dynamic_cast<BushEventCoin*>(mapitem);
+                        if(bushEventCoin)
+                        {
+                            if(!bushEventCoin->isAnimated())
+                                emit sig_movedInBushEvent(bushEventCoin);
 
-                        continue;
+                            continue;
+                        }
                     }
-                    BushEventEquipment * bushEventEquipment = dynamic_cast<BushEventEquipment*>(mapitem);
-                    if(bushEventEquipment)
+                    if (mapitem->type() == eQGraphicItemType::bushequipment)
                     {
-                        if(!bushEventEquipment->isAnimated())
-                            emit sig_movedInBushEvent(bushEventEquipment);
+                        BushEventEquipment * bushEventEquipment = dynamic_cast<BushEventEquipment*>(mapitem);
+                        if(bushEventEquipment)
+                        {
+                            if(!bushEventEquipment->isAnimated())
+                                emit sig_movedInBushEvent(bushEventEquipment);
 
-                        continue;
+                            continue;
+                        }
                     }
                 }
             }
@@ -814,6 +823,14 @@ void Spider::addExtraLoots()
     {
         mItems.append(new PoisonPouch);
         mItems.append(new PoisonPouch);
+    }
+}
+
+void Spider::onHitEffect(Character* target)
+{
+    if(QRandomGenerator::global()->bounded(100) < 30)
+    {
+        target->applyStatus(Character::eStatus::poisoned, QRandomGenerator::global()->bounded(3, 7));
     }
 }
 

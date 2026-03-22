@@ -32,6 +32,7 @@ CTRWindow::CTRWindow(QWidget *parent) :
     w_quickItemDrawer(nullptr),
     w_messageLogger(nullptr),
     w_night(nullptr),
+    w_gameOver(nullptr),
     ui(new Ui::CTRWindow)
 {
     ui->setupUi(this);
@@ -83,10 +84,7 @@ void CTRWindow::onStartGame(Save * save)
     loadingStep = 0;
     emit sig_loadingGameUpdate(loadingStep);
 
-    int randomClass = QRandomGenerator::global()->bounded(static_cast<int>(Hero::HeroClasses::eNbHeroClasses));
-    w_loadingScreen->setImage(randomClass);
-
-    w_loadingScreen->showFullScreen();
+    w_loadingScreen->show();
 
     if(mCurrentSave && mCurrentSave != save)
         delete mCurrentSave;
@@ -190,6 +188,9 @@ void CTRWindow::generateNewGame()
     EntitiesHandler::getInstance().registerView(ui->graphicsView);
 
     setButtonsEnable(true);
+
+    if(mHero->isDead())
+        QTimer::singleShot(500, this, &CTRWindow::showGameOver);
 }
 
 void CTRWindow::closeGame()
@@ -244,6 +245,20 @@ void CTRWindow::closeGame()
         delete w_night;
     w_night = nullptr;
 
+    if(w_gameOver)
+        delete w_gameOver;
+    w_gameOver = nullptr;
+
+    // Must be deleted BEFORE mHero: they hold a raw mHero* and use QueuedConnection,
+    // so a pending repaint could access a dangling pointer if mHero is gone first.
+    if(w_heroStats)
+        delete w_heroStats;
+    w_heroStats = nullptr;
+    if(w_daynightcycle)
+        delete w_daynightcycle;
+    w_daynightcycle = nullptr;
+    DEBUG("DELETED : Hero stats");
+
     if(mMap)
         delete mMap;
     mMap = nullptr;
@@ -258,14 +273,6 @@ void CTRWindow::closeGame()
         delete mSoundManager;
     mSoundManager = nullptr;
     DEBUG("DELETED : Sound manager");
-
-    if(w_heroStats)
-        delete w_heroStats;
-    w_heroStats = nullptr;
-    if(w_daynightcycle)
-        delete w_daynightcycle;
-    w_daynightcycle = nullptr;
-    DEBUG("DELETED : Hero stats");
 
     if(t_unfreezeMap)
         delete t_unfreezeMap;
@@ -361,6 +368,30 @@ void CTRWindow::GoToMonsterFight(Monster * monster)
     }
 }
 
+void CTRWindow::showGameOver()
+{
+    mMap->freeze(true);
+    if(t_PeriodicalEvents)
+        t_PeriodicalEvents->stop();
+
+    if(w_gameOver)
+        delete w_gameOver;
+
+    w_gameOver = new W_GameOver(this);
+    connect(w_gameOver, &W_GameOver::sig_returnToMenu, this, [this]() {
+        mHero->stopMoving();
+        mMap->getScene()->removeItem(mHero);
+        mMap->getVillage()->removeFromScene(mMap->getScene());
+
+        w_menu->enableButtons(true);
+        w_menu->show();
+        closeGame();
+        hide();
+    });
+    w_gameOver->show();
+    w_gameOver->raise();
+}
+
 void CTRWindow::fightResult(Character* entityKilled)
 {
     mHero->freeze(false);
@@ -370,8 +401,7 @@ void CTRWindow::fightResult(Character* entityKilled)
     {
         Hero * hero = dynamic_cast<Hero*>(entityKilled);
         if(hero){
-            // TODO : Game Over
-            DEBUG("Le Hero a été tué - GAME OVER");
+            showGameOver();
         }
         Monster* monster = dynamic_cast<Monster*>(entityKilled);
         if(monster){
@@ -382,7 +412,8 @@ void CTRWindow::fightResult(Character* entityKilled)
             {
                 ShowPopUpInfo(ML_SHOW_LEVEL_UP(mHero));
             }
-            // TODO add coin if monster add some !!
+            if(monster->getCoin() > 0)
+                mHero->addCoin(monster->getCoin());
             if(mHero->getLife().current < 30)
                 mSoundManager->startMusicEvent(MUSICEVENT_CLOSE_FIGHT);
         }
@@ -1203,24 +1234,10 @@ void CTRWindow::on_buttonQuit_clicked()
         return;
     }  
 
-    // /* Copy map chest to save */
-    // HeroChest * chest = new HeroChest();
-    // for(Item * item : mMap->getVillage()->getHeroHouse()->getChest()->getItems())
-    // {
-    //     chest->addItem(item);
-    // }
-    // mCurrentSave->setChest(chest);
-
     /* Avoid instances destruction with scene destruction */
     mMap->getScene()->removeItem(mHero);
     mMap->getVillage()->removeFromScene(mMap->getScene());
 
-    /* Save current game */
-    // QFile file(QString(QDir::currentPath()+"/"+FILE_SAVE+"/%1").arg(mCurrentSave->getName()));
-    // file.open(QIODevice::WriteOnly);
-    // QDataStream stream(&file);
-    // stream << *mCurrentSave;
-    // file.close();
     QString filePath = QString(QDir::currentPath() + "/" + FILE_SAVE + "/%1").arg(mCurrentSave->GetId());
     GameContentStruct game = {
         mHero,

@@ -124,6 +124,7 @@ public:
 
     virtual void nextAction(Hero*, DayNightCycle*);
     virtual void addExtraLoots()=0;
+    virtual void onHitEffect(Character* target) { Q_UNUSED(target) }
 
 public:
     inline virtual void toJson(QJsonObject &json) const override
@@ -224,6 +225,7 @@ public:
     inline const QString GetName() override { return Spider::Name(); }
     inline static const QString Name() { return "Araignée"; }
     void addExtraLoots();
+    void onHitEffect(Character* target) override;
 private:
     int getSpeed();
     int getBoostedSpeed();

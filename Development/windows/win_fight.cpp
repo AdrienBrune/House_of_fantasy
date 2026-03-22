@@ -1,5 +1,7 @@
 #include "win_fight.h"
 #include "ui_win_fight.h"
+#include <QToolTip>
+#include <QMouseEvent>
 
 #include "frag_speel.h"
 #include "entitieshandler.h"
@@ -20,6 +22,7 @@ Win_Fight::Win_Fight(QWidget *parent, Monster * monster) :
     pMonsterLightAttack(QPixmap()),
     w_fightAnimation(nullptr),
     w_spellList(nullptr),
+    w_fightResult(nullptr),
     mDodgeSucces(false),
     mFleeFail(false),
     mConfused(false),
@@ -61,6 +64,8 @@ Win_Fight::~Win_Fight()
         delete w_fightAnimation;
     if(w_spellList)
         delete w_spellList;
+    if(w_fightResult)
+        delete w_fightResult;
 }
 
 void Win_Fight::initInterface()
@@ -141,8 +146,8 @@ void Win_Fight::addConsumablesOnScreen()
     {
         disconnect(item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onUseConsumable(ItemQuickDisplayer*)));
         ui->itemView->scene()->removeItem(item);
-        mConsumables.removeOne(item);
     }
+    mConsumables.clear();
 
     // Update current list
     mScenePotion->setSceneRect(0,0,ui->itemView->width(), ui->itemView->height());
@@ -218,7 +223,12 @@ void Win_Fight::onButtonHeavyAttackClicked()
 
     ui->fight_view->attackedAnimate();
     emit sig_playSound(SOUND_HERO_ATTACK);
-    mMonster->setLife(mMonster->getLife().current-static_cast<int>(mHero->calculateDamage()*foreOfNatureCoef*(ACTION_COST_HEAVY_ATTACK/100.0)));
+    qreal randomFactor = 0.95 + QRandomGenerator::global()->generateDouble() * 0.10;
+    int monsterLifeBefore = mMonster->getLife().current;
+    mMonster->setLife(mMonster->getLife().current-static_cast<int>(mHero->calculateDamage()*foreOfNatureCoef*randomFactor*(ACTION_COST_HEAVY_ATTACK/100.0)));
+    showDamageNumber(monsterLifeBefore - mMonster->getLife().current, true);
+    int drainH = mMonster->getStamina().maximum * QRandomGenerator::global()->bounded(5, 21) / 100;
+    mMonster->setStamina(mMonster->getStamina().current - drainH);
 }
 
 void Win_Fight::onButtonLightAttackClicked()
@@ -249,7 +259,12 @@ void Win_Fight::onButtonLightAttackClicked()
 
     ui->fight_view->attackedAnimate();
     emit sig_playSound(SOUND_HERO_ATTACK);
-    mMonster->setLife(mMonster->getLife().current-static_cast<int>(mHero->calculateDamage()));
+    qreal randomFactor = 0.95 + QRandomGenerator::global()->generateDouble() * 0.10;
+    int monsterLifeBefore = mMonster->getLife().current;
+    mMonster->setLife(mMonster->getLife().current-static_cast<int>(mHero->calculateDamage()*randomFactor));
+    showDamageNumber(monsterLifeBefore - mMonster->getLife().current, true);
+    int drainL = mMonster->getStamina().maximum * QRandomGenerator::global()->bounded(5, 21) / 100;
+    mMonster->setStamina(mMonster->getStamina().current - drainL);
 }
 
 void Win_Fight::onButtonFleeClicked()
@@ -307,7 +322,10 @@ void Win_Fight::onMonsterLightAttack()
     connect(w_fightAnimation, SIGNAL(sig_hideAnimation()), this, SLOT(onHideAnimation()));
     w_fightAnimation->setGeometry((width()-700)/2,(height()-700)/2,700,700);
 
+    int heroLifeBefore = mHero->getLife().current;
     mHero->takeDamage(mMonster->getDamage()*1.0);
+    showDamageNumber(heroLifeBefore - mHero->getLife().current, false);
+    mMonster->onHitEffect(mHero);
     update();
 }
 
@@ -321,7 +339,10 @@ void Win_Fight::onMonsterHeavyAttack()
     connect(w_fightAnimation, SIGNAL(sig_hideAnimation()), this, SLOT(onHideAnimation()));
     w_fightAnimation->setGeometry((width()-700)/2,(height()-700)/2,700,700);
 
+    int heroLifeBefore = mHero->getLife().current;
     mHero->takeDamage(mMonster->getDamage()*1.5);
+    showDamageNumber(heroLifeBefore - mHero->getLife().current, false);
+    mMonster->onHitEffect(mHero);
     update();
 }
 
@@ -333,10 +354,13 @@ void Win_Fight::paintEvent(QPaintEvent *)
     painter.setOpacity(0.7);
     painter.drawRect(0,0,width(),height());
     painter.setOpacity(1);
-    painter.drawPixmap(QRect(100,50,width()-200,height()-150), QPixmap(":/graphicItems/Ressources/background_black_textured.png"));
+
+    static const QPixmap background = QPixmap(":/graphicItems/Ressources/background_black_textured.png");
+    static const QPixmap buttonBackground = QPixmap(":/graphicItems/Ressources/buttons_background.png");
+    painter.drawPixmap(QRect(100,50,width()-200,height()-150), background);
 
     painter.drawPixmap(QRect(ui->button_useSpell->x(), ui->button_heavyAttack->y(), ui->button_useSpell->width()*3, ui->button_heavyAttack->height()*3),
-                       QPixmap(":/graphicItems/Ressources/buttons_background.png"));
+                       buttonBackground);
 
     painter.setBrush(QBrush("#434343"));
     painter.setPen(QPen(QBrush("#FFFFFF"), 3));
@@ -434,12 +458,19 @@ void Win_Fight::onUseSpell(Skill * skill)
 
         case SpellSkill::DeathTouch:
             if(QRandomGenerator::global()->bounded(100) < spell->getCapacity())
+            {
+                showDamageNumber(mMonster->getLife().current, true);
                 mMonster->setLife(0);
+            }
             break;
 
         case SpellSkill::FireBall:
+        {
+            int lifeBefore = mMonster->getLife().current;
             mMonster->setLife(mMonster->getLife().current - spell->getCapacity());
+            showDamageNumber(lifeBefore - mMonster->getLife().current, true);
             break;
+        }
 
         case SpellSkill::HealingHalo:
             mHero->setLife(mHero->getLife().current + spell->getCapacity());
@@ -472,6 +503,130 @@ void Win_Fight::onUseSpell(Skill * skill)
 
 
 
+
+void Win_Fight::showDamageNumber(int damage, bool onMonster)
+{
+    if(damage <= 0)
+        return;
+
+    QLabel* label = new QLabel(this);
+    label->setText(QString("-%1").arg(damage));
+    label->setAttribute(Qt::WA_TransparentForMouseEvents);
+    label->setStyleSheet(onMonster
+        ? "color: #FF8C00; font-size: 22px; font-weight: bold;"
+        : "color: #FF3333; font-size: 22px; font-weight: bold;");
+    label->adjustSize();
+
+    QPoint origin;
+    if(onMonster)
+        origin = ui->fight_view->mapTo(this, QPoint(ui->fight_view->width() / 2, ui->fight_view->height() / 3));
+    else
+        origin = ui->img_player->mapTo(this, QPoint(ui->img_player->width() / 2, 0));
+
+    label->move(origin.x() - label->width() / 2, origin.y() - label->height() / 2);
+    label->show();
+    label->raise();
+
+    // Move upward over the full duration
+    QPropertyAnimation* moveAnim = new QPropertyAnimation(label, "pos");
+    moveAnim->setDuration(1600);
+    moveAnim->setStartValue(label->pos());
+    moveAnim->setEndValue(label->pos() - QPoint(0, 80));
+    moveAnim->start(QPropertyAnimation::DeleteWhenStopped);
+
+    // Stay fully visible for the first half, then fade out
+    QGraphicsOpacityEffect* effect = new QGraphicsOpacityEffect(label);
+    label->setGraphicsEffect(effect);
+    QPropertyAnimation* fadeAnim = new QPropertyAnimation(effect, "opacity");
+    fadeAnim->setDuration(1600);
+    fadeAnim->setKeyValueAt(0.0, 1.0);
+    fadeAnim->setKeyValueAt(0.5, 1.0);
+    fadeAnim->setKeyValueAt(1.0, 0.0);
+    fadeAnim->start(QPropertyAnimation::DeleteWhenStopped);
+    connect(fadeAnim, &QPropertyAnimation::finished, label, &QLabel::deleteLater);
+}
+
+void Win_Fight::showVictoryOverlay()
+{
+    // Prevent re-entry if sig_lifeChanged fires again during the victory sequence
+    disconnect(mHero,    &Character::sig_lifeChanged, this, &Win_Fight::onCheckFightIssue);
+    disconnect(mMonster, &Character::sig_lifeChanged, this, &Win_Fight::onCheckFightIssue);
+
+    // Stop all timers so the monster stops attacking
+    mMonster->setupFight(false);
+    t_onHeroStaminaRecovery->stop();
+    enableButtons(false);
+
+    int level      = mHero->getExperience().level;
+    int expBefore  = mHero->getExperience().points;
+    int expGained  = mMonster->getExperience();
+    int expToLevel = mHero->getExperience().pointsToLevelUp;
+    int coinGained = mMonster->getCoin();
+
+    QTimer::singleShot(1000, this, [this, level, expBefore, expGained, expToLevel, coinGained]() {
+        w_fightResult = new W_FightResult(this, level, expBefore, expGained, expToLevel, coinGained);
+        w_fightResult->setGeometry(0, 0, width(), height());
+
+        QGraphicsOpacityEffect* eff = new QGraphicsOpacityEffect(w_fightResult);
+        w_fightResult->setGraphicsEffect(eff);
+        QPropertyAnimation* fadeIn = new QPropertyAnimation(eff, "opacity", w_fightResult);
+        fadeIn->setDuration(400);
+        fadeIn->setStartValue(0.0);
+        fadeIn->setEndValue(1.0);
+        fadeIn->start(QPropertyAnimation::DeleteWhenStopped);
+
+        w_fightResult->show();
+        w_fightResult->raise();
+
+        connect(w_fightResult, &W_FightResult::sig_closed, this, [this]() {
+            if(w_fightResult)
+            {
+                delete w_fightResult;
+                w_fightResult = nullptr;
+            }
+            endFight(mMonster);
+        });
+    });
+}
+
+void W_StatusBar::mouseMoveEvent(QMouseEvent *event)
+{
+    if(!mEntity) return;
+
+    static const QVector<Character::eStatus> allStatus = {
+        Character::eStatus::benediction,
+        Character::eStatus::confused,
+        Character::eStatus::heal,
+        Character::eStatus::poisoned,
+        Character::eStatus::shield
+    };
+
+    const int offset = mRightAligned ? -(height() + 5) : height() + 5;
+    QRect logoArea(mRightAligned ? width() - height() - 5 : 5, 0, height(), height());
+
+    for(auto status : allStatus)
+    {
+        if(mEntity->isApplied(status))
+        {
+            if(logoArea.contains(event->pos()))
+            {
+                auto info = Character::getStatusDescription(status);
+                QToolTip::showText(
+                    mapToGlobal(event->pos()),
+                    QString("<b>%1</b><br>%2").arg(info.first, info.second),
+                    this, logoArea);
+                return;
+            }
+            logoArea.moveLeft(logoArea.x() + offset);
+        }
+    }
+    QToolTip::hideText();
+}
+
+void W_StatusBar::leaveEvent(QEvent *)
+{
+    QToolTip::hideText();
+}
 
 void W_AnimatedProgressBar::onStatChanged()
 {
@@ -604,32 +759,29 @@ void W_StatusBar::paintEvent(QPaintEvent*)
     if(!mEntity)
         return;
 
+    static const QMap<Character::eStatus, QPixmap> iconCache = {
+        {Character::eStatus::benediction, QPixmap(":/icons/Ressources/logo_benediction.png")},
+        {Character::eStatus::confused, QPixmap(":/icons/Ressources/logo_confused.png")},
+        {Character::eStatus::heal, QPixmap(":/icons/Ressources/logo_heal.png")},
+        {Character::eStatus::poisoned, QPixmap(":/icons/Ressources/logo_poisoned.png")},
+        {Character::eStatus::shield, QPixmap(":/icons/Ressources/logo_shield.png")}
+    };
+
     int offset = mRightAligned ? -(height() + 5) : height() + 5;
     QRect logoArea(mRightAligned ? width() - height() - 5 : 5, 0, height(), height());
 
-    if(mEntity->isApplied(Character::eStatus::benediction))
-    {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_benediction.png"));
-        logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
-    }
-    if(mEntity->isApplied(Character::eStatus::confused))
-    {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_confused.png"));
-        logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
-    }
-    if(mEntity->isApplied(Character::eStatus::heal))
-    {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_heal.png"));
-        logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
-    }
-    if(mEntity->isApplied(Character::eStatus::poisoned))
-    {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_poisoned.png"));
-        logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
-    }
-    if(mEntity->isApplied(Character::eStatus::shield))
-    {
-        painter.drawPixmap(logoArea, QPixmap(":/icons/Ressources/logo_shield.png"));
-        logoArea.setRect(logoArea.x() + offset, logoArea.y(), logoArea.height(), logoArea.height());
+    static const QVector<Character::eStatus> allStatus = {
+        Character::eStatus::benediction, 
+        Character::eStatus::confused, 
+        Character::eStatus::heal, 
+        Character::eStatus::poisoned, 
+        Character::eStatus::shield
+    };
+
+    for(auto status : allStatus) {
+        if(mEntity->isApplied(status)) {
+            painter.drawPixmap(logoArea, iconCache.value(status));
+            logoArea.moveLeft(logoArea.x() + offset);
+        }
     }
 }

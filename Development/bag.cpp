@@ -81,9 +81,9 @@ Item *Bag::getShovel()
 {
     for(Item * item : qAsConst(mItems))
     {
-        Shovel * shovel = dynamic_cast<Shovel*>(item);
-        if(shovel){
-            return shovel;
+        if(item->type() == eQGraphicItemType::shovel)
+        {
+            return item;
         }
     }
     return nullptr;
@@ -93,9 +93,9 @@ Item *Bag::getPickaxe()
 {
     for(Item * item : qAsConst(mItems))
     {
-        Pickaxe * pickaxe = dynamic_cast<Pickaxe*>(item);
-        if(pickaxe){
-            return pickaxe;
+        if(item->type() == eQGraphicItemType::pickaxe)
+        {
+            return item;
         }
     }
     return nullptr;
@@ -105,9 +105,9 @@ Item *Bag::getFishingrod()
 {
     for(Item * item : qAsConst(mItems))
     {
-        FishingRod * fishingrode = dynamic_cast<FishingRod*>(item);
-        if(fishingrode){
-            return fishingrode;
+        if(item->type() == eQGraphicItemType::fishingrod)
+        {
+            return item;
         }
     }
     return nullptr;
@@ -117,9 +117,9 @@ Item *Bag::getKnife()
 {
     for(Item * item : qAsConst(mItems))
     {
-        Knife * knife = dynamic_cast<Knife*>(item);
-        if(knife){
-            return knife;
+        if(item->type() == eQGraphicItemType::knife)
+        {
+            return item;
         }
     }
     return nullptr;
