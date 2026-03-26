@@ -13,8 +13,7 @@ Character::Character():
     mImage(QPixmap()),
     mNextFrame(0),
     mNumberFrame(0),
-    mCurrentPixmap(QPixmap()),
-    t_animation(nullptr)
+    mCurrentPixmap(QPixmap())
 {
 
 }

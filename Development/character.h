@@ -238,7 +238,6 @@ protected:
     int mNextFrame;
     int mNumberFrame;
     QPixmap mCurrentPixmap;
-    QTimer * t_animation;
 };
 
 #endif // CHARACTER_H

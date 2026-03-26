@@ -2,7 +2,7 @@
 
 #include <QGraphicsItem>
 
-// #define ENABLE_DEBUG
+#define ENABLE_DEBUG
 #ifdef ENABLE_DEBUG
 #define DEBUG(str)      qDebug() << str
 #define DEBUG_ERR(str)  qDebug() << str

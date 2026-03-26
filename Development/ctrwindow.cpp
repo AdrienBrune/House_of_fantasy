@@ -536,7 +536,7 @@ void CTRWindow::keyPressEvent(QKeyEvent *event)
         if(mHero->mMoveHandler.movementMask)
         {
             mHero->mMoveHandler.t_move->start(TIMER_MOVE);
-            mHero->t_movement->start();
+            mHero->t_movement.start();
             mHero->nextMovement();
         }
 
