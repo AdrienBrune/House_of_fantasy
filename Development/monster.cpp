@@ -10,37 +10,31 @@ Monster::Monster(QGraphicsView * view):
     mDamage(0),
     mThreatLevel(0),
     mDescription(QString()),
-    mSpeed(0),
     mAction(Action::stand),
-    mFrames(FramesAvailable()),
     mMove(MovementHandler()),
-    mPixmap(ImageHandler()),
-    t_isWalking(nullptr),
-    t_isRunning(nullptr),
+    mSprites(SpriteHandler()),
+    mCurrentSprite(nullptr),
     mSkin(0),
     mItems(QList<Item*>()),
     mFightView(nullptr)
 {
     setZValue(Z_MONSTERS);
 
-    mNextFrame = 0;
-    mNumberFrame = 1;
+    mCurrentSprite = &mSprites.stand;
 
-    t_animation = new QTimer(this);
-    connect(t_animation, SIGNAL(timeout()), this, SLOT(setNextFrame()));
+    connect(&t_movement, &QTimer::timeout, this, &Monster::onNextFrame);
     setAcceptHoverEvents(true);
 
-    t_isWalking = new QTimer(this);
-    t_isWalking->setSingleShot(true);
-
-    t_isRunning = new QTimer(this);
-    t_isRunning->setSingleShot(true);
+    t_isWalking.setSingleShot(true);
+    t_isRunning.setSingleShot(true);
 
     connect(&t_fight, &QTimer::timeout, this, &Monster::onStaminaRecovery);
 
     mMana = Gauge{0,0};
     mStamina = Gauge{100,100};
     mCoin = 0;
+
+    setAction(Action::stand);
 }
 
 void Monster::setAngle(int angle)
@@ -114,9 +108,7 @@ bool Monster::isDead()
 
 void Monster::killMonster()
 {
-    mAction = Action::dead;
-    mCurrentPixmap = mPixmap.dead;
-    mNumberFrame = getNumberFrame();
+    setAction(Action::dead);
 }
 
 int Monster::getDamage()
@@ -159,11 +151,6 @@ QString Monster::getDescription()
     return mDescription;
 }
 
-Monster::ImageHandler Monster::getImageHandler()
-{
-    return mPixmap;
-}
-
 IMonsterFightView * Monster::getFightView()
 {
     return mFightView;
@@ -180,9 +167,7 @@ QList<Item *> Monster::skinMonster()
     while(!mItems.isEmpty())
         itemList.append(mItems.takeLast());
 
-    mAction = Action::skinned;
-    mCurrentPixmap = mPixmap.skinned;
-    mNumberFrame = Monster::getNumberFrame();
+    setAction(Action::skinned);
     return itemList;
 }
 
@@ -221,12 +206,24 @@ void Monster::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
 void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setRenderHint(QPainter::Antialiasing);
-    painter->drawPixmap(0,0, mCurrentPixmap, static_cast<int>(mNextFrame*boundingRect().width()), static_cast<int>((2*(isSkinned() ? 0 : mSkin)+mHover)*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
 
-    // DEBUG - to comment
+    if (!mCurrentSprite)
+        return;
 
+    QSize fs = mCurrentSprite->grid.frameSize;
+    int col = mCurrentSprite->index % mCurrentSprite->grid.col;
+    int row = mCurrentSprite->index / mCurrentSprite->grid.col;
+
+    painter->drawPixmap(
+        boundingRect().toRect(),
+        mCurrentSprite->image,
+        QRect(col * fs.width(), row * fs.height(), fs.width(), fs.height())
+    );
+
+
+    // /// DEBUG
     // painter->setBrush(QBrush("#7700FF00"));
     // painter->drawPath(mShape);
 
@@ -286,9 +283,7 @@ void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     //     arrowTip << localTip << arrowP1 << arrowP2;
     //     painter->drawPolygon(arrowTip);
     // }
-
-    Q_UNUSED(widget)
-    Q_UNUSED(option)
+    // /// END DEBUG
 }
 
 void Monster::onStaminaRecovery()
@@ -325,48 +320,66 @@ void Monster::onStaminaRecovery()
     }
 }
 
+void Monster::onNextFrame()
+{
+    if (!mCurrentSprite)
+        return;
+
+    mCurrentSprite->incrementIndex();
+    update();
+}
+
 void Monster::nextAction(Hero * hero, DayNightCycle * daynightCycle)
 {
     if(mAction == Action::dead || mAction == Action::skinned)
         return;
 
-    if(!isInBiggerView()){
-        if(mAction!=Action::stand){
-            mAction = Action::stand;
-            mCurrentPixmap = mPixmap.stand;
-            t_animation->stop();
-            mNextFrame = 0;
-            mNumberFrame = Monster::getNumberFrame();
+    if(!isInBiggerView())
+    {
+        if(mAction != Action::stand)
+        {
+            setAction(Action::stand);
         }
         return;
     }
 
     chooseAction(hero, daynightCycle);
+}
 
-    // Action behaviour
-    switch(mAction)
+void Monster::setAction(Action action)
+{
+    // if (action == mAction)
+    //     return;
+
+    t_movement.stop();
+    switch(action)
     {
-    case Action::moving:
-        mCurrentPixmap = mPixmap.walk;
-        mSpeed = getSpeed();
-        t_animation->stop();
-        t_animation->start(150);
-        break;
-    case Action::aggro:
-        mCurrentPixmap = mPixmap.run;
-        mSpeed = getBoostedSpeed();
-        t_animation->stop();
-        t_animation->start(100);
-        break;
-    case Action::stand:
-        mCurrentPixmap = mPixmap.stand;
-        t_animation->stop();
-        break;
-    default:
-        break;
+        case Monster::Action::moving:
+            mCurrentSprite = &mSprites.walk;
+            break;
+        case Monster::Action::aggro:
+            mCurrentSprite = &mSprites.run;
+            break;
+        case Monster::Action::stand:
+            mCurrentSprite = &mSprites.stand;
+            break;
+        case Monster::Action::dead:
+            mCurrentSprite = &mSprites.dead;
+            break;
+        case Monster::Action::skinned:
+            mCurrentSprite = &mSprites.skinned;
+            break;
+        default:
+            break;
     }
-    mNextFrame = 0;
-    mNumberFrame = getNumberFrame();
+
+    if (action == Monster::Action::moving || action == Monster::Action::aggro)
+    {
+        t_movement.start(mCurrentSprite->timerElapseMs);
+    }
+
+    mAction = action;
+    mCurrentSprite->index = 0;
     update();
 }
 
@@ -375,7 +388,7 @@ void Monster::chooseAction(Hero * hero, DayNightCycle * daynightCycle)
     int angle = ToolFunctions::getAngleBetween(hero, this);
     int distanceWithHero = ToolFunctions::getDistanceBeetween(hero, this);
 
-    if(t_isRunning->isActive())
+    if(t_isRunning.isActive())
     {
         emit sig_monsterSound(getSoundIndexFor(AGGRO));
         if(mMove.obstacles.isEmpty())
@@ -409,9 +422,9 @@ void Monster::chooseAction(Hero * hero, DayNightCycle * daynightCycle)
 
         if(aggro)
         {
-            t_isWalking->stop();
-            t_isRunning->start(QRandomGenerator::global()->bounded(RUNNING_TIME_MIN, RUNNING_TIME_MAX));
-            mAction = Action::aggro;
+            t_isWalking.stop();
+            t_isRunning.start(QRandomGenerator::global()->bounded(RUNNING_TIME_MIN, RUNNING_TIME_MAX));
+            setAction(Action::aggro);
 
             emit sig_monsterSound(getSoundIndexFor(AGGRO));
             if(mMove.obstacles.isEmpty())
@@ -426,7 +439,7 @@ void Monster::chooseAction(Hero * hero, DayNightCycle * daynightCycle)
         }
     }
 
-    if(t_isWalking->isActive())
+    if(t_isWalking.isActive())
         return; // Action in progress
 
     // Monster choose new action (walk, stand, ...)
@@ -434,8 +447,8 @@ void Monster::chooseAction(Hero * hero, DayNightCycle * daynightCycle)
     {
         case 0: // 33% — déplacement
         {
-            mAction = Action::moving;
-            t_isWalking->start(QRandomGenerator::global()->bounded(MOVING_TIME_MIN, MOVING_TIME_MAX));
+            setAction(Action::moving);
+            t_isWalking.start(QRandomGenerator::global()->bounded(MOVING_TIME_MIN, MOVING_TIME_MAX));
             if(distanceWithHero < DISTANCE_SOUND)
                 emit sig_monsterSound(getSoundIndexFor(SOUND));
 
@@ -451,7 +464,7 @@ void Monster::chooseAction(Hero * hero, DayNightCycle * daynightCycle)
             break;
         }
         default: // 66% — immobile
-            mAction = Monster::Action::stand;
+            setAction(Action::stand);
             break;
     }
 }
@@ -500,8 +513,9 @@ void Monster::advance(int phase)
     }
 
     // Move along current zigzag step direction
-    qreal dx = static_cast<qreal>(mSpeed) * static_cast<qreal>(mMove.stepDirection.x());
-    qreal dy = static_cast<qreal>(mSpeed) * static_cast<qreal>(mMove.stepDirection.y());
+    int speed = mCurrentSprite ? mCurrentSprite->pixSpeedRatio : 0;
+    qreal dx = static_cast<qreal>(speed) * static_cast<qreal>(mMove.stepDirection.x());
+    qreal dy = static_cast<qreal>(speed) * static_cast<qreal>(mMove.stepDirection.y());
 
     dx = (dx > 0) ? ceil(dx) : -ceil(qAbs(dx));
     dy = (dy > 0) ? ceil(dy) : -ceil(qAbs(dy));
@@ -608,9 +622,9 @@ void Monster::doCollision()
             if(village)
             {
                 obstacles.append(village);
-                t_isRunning->stop();
-                t_isWalking->start(1000);
-                mAction = Action::moving;
+                t_isRunning.stop();
+                t_isWalking.start(1000);
+                setAction(Action::moving);
             }
         }
     }
@@ -695,28 +709,9 @@ bool Monster::isInBiggerView()
 void Monster::enableMonsterAnimation(bool toggle)
 {
     if(toggle){
-        t_animation->start();
+        t_movement.start();
     }else{
-        t_animation->stop();
-    }
-}
-
-int Monster::getNumberFrame()
-{
-    switch(mAction)
-    {
-    case Action::moving :
-        return mFrames.move;
-    case Action::aggro :
-        return mFrames.run;
-    case Action::stand :
-        return mFrames.stand;
-    case Action::dead :
-        return mFrames.dead;
-    case Action::skinned :
-        return mFrames.stand;
-    default:
-        return 1;
+        t_movement.stop();
     }
 }
 
@@ -775,33 +770,38 @@ Monster* Monster::Factory(QString name, QGraphicsView* view)
 
 
 
+struct SpiderPixmapCache {
+    QPixmap logo        {":/monsters/spider/Ressources/spider_logo.png"};
+    QPixmap heavyAttack {":/monsters/spider/Ressources/spider_heavyAttack.png"};
+    QPixmap lightAttack {":/monsters/spider/Ressources/spider_lightAttack.png"};
+    QPixmap move        {":/monsters/spider/Ressources/spider_move.png"};
+    QPixmap stand       {":/monsters/spider/Ressources/spider_stand.png"};
+    QPixmap dead        {":/monsters/spider/Ressources/spider_dead.png"};
+    QPixmap skinned     {":/monsters/spider/Ressources/spider_skinned.png"};
+};
+static const SpiderPixmapCache& sSpiderPx() { static SpiderPixmapCache c; return c; }
+
 Spider::Spider(QGraphicsView * view):
     Monster(view)
 {
     mName = Spider::Name();
     mLife = Gauge{100,100};
     mDamage = 30;
-    mAction = Action::stand;
     mThreatLevel = 1;
-    mImage = QPixmap(":/monsters/spider/Ressources/spider_logo.png");
+    mImage = sSpiderPx().logo;
     mDescription = "Les araignées sont dangereuses mais aussi fragiles";
     mSkin = QRandomGenerator::global()->bounded(SPIDER_SKIN_NUM);
 
     setBoundingRect(QRectF(0,0,100,80));
 
-    mFrames.run = 8;
-    mFrames.dead = 1;
-    mFrames.move = 8;
-    mFrames.stand = 1;
-    mFrames.skinned = 1;
+    mPixmap.heavyAttack = sSpiderPx().heavyAttack;
+    mPixmap.lightAttack = sSpiderPx().lightAttack;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/spider/Ressources/spider_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/spider/Ressources/spider_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/spider/Ressources/spider_move.png");
-    mPixmap.run = QPixmap(":/monsters/spider/Ressources/spider_move.png");
-    mPixmap.stand = QPixmap(":/monsters/spider/Ressources/spider_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/spider/Ressources/spider_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/spider/Ressources/spider_skinned.png");
+    mSprites.walk.set(sSpiderPx().move,       8, 1, 8, 150, SPEED_SPIDER,      QSize(800, 80));
+    mSprites.run.set(sSpiderPx().move,        8, 1, 8, 100, SPEEDBOOST_SPIDER, QSize(800, 80));
+    mSprites.stand.set(sSpiderPx().stand,     1, 1, 1,   0, 0,                 QSize(100, 80));
+    mSprites.dead.set(sSpiderPx().dead,       1, 1, 1,   0, 0,                 QSize(100, 80));
+    mSprites.skinned.set(sSpiderPx().skinned, 1, 1, 1,   0, 0,                 QSize(100, 80));
 
     mSounds[0] = SOUND_SPIDER_HEAVYATTACK;
     mSounds[1] = SOUND_SPIDER_LIGHTATTACK;
@@ -813,8 +813,6 @@ Spider::Spider(QGraphicsView * view):
     mFightView = new SpiderFightView();
 
     Spider::generateRandomLoots();
-
-    mCurrentPixmap = mPixmap.stand;
 }
 
 void Spider::addExtraLoots()
@@ -832,16 +830,6 @@ void Spider::onHitEffect(Character* target)
     {
         target->applyStatus(Character::eStatus::poisoned, QRandomGenerator::global()->bounded(3, 7));
     }
-}
-
-int Spider::getSpeed()
-{
-    return SPEED_SPIDER;
-}
-
-int Spider::getBoostedSpeed()
-{
-    return SPEEDBOOST_SPIDER;
 }
 
 void Spider::generateRandomLoots()
@@ -868,32 +856,38 @@ Spider::~Spider()
 
 
 
+struct WolfPixmapCache {
+    QPixmap logo        {":/monsters/wolf/Ressources/wolf_logo.png"};
+    QPixmap heavyAttack {":/monsters/wolf/Ressources/wolf_heavyAttack.png"};
+    QPixmap lightAttack {":/monsters/wolf/Ressources/wolf_lightAttack.png"};
+    QPixmap move        {":/monsters/wolf/Ressources/wolf_move.png"};
+    QPixmap run         {":/monsters/wolf/Ressources/wolf_run.png"};
+    QPixmap stand       {":/monsters/wolf/Ressources/wolf_stand.png"};
+    QPixmap dead        {":/monsters/wolf/Ressources/wolf_dead.png"};
+    QPixmap skinned     {":/monsters/wolf/Ressources/wolf_skinned.png"};
+};
+static const WolfPixmapCache& sWolfPx() { static WolfPixmapCache c; return c; }
+
 Wolf::Wolf(QGraphicsView * view):
     Monster(view)
 {
     mName = Wolf::Name();
     mLife = Gauge{600,600};
     mDamage = 15;
-    mAction = Action::stand;
     mThreatLevel = 2;
-    mImage = QPixmap(":/monsters/wolf/Ressources/wolf_logo.png");
+    mImage = sWolfPx().logo;
     mDescription = "Les loups sont des chasseurs agressifs chassant exclusivement en meute";
 
-    setBoundingRect(QRectF(0,0,100,70));
+    setBoundingRect(QRectF(0, 0, 120, 70));
 
-    mFrames.run = 14;
-    mFrames.dead = 1;
-    mFrames.move = 13;
-    mFrames.stand = 1;
-    mFrames.skinned = 1;
+    mPixmap.heavyAttack = sWolfPx().heavyAttack;
+    mPixmap.lightAttack = sWolfPx().lightAttack;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/wolf/Ressources/wolf_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/wolf/Ressources/wolf_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/wolf/Ressources/wolf_move.png");
-    mPixmap.run = QPixmap(":/monsters/wolf/Ressources/wolf_run.png");
-    mPixmap.stand = QPixmap(":/monsters/wolf/Ressources/wolf_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/wolf/Ressources/wolf_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/wolf/Ressources/wolf_skinned.png");
+    mSprites.walk.set(sWolfPx().move,       4, 7, 25, 60, SPEED_WOLF,      QSize(1024, 1050));
+    mSprites.run.set(sWolfPx().run,         4, 7, 28, 25, SPEEDBOOST_WOLF, QSize(1024, 1050));
+    mSprites.stand.set(sWolfPx().stand,     1, 1,  1,  0, 0,               QSize(246, 150));
+    mSprites.dead.set(sWolfPx().dead,       1, 1,  1,  0, 0,               QSize(246, 150));
+    mSprites.skinned.set(sWolfPx().skinned, 1, 1,  1,  0, 0,               QSize(100, 70));
 
     mSounds[0] = SOUND_WOLF_HEAVYATTACK;
     mSounds[1] = SOUND_WOLF_LIGHTATTACK;
@@ -905,8 +899,6 @@ Wolf::Wolf(QGraphicsView * view):
     mFightView = new WolfFightView();
 
     Wolf::generateRandomLoots();
-
-    mCurrentPixmap = mPixmap.stand;
 }
 
 void Wolf::addExtraLoots()
@@ -917,16 +909,6 @@ void Wolf::addExtraLoots()
         mItems.append(new WolfMeat);
         mItems.append(new WolfFang);
     }
-}
-
-int Wolf::getSpeed()
-{
-    return SPEED_WOLF;
-}
-
-int Wolf::getBoostedSpeed()
-{
-    return SPEEDBOOST_WOLF;
 }
 
 void Wolf::generateRandomLoots()
@@ -949,6 +931,16 @@ Wolf::~Wolf()
 
 }
 
+struct WolfAlphaPixmapCache {
+    QPixmap logo        {":/monsters/wolfAlpha/Ressources/wolfAlpha_logo.png"};
+    QPixmap move        {":/monsters/wolfAlpha/Ressources/wolfAlpha_move.png"};
+    QPixmap run         {":/monsters/wolfAlpha/Ressources/wolfAlpha_run.png"};
+    QPixmap stand       {":/monsters/wolfAlpha/Ressources/wolfAlpha_stand.png"};
+    QPixmap dead        {":/monsters/wolfAlpha/Ressources/wolfAlpha_dead.png"};
+    QPixmap skinned     {":/monsters/wolfAlpha/Ressources/wolfAlpha_skinned.png"};
+};
+static const WolfAlphaPixmapCache& sWolfAlphaPx() { static WolfAlphaPixmapCache c; return c; }
+
 WolfAlpha::WolfAlpha(QGraphicsView * view):
     Wolf(view)
 {
@@ -956,32 +948,25 @@ WolfAlpha::WolfAlpha(QGraphicsView * view):
     mLife = Gauge{1000,1000};
     mDamage = 18;
     mThreatLevel = 3;
-    mImage = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_logo.png");
+    mImage = sWolfAlphaPx().logo;
     mDescription = "Les loups alpha sont des meneurs par nature, s'ils ont pu se hisser à la tête de leur meute, c'est bien par leur férocité sans égale";
 
-    setBoundingRect(QRectF(0,0,120,80));
+    setBoundingRect(QRectF(0,0,145,85));
 
-    mPixmap.walk = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_move.png");
-    mPixmap.run = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_run.png");
-    mPixmap.stand = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/wolfAlpha/Ressources/wolfAlpha_skinned.png");
+    mSprites.walk.set(sWolfAlphaPx().move,       4, 7, 25, 75, SPEED_WOLF,      QSize(1024, 1050));
+    mSprites.run.set(sWolfAlphaPx().run,         4, 7, 28, 25, SPEEDBOOST_WOLF, QSize(1024, 1050));
+    mSprites.stand.set(sWolfAlphaPx().stand,      1, 1,  1,   0, 0,               QSize(246, 150));
+    mSprites.dead.set(sWolfAlphaPx().dead,        1, 1,  1,   0, 0,               QSize(246, 150));
+    mSprites.skinned.set(sWolfAlphaPx().skinned,  1, 1,  1,   0, 0,               QSize(120, 80));
 
     mFightView = new WolfAlphaFightView();
 
     WolfAlpha::generateRandomLoots();
-
-    mCurrentPixmap = mPixmap.stand;
 }
 
 WolfAlpha::~WolfAlpha()
 {
 
-}
-
-int WolfAlpha::getBoostedSpeed()
-{
-    return SPEEDBOOST_WOLF+1;
 }
 
 void WolfAlpha::generateRandomLoots()
@@ -1007,33 +992,39 @@ void WolfAlpha::generateRandomLoots()
 
 
 
+struct GoblinPixmapCache {
+    QPixmap logo        {":/monsters/goblin/Ressources/goblin_logo.png"};
+    QPixmap heavyAttack {":/monsters/goblin/Ressources/goblin_heavyAttack.png"};
+    QPixmap lightAttack {":/monsters/goblin/Ressources/goblin_lightAttack.png"};
+    QPixmap move        {":/monsters/goblin/Ressources/goblin_move.png"};
+    QPixmap run         {":/monsters/goblin/Ressources/goblin_run.png"};
+    QPixmap stand       {":/monsters/goblin/Ressources/goblin_stand.png"};
+    QPixmap dead        {":/monsters/goblin/Ressources/goblin_dead.png"};
+    QPixmap skinned     {":/monsters/goblin/Ressources/goblin_skinned.png"};
+};
+static const GoblinPixmapCache& sGoblinPx() { static GoblinPixmapCache c; return c; }
+
 Goblin::Goblin(QGraphicsView * view):
     Monster(view)
 {
     mName = Goblin::Name();
     mLife = Gauge{400,400};
     mDamage = 8;
-    mAction = Action::stand;
     mThreatLevel = 1;
-    mImage = QPixmap(":/monsters/goblin/Ressources/goblin_logo.png");
+    mImage = sGoblinPx().logo;
     mDescription = "Le gobelin est un être incompris et sournois qui cherchera à vous faire du mal par tous les moyens";
     mSkin = QRandomGenerator::global()->bounded(GOBLIN_SKIN_NUM);
 
     setBoundingRect(QRectF(0,0,60,60));
 
-    mFrames.run = 6;
-    mFrames.dead = 1;
-    mFrames.move = 6;
-    mFrames.stand = 1;
-    mFrames.skinned = 1;
+    mPixmap.heavyAttack = sGoblinPx().heavyAttack;
+    mPixmap.lightAttack = sGoblinPx().lightAttack;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/goblin/Ressources/goblin_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/goblin/Ressources/goblin_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/goblin/Ressources/goblin_move.png");
-    mPixmap.run = QPixmap(":/monsters/goblin/Ressources/goblin_run.png");
-    mPixmap.stand = QPixmap(":/monsters/goblin/Ressources/goblin_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/goblin/Ressources/goblin_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/goblin/Ressources/goblin_skinned.png");
+    mSprites.walk.set(sGoblinPx().move,       6, 1, 6, 150, SPEED_GOBLIN,      QSize(360, 60));
+    mSprites.run.set(sGoblinPx().run,         7, 1, 6, 100, SPEEDBOOST_GOBLIN, QSize(420, 60));
+    mSprites.stand.set(sGoblinPx().stand,     1, 1, 1,   0, 0,                 QSize(60, 60));
+    mSprites.dead.set(sGoblinPx().dead,       1, 1, 1,   0, 0,                 QSize(60, 60));
+    mSprites.skinned.set(sGoblinPx().skinned, 1, 1, 1,   0, 0,                 QSize(60, 60));
 
     mSounds[0] = SOUND_GOBLIN_HEAVYATTACK;
     mSounds[1] = SOUND_GOBLIN_LIGHTATTACK;
@@ -1046,8 +1037,6 @@ Goblin::Goblin(QGraphicsView * view):
 
     Goblin::generateRandomLoots();
 
-    mCurrentPixmap = mPixmap.stand;
-
     mCoin = QRandomGenerator::global()->bounded(5);
 }
 
@@ -1058,16 +1047,6 @@ void Goblin::addExtraLoots()
         mItems.append(new GoblinEar);
         mItems.append(new GoblinBones);
     }
-}
-
-int Goblin::getSpeed()
-{
-    return SPEED_GOBLIN;
-}
-
-int Goblin::getBoostedSpeed()
-{
-    return SPEEDBOOST_GOBLIN;
 }
 
 void Goblin::generateRandomLoots()
@@ -1102,33 +1081,39 @@ Goblin::~Goblin()
 
 
 
+struct BearPixmapCache {
+    QPixmap logo        {":/monsters/bear/Ressources/bear_logo.png"};
+    QPixmap heavyAttack {":/monsters/bear/Ressources/bear_heavyAttack.png"};
+    QPixmap lightAttack {":/monsters/bear/Ressources/bear_lightAttack.png"};
+    QPixmap move        {":/monsters/bear/Ressources/bear_move.png"};
+    QPixmap run         {":/monsters/bear/Ressources/bear_run.png"};
+    QPixmap stand       {":/monsters/bear/Ressources/bear_stand.png"};
+    QPixmap dead        {":/monsters/bear/Ressources/bear_dead.png"};
+    QPixmap skinned     {":/monsters/bear/Ressources/bear_skinned.png"};
+};
+static const BearPixmapCache& sBearPx() { static BearPixmapCache c; return c; }
+
 Bear::Bear(QGraphicsView * view):
     Monster(view)
 {
     mName = Bear::Name();
     mLife = Gauge{1300,1300};
     mDamage = 20;
-    mAction = Action::stand;
     mThreatLevel = 3;
-    mImage = QPixmap(":/monsters/bear/Ressources/bear_logo.png");
+    mImage = sBearPx().logo;
     mDescription = "L'ours est un prédator puissant est dangereux, il hiberne pendant la saison hivernale";
     mSkin = QRandomGenerator::global()->bounded(BEAR_SKIN_NUM);
 
     setBoundingRect(QRectF(0,0,300,200));
 
-    mFrames.run = 12;
-    mFrames.dead = 1;
-    mFrames.move = 8;
-    mFrames.stand = 1;
-    mFrames.skinned = 1;
+    mPixmap.heavyAttack = sBearPx().heavyAttack;
+    mPixmap.lightAttack = sBearPx().lightAttack;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/bear/Ressources/bear_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/bear/Ressources/bear_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/bear/Ressources/bear_move.png");
-    mPixmap.run = QPixmap(":/monsters/bear/Ressources/bear_run.png");
-    mPixmap.stand = QPixmap(":/monsters/bear/Ressources/bear_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/bear/Ressources/bear_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/bear/Ressources/bear_skinned.png");
+    mSprites.walk.set(sBearPx().move,       8,  1,  8, 150, SPEED_BEAR,      QSize(2400, 200));
+    mSprites.run.set(sBearPx().run,         12, 1, 12, 100, SPEEDBOOST_BEAR, QSize(3600, 200));
+    mSprites.stand.set(sBearPx().stand,     1,  1,  1,   0, 0,               QSize(300, 200));
+    mSprites.dead.set(sBearPx().dead,       1,  1,  1,   0, 0,               QSize(300, 200));
+    mSprites.skinned.set(sBearPx().skinned, 1,  1,  1,   0, 0,               QSize(300, 200));
 
     mSounds[0] = SOUND_BEAR_HEAVYATTACK;
     mSounds[1] = SOUND_BEAR_LIGHTATTACK;
@@ -1140,8 +1125,6 @@ Bear::Bear(QGraphicsView * view):
     mFightView = new BearFightView();
 
     Bear::generateRandomLoots();
-
-    mCurrentPixmap = mPixmap.stand;
 }
 
 void Bear::addExtraLoots()
@@ -1152,16 +1135,6 @@ void Bear::addExtraLoots()
         mItems.append(new BearMeat);
         mItems.append(new BearPelt);
     }
-}
-
-int Bear::getSpeed()
-{
-    return SPEED_BEAR;
-}
-
-int Bear::getBoostedSpeed()
-{
-    return SPEEDBOOST_BEAR;
 }
 
 void Bear::generateRandomLoots()
@@ -1193,33 +1166,39 @@ Bear::~Bear()
 
 
 
+struct TrollPixmapCache {
+    QPixmap logo        {":/monsters/troll/Ressources/troll_logo.png"};
+    QPixmap heavyAttack {":/monsters/troll/Ressources/troll_heavyAttack.png"};
+    QPixmap lightAttack {":/monsters/troll/Ressources/troll_lightAttack.png"};
+    QPixmap move        {":/monsters/troll/Ressources/troll_move.png"};
+    QPixmap run         {":/monsters/troll/Ressources/troll_run.png"};
+    QPixmap stand       {":/monsters/troll/Ressources/troll_stand.png"};
+    QPixmap dead        {":/monsters/troll/Ressources/troll_die.png"};
+    QPixmap skinned     {":/monsters/troll/Ressources/troll_skinned.png"};
+};
+static const TrollPixmapCache& sTrollPx() { static TrollPixmapCache c; return c; }
+
 Troll::Troll(QGraphicsView * view):
     Monster(view)
 {
     mName = Troll::Name();
     mLife = Gauge{800,800};
     mDamage = 14;
-    mAction = Action::stand;
     mThreatLevel = 2;
-    mImage = QPixmap(":/monsters/troll/Ressources/troll_logo.png");
+    mImage = sTrollPx().logo;
     mDescription = "Le troll est avare et cherche à dérober les biens des humains et ce par tous les moyens";
     mSkin = QRandomGenerator::global()->bounded(TROLL_SKIN_NUM);
 
     setBoundingRect(QRectF(0,0,100,100));
 
-    mFrames.run = 7;
-    mFrames.dead = 1;
-    mFrames.move = 7;
-    mFrames.stand = 1;
-    mFrames.skinned = 1;
+    mPixmap.heavyAttack = sTrollPx().heavyAttack;
+    mPixmap.lightAttack = sTrollPx().lightAttack;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/troll/Ressources/troll_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/troll/Ressources/troll_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/troll/Ressources/troll_move.png");
-    mPixmap.run = QPixmap(":/monsters/troll/Ressources/troll_run.png");
-    mPixmap.stand = QPixmap(":/monsters/troll/Ressources/troll_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/troll/Ressources/troll_die.png");
-    mPixmap.skinned = QPixmap(":/monsters/troll/Ressources/troll_skinned.png");
+    mSprites.walk.set(sTrollPx().move,       7, 1, 7, 150, SPEED_TROLL,      QSize(700, 100));
+    mSprites.run.set(sTrollPx().run,         7, 1, 7, 100, SPEEDBOOST_TROLL, QSize(700, 100));
+    mSprites.stand.set(sTrollPx().stand,     1, 1, 1,   0, 0,                QSize(100, 100));
+    mSprites.dead.set(sTrollPx().dead,       1, 1, 1,   0, 0,                QSize(100, 100));
+    mSprites.skinned.set(sTrollPx().skinned, 1, 1, 1,   0, 0,                QSize(100, 100));
 
     mSounds[0] = SOUND_TROLL_HEAVYATTACK;
     mSounds[1] = SOUND_TROLL_LIGHTATTACK;
@@ -1231,8 +1210,6 @@ Troll::Troll(QGraphicsView * view):
     mFightView = new TrollFightView();
 
     Troll::generateRandomLoots();
-
-    mCurrentPixmap = mPixmap.stand;
 }
 
 void Troll::addExtraLoots()
@@ -1242,16 +1219,6 @@ void Troll::addExtraLoots()
         mItems.append(new TrollMeat);
         mItems.append(new TrollSkull);
     }
-}
-
-int Troll::getSpeed()
-{
-    return SPEED_TROLL;
-}
-
-int Troll::getBoostedSpeed()
-{
-    return SPEEDBOOST_TROLL;
 }
 
 void Troll::generateRandomLoots()
@@ -1286,33 +1253,39 @@ Troll::~Troll()
 
 
 
+struct OggrePixmapCache {
+    QPixmap logo        {":/monsters/oggre/Ressources/oggre_logo.png"};
+    QPixmap heavyAttack {":/monsters/oggre/Ressources/oggre_heavyAttack.png"};
+    QPixmap lightAttack {":/monsters/oggre/Ressources/oggre_lightAttack.png"};
+    QPixmap move        {":/monsters/oggre/Ressources/oggre_move.png"};
+    QPixmap run         {":/monsters/oggre/Ressources/oggre_run.png"};
+    QPixmap stand       {":/monsters/oggre/Ressources/oggre_stand.png"};
+    QPixmap dead        {":/monsters/oggre/Ressources/oggre_die.png"};
+    QPixmap skinned     {":/monsters/oggre/Ressources/oggre_skinned.png"};
+};
+static const OggrePixmapCache& sOggrePx() { static OggrePixmapCache c; return c; }
+
 Oggre::Oggre(QGraphicsView * view):
     Monster(view)
 {
     mName = Oggre::Name();
     mLife = Gauge{2500,2500};
     mDamage = 30;
-    mAction = Action::stand;
     mThreatLevel = 4;
-    mImage = QPixmap(":/monsters/oggre/Ressources/oggre_logo.png");
+    mImage = sOggrePx().logo;
     mDescription = "L'ogre est massif et terriblement dangereux, il vaut mieux ne pas croiser son chemin si l'on y est pas préparé";
     mSkin = QRandomGenerator::global()->bounded(OGGRE_SKIN_NUM);
 
     setBoundingRect(QRectF(0,0,300,300));
 
-    mFrames.run = 8;
-    mFrames.dead = 1;
-    mFrames.move = 10;
-    mFrames.stand = 1;
-    mFrames.skinned = 1;
+    mPixmap.heavyAttack = sOggrePx().heavyAttack;
+    mPixmap.lightAttack = sOggrePx().lightAttack;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/oggre/Ressources/oggre_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/oggre/Ressources/oggre_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/oggre/Ressources/oggre_move.png");
-    mPixmap.run = QPixmap(":/monsters/oggre/Ressources/oggre_run.png");
-    mPixmap.stand = QPixmap(":/monsters/oggre/Ressources/oggre_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/oggre/Ressources/oggre_die.png");
-    mPixmap.skinned = QPixmap(":/monsters/oggre/Ressources/oggre_skinned.png");
+    mSprites.walk.set(sOggrePx().move,       10, 1, 10, 150, SPEED_OGGRE,      QSize(3000, 300));
+    mSprites.run.set(sOggrePx().run,          8, 1,  8, 100, SPEEDBOOST_OGGRE, QSize(2400, 300));
+    mSprites.stand.set(sOggrePx().stand,      1, 1,  1,   0, 0,                QSize(300, 300));
+    mSprites.dead.set(sOggrePx().dead,        1, 1,  1,   0, 0,                QSize(300, 300));
+    mSprites.skinned.set(sOggrePx().skinned,  1, 1,  1,   0, 0,                QSize(300, 300));
 
     mSounds[0] = SOUND_OGGRE_HEAVYATTACK;
     mSounds[1] = SOUND_OGGRE_LIGHTATTACK;
@@ -1324,24 +1297,12 @@ Oggre::Oggre(QGraphicsView * view):
     mFightView = new OggreFightView();
 
     Oggre::generateRandomLoots();
-
-    mCurrentPixmap = mPixmap.stand;
 }
 
 void Oggre::addExtraLoots()
 {
     if(QRandomGenerator::global()->bounded(4) == 0)
         mItems.append(new OggreSkull);
-}
-
-int Oggre::getSpeed()
-{
-    return SPEED_OGGRE;
-}
-
-int Oggre::getBoostedSpeed()
-{
-    return SPEEDBOOST_OGGRE;
 }
 
 void Oggre::generateRandomLoots()
@@ -1371,32 +1332,37 @@ Oggre::~Oggre()
 
 
 
+struct LaoShanLungPixmapCache {
+    QPixmap logo        {":/monsters/laoshanlung/Ressources/laoshanlung_logo.png"};
+    QPixmap heavyAttack {":/monsters/laoshanlung/Ressources/laoshanlung_heavyAttack.png"};
+    QPixmap lightAttack {":/monsters/laoshanlung/Ressources/laoshanlung_lightAttack.png"};
+    QPixmap move        {":/monsters/laoshanlung/Ressources/laoshanlung_move.png"};
+    QPixmap stand       {":/monsters/laoshanlung/Ressources/laoshanlung_stand.png"};
+    QPixmap dead        {":/monsters/laoshanlung/Ressources/laoshanlung_dead.png"};
+    QPixmap skinned     {":/monsters/laoshanlung/Ressources/laoshanlung_skinned.png"};
+};
+static const LaoShanLungPixmapCache& sLaoPx() { static LaoShanLungPixmapCache c; return c; }
+
 LaoShanLung::LaoShanLung(QGraphicsView * view):
     Monster(view)
 {
     mName = LaoShanLung::Name();
     mLife = Gauge{10000,10000};
     mDamage = 50;
-    mAction = Action::stand;
     mThreatLevel = 10;
-    mImage = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_logo.png");
+    mImage = sLaoPx().logo;
     mDescription = "Créature mythique, le Lao Shun Lung est un dragon de terre colossale qui écume les plaines depuis des centaines d'années";
 
     setBoundingRect(QRectF(0,0,700,450));
 
-    mFrames.run = 18;
-    mFrames.dead = 1;
-    mFrames.move = 18;
-    mFrames.stand = 1;
-    mFrames.skinned = 1;
+    mPixmap.heavyAttack = sLaoPx().heavyAttack;
+    mPixmap.lightAttack = sLaoPx().lightAttack;
 
-    mPixmap.heavyAttack = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_heavyAttack.png");
-    mPixmap.lightAttack = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_lightAttack.png");
-    mPixmap.walk = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_move.png");
-    mPixmap.run = mPixmap.walk;
-    mPixmap.stand = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_stand.png");
-    mPixmap.dead = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_dead.png");
-    mPixmap.skinned = QPixmap(":/monsters/laoshanlung/Ressources/laoshanlung_skinned.png");
+    mSprites.walk.set(sLaoPx().move,       18, 1, 18, 150, SPEED_LAOSHANLUNG,      QSize(12600, 450));
+    mSprites.run.set(sLaoPx().move,        18, 1, 18, 100, SPEEDBOOST_LAOSHANLUNG, QSize(12600, 450));
+    mSprites.stand.set(sLaoPx().stand,      1, 1,  1,   0, 0,                      QSize(350, 450));
+    mSprites.dead.set(sLaoPx().dead,        1, 1,  1,   0, 0,                      QSize(350, 450));
+    mSprites.skinned.set(sLaoPx().skinned,  1, 1,  1,   0, 0,                      QSize(350, 450));
 
     mSounds[0] = SOUND_LAOSHANLUNG_HEAVYATTACK;
     mSounds[1] = SOUND_LAOSHANLUNG_LIGHTATTACK;
@@ -1408,8 +1374,6 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
     mFightView = new LaoShanLungFightView();
 
     LaoShanLung::generateRandomLoots();
-
-    mCurrentPixmap = mPixmap.stand;
 }
 
 void LaoShanLung::addExtraLoots()
@@ -1418,16 +1382,6 @@ void LaoShanLung::addExtraLoots()
     {
         mItems.append(new LaoshanlungHeart);
     }
-}
-
-int LaoShanLung::getSpeed()
-{
-    return SPEED_LAOSHANLUNG;
-}
-
-int LaoShanLung::getBoostedSpeed()
-{
-    return SPEEDBOOST_LAOSHANLUNG;
 }
 
 void LaoShanLung::generateRandomLoots()

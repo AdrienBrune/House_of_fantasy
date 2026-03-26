@@ -10,6 +10,56 @@
 
 class IMonsterFightView;
 
+class SpriteNavigation
+{
+    struct Grid
+    {
+        int col;
+        int row;
+        int frames;
+        QSize frameSize;
+        QSize spriteSize;
+    };
+public:
+    QPixmap image;
+    Grid grid;
+    int index;
+    int timerElapseMs;
+    int pixSpeedRatio;
+
+    inline void set(QPixmap img, int col, int row, int number, int timerCallMs = 0, int speed = 0, QSize spriteSize = QSize(0, 0))
+    {
+        index = 0;
+        image = img;
+        grid.col = col;
+        grid.row = row;
+        grid.frames = number;
+        timerElapseMs = timerCallMs;
+        pixSpeedRatio = speed;
+
+        grid.spriteSize = spriteSize;
+        if (spriteSize.width() == 0 && spriteSize.height() == 0)
+        {
+            grid.spriteSize = frameSize();
+        }
+        grid.frameSize = QSize(grid.spriteSize.width() / grid.col, grid.spriteSize.height() / grid.row);
+    }
+
+    inline void incrementIndex()
+    {
+        if (++index >= grid.frames)
+        {
+            index = 0;
+        }
+    }
+
+    inline QSize frameSize() const
+    {
+        return { image.width() / grid.col, image.height() / grid.row };
+    }
+};
+
+
 class Monster : public Character
 {
     Q_OBJECT
@@ -34,23 +84,13 @@ public:
         int zigzagCounter = 0;                     // compteur de frames du segment actuel
     };
 
-    struct ImageHandler
+    struct SpriteHandler
     {
-        QPixmap walk = QPixmap();
-        QPixmap run = QPixmap();
-        QPixmap stand = QPixmap();
-        QPixmap dead = QPixmap();
-        QPixmap skinned = QPixmap();
-        QPixmap heavyAttack = QPixmap();
-        QPixmap lightAttack = QPixmap();
-    };
-
-    struct FramesAvailable{
-        int stand = 0;
-        int move = 0;
-        int run = 0;
-        int dead = 0;
-        int skinned = 0;
+        SpriteNavigation walk;
+        SpriteNavigation run;
+        SpriteNavigation stand;
+        SpriteNavigation dead;
+        SpriteNavigation skinned;
     };
 
     enum class Action {
@@ -60,6 +100,12 @@ public:
         dead,
         skinned,
         NbActions
+    };
+
+    struct ImageHandler
+    {
+        QPixmap heavyAttack = QPixmap();
+        QPixmap lightAttack = QPixmap();
     };
 
 public:
@@ -89,7 +135,6 @@ public:
     QPixmap getLightAttackAnimation();
     int getSoundIndexFor(int);
     QString getDescription();
-    ImageHandler getImageHandler();
     IMonsterFightView *getFightView();
     inline int getZOffset() { return mBoundingRect.height()/2; }
 
@@ -122,7 +167,8 @@ public:
         }
     }
 
-    virtual void nextAction(Hero*, DayNightCycle*);
+    void nextAction(Hero*, DayNightCycle*);
+    void setAction(Action action);
     virtual void addExtraLoots()=0;
     virtual void onHitEffect(Character* target) { Q_UNUSED(target) }
 
@@ -181,10 +227,9 @@ protected:
 
 private slots:
     void onStaminaRecovery();
+    void onNextFrame();
 
 private:
-    virtual int getSpeed()=0;
-    virtual int getBoostedSpeed()=0;
     virtual void generateRandomLoots()=0;
 
 protected:
@@ -196,22 +241,23 @@ protected:
     int mThreatLevel;
     QString mDescription;
 
-    int mSpeed;
     Action mAction;
-    FramesAvailable mFrames;
     MovementHandler mMove;
-    ImageHandler mPixmap;
-    int mSounds[6] = {0,0,0,0,0,0};
-    QTimer * t_isWalking;
-    QTimer * t_isRunning;
+    SpriteHandler mSprites;
+    SpriteNavigation* mCurrentSprite;
+    QTimer t_isWalking;
+    QTimer t_isRunning;
+    QTimer t_movement;
+    QVector2D mCollisionVector;
     int mSkin;
+
+    int mSounds[6] = {0,0,0,0,0,0};
 
     QList<Item*> mItems;
 
+    ImageHandler mPixmap;
     IMonsterFightView * mFightView;
     QTimer t_fight;
-
-    QVector2D mCollisionVector;
 };
 
 
@@ -227,8 +273,6 @@ public:
     void addExtraLoots();
     void onHitEffect(Character* target) override;
 private:
-    int getSpeed();
-    int getBoostedSpeed();
     void generateRandomLoots();
 };
 
@@ -244,8 +288,6 @@ public:
     inline static const QString Name() { return "Loup"; }
     void addExtraLoots();
 private:
-    int getSpeed();
-    int getBoostedSpeed();
     void generateRandomLoots();
 };
 
@@ -259,7 +301,6 @@ public:
     inline const QString GetName() override { return WolfAlpha::Name(); }
     inline static const QString Name() { return "Loup Alpha"; }
 private:
-    int getBoostedSpeed();
     void generateRandomLoots();
 };
 
@@ -274,8 +315,6 @@ public:
     inline static const QString Name() { return "Gobelin"; }
     void addExtraLoots();
 private:
-    int getSpeed();
-    int getBoostedSpeed();
     void generateRandomLoots();
 };
 
@@ -292,8 +331,6 @@ public:
     inline static const QString Name() { return "Ours"; }
     void addExtraLoots();
 private:
-    int getSpeed();
-    int getBoostedSpeed();
     void generateRandomLoots();
 };
 
@@ -310,8 +347,6 @@ public:
     inline static const QString Name() { return "Troll"; }
     void addExtraLoots();
 private:
-    int getSpeed();
-    int getBoostedSpeed();
     void generateRandomLoots();
 };
 
@@ -327,8 +362,6 @@ public:
     inline static const QString Name() { return "Ogre"; }
     void addExtraLoots();
 private:
-    int getSpeed();
-    int getBoostedSpeed();
     void generateRandomLoots();
 };
 
@@ -344,8 +377,6 @@ public:
     inline static const QString Name() { return "Lao Shan Lung"; }
     void addExtraLoots();
 private:
-    int getSpeed();
-    int getBoostedSpeed();
     void generateRandomLoots();
 protected:
     void doCollision() override;

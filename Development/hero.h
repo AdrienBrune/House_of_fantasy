@@ -381,7 +381,8 @@ protected:
     };
 
 public:
-    QTimer * t_movement;
+    QTimer t_movement;
+    QTimer t_animation;
 };
 
 

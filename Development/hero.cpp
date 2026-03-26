@@ -16,13 +16,11 @@ Hero::Hero():
     mNextFrame = 0;
     mMoveHandler.t_move = new QTimer(this);
     connect(mMoveHandler.t_move, SIGNAL(timeout()), this, SLOT(move()));
-    t_animation = new QTimer(this);
-    connect(t_animation, SIGNAL(timeout()), this, SLOT(setNextFrame()));
+    connect(&t_animation, SIGNAL(timeout()), this, SLOT(setNextFrame()));
     setTransformOriginPoint(boundingRect().center());
 
-    t_movement = new QTimer(this);
-    connect(t_movement, SIGNAL(timeout()), this, SLOT(nextMovement()));
-    t_movement->setInterval(100);
+    connect(&t_movement, SIGNAL(timeout()), this, SLOT(nextMovement()));
+    t_movement.setInterval(100);
 
     mAdventurerMap.unlocked = false;
 }
@@ -809,7 +807,7 @@ SwordMan::SwordMan(QString name):
     mCurrentPixmap = QPixmap(":/heros/Ressources/swordman.png");
     mNumberFrame = 4;
     mImageSelected = HERO_STAND;
-    t_animation->start(150);
+    t_animation.start(150);
 }
 
 void SwordMan::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -864,7 +862,7 @@ Archer::Archer(QString name):
     mCurrentPixmap = QPixmap(":/heros/Ressources/archer.png");
     mNumberFrame = 4;
     mImageSelected = HERO_STAND;
-    t_animation->start(150);
+    t_animation.start(150);
 }
 
 void Archer::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -918,7 +916,7 @@ Wizard::Wizard(QString name):
     mCurrentPixmap = QPixmap(":/heros/Ressources/wizard.png");
     mNumberFrame = 4;
     mImageSelected = HERO_STAND;
-    t_animation->start(150);
+    t_animation.start(150);
 }
 
 void Wizard::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
