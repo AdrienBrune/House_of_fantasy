@@ -3,6 +3,7 @@
 #include "frag_save.h"
 
 #include <QDir>
+#include <QStandardPaths>
 
 Win_LoadSave::Win_LoadSave(QWidget *parent) :
     QDialog(parent),
@@ -15,9 +16,9 @@ Win_LoadSave::Win_LoadSave(QWidget *parent) :
     setWindowFlags(Qt::FramelessWindowHint);
 
     /* Load saves */
-    QDir saveDir(QDir::currentPath()+"/"+FILE_SAVE);
-    if(!saveDir.exists())
-        saveDir.mkdir(QDir::currentPath()+"/"+FILE_SAVE);
+    QDir saveDir;
+    saveDir.mkpath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)+"/"+FILE_SAVE);
+    saveDir.setPath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)+"/"+FILE_SAVE);
 
     while(!mSaves.isEmpty())
         delete mSaves.takeLast();
@@ -26,7 +27,7 @@ Win_LoadSave::Win_LoadSave(QWidget *parent) :
     // QStringList fileList = saveDir.entryList(QDir::Files);
     // while(!fileList.isEmpty())
     // {
-    //     QFile file(QDir::currentPath()+"/"+FILE_SAVE+"/"+ fileList[0]);
+    //     QFile file(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)+"/"+FILE_SAVE+"/"+ fileList[0]);
     //     file.open(QIODevice::ReadOnly);
     //     QDataStream stream(&file);
 
@@ -42,7 +43,7 @@ Win_LoadSave::Win_LoadSave(QWidget *parent) :
     QStringList fileList = saveDir.entryList(QDir::Files);
     for (QString fileName : fileList)
     {
-        QString path = QDir::currentPath() + "/" + FILE_SAVE + "/" + fileName;
+        QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/" + FILE_SAVE + "/" + fileName;
         Save* save = new Save();
         save->LoadFromFile(path);
         mSaves.append(save);
