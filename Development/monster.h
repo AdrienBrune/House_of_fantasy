@@ -235,7 +235,9 @@ private:
 protected:
     QGraphicsView * mView;
     bool mIsInView;
-    int mHover;
+    int     mHover;
+    QPixmap mHoverSilhouette;   // cached red silhouette for the current frame
+    int     mHoverCacheFrame;   // frame index for which the silhouette was built
 
     int mDamage;
     int mThreatLevel;
@@ -300,6 +302,7 @@ public:
 public:
     inline const QString GetName() override { return WolfAlpha::Name(); }
     inline static const QString Name() { return "Loup Alpha"; }
+    void addExtraLoots();
 private:
     void generateRandomLoots();
 };
@@ -373,6 +376,7 @@ public:
     LaoShanLung(QGraphicsView*);
     ~LaoShanLung();
 public:
+    inline int type() const override { return eQGraphicItemType::laoshanlung; }
     inline const QString GetName() override { return LaoShanLung::Name(); }
     inline static const QString Name() { return "Lao Shan Lung"; }
     void addExtraLoots();

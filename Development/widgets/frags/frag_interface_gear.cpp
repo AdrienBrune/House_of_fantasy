@@ -1,6 +1,7 @@
 #include "frag_interface_gear.h"
 #include "ui_frag_interface_gear.h"
 #include "entitieshandler.h"
+#include <cmath>
 
 Frag_Interface_Gear::Frag_Interface_Gear(QWidget *parent) :
     QWidget(parent),
@@ -31,6 +32,15 @@ Frag_Interface_Gear::Frag_Interface_Gear(QWidget *parent) :
     mFootwearsPos = QPointF(xPosSplitter+50 +   offset+space+itemSize,          offset+3*(itemSize+space));
     mAmuletPos = QPointF(xPosSplitter+50 +      offset+2*(itemSize+space),      offset);
     mWeaponPos = QPointF(xPosSplitter+50 +      offset,                         offset+2*(space+itemSize));
+
+    // Animation
+    static const float kPhases[7] = {0.0f, 1.1f, 2.3f, 3.5f, 4.7f, 5.9f, 0.7f};
+    for(int i = 0; i < 7; ++i)
+        mAnimPhases[i] = kPhases[i];
+    mAnimTime = 0.0;
+    mAnimTimer = new QTimer(this);
+    connect(mAnimTimer, &QTimer::timeout, this, &Frag_Interface_Gear::onAnimTick);
+    mAnimTimer->start(30);
 
     initEquipmentRightSide();
     addItemsLeftSide();
@@ -106,7 +116,7 @@ void Frag_Interface_Gear::onItemMovedHandler(ItemQuickDisplayer * item)
                     area.setRect(static_cast<int>(mAmuletPos.x()), static_cast<int>(mAmuletPos.y()), 100,100);
                 }
 
-                ItemQuickDisplayer * equipmentArea = new ItemQuickDisplayer(new Helmet("", "", 0, 0, 0, 0, "")); // dummy item
+                ItemQuickDisplayer * equipmentArea = new ItemQuickDisplayer(new Helmet("", "", 0, 0, 0, 0, "")); // dummy item for collision check
                 mScene->addItem(equipmentArea);
                 equipmentArea->setPos(area.x(), area.y());
 
@@ -176,6 +186,7 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_helmet, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_helmet, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_helmet, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
+        connect(w_helmet, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
     }
     if(hero->getGear()->getBreastplate()!=nullptr){
         ItemQuickDisplayer * w_breasplate = new ItemQuickDisplayer(hero->getGear()->getBreastplate());
@@ -187,6 +198,7 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_breasplate, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_breasplate, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_breasplate, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
+        connect(w_breasplate, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
     }
     if(hero->getGear()->getGloves()!=nullptr){
         ItemQuickDisplayer * w_gloves = new ItemQuickDisplayer(hero->getGear()->getGloves());
@@ -198,6 +210,7 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_gloves, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_gloves, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_gloves, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
+        connect(w_gloves, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
     }
     if(hero->getGear()->getPant()!=nullptr){
         ItemQuickDisplayer * w_pant = new ItemQuickDisplayer(hero->getGear()->getPant());
@@ -209,6 +222,7 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_pant, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_pant, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_pant, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
+        connect(w_pant, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
     }
     if(hero->getGear()->getFootWears()!=nullptr){
         ItemQuickDisplayer * w_footwears = new ItemQuickDisplayer(hero->getGear()->getFootWears());
@@ -220,6 +234,7 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_footwears, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_footwears, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_footwears, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
+        connect(w_footwears, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
     }
     if(hero->getGear()->getAmulet()!=nullptr){
         ItemQuickDisplayer * w_amulet = new ItemQuickDisplayer(hero->getGear()->getAmulet());
@@ -231,6 +246,7 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_amulet, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_amulet, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_amulet, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
+        connect(w_amulet, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
     }
     if(hero->getGear()->getWeapon()!=nullptr){
         ItemQuickDisplayer * w_weapon = new ItemQuickDisplayer(hero->getGear()->getWeapon());
@@ -242,6 +258,7 @@ void Frag_Interface_Gear::initEquipmentRightSide()
         connect(w_weapon, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
         connect(w_weapon, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
         connect(w_weapon, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
+        connect(w_weapon, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
     }
 }
 
@@ -257,6 +274,7 @@ void Frag_Interface_Gear::addItemLeftSide(Item * item)
     connect(w_item, SIGNAL(sig_itemClicked(ItemQuickDisplayer*)), this, SLOT(onItemSelected(ItemQuickDisplayer*)));
     connect(w_item, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverIn(ItemQuickDisplayer*)));
     connect(w_item, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)), this, SIGNAL(sig_itemHoverOut(ItemQuickDisplayer*)));
+    connect(w_item, SIGNAL(sig_itemRightClicked(ItemQuickDisplayer*)), this, SLOT(onItemRightClicked(ItemQuickDisplayer*)));
 
     while(!w_item->collidingItems().isEmpty())
     {
@@ -352,91 +370,210 @@ void Frag_Interface_Gear::swapItemFromRightToLeft(ItemQuickDisplayer * w_item)
     w_item->setInitialPosition(w_item->pos());
 }
 
+void Frag_Interface_Gear::onAnimTick()
+{
+    mAnimTime += 0.03;
+    update();
+}
+
+void Frag_Interface_Gear::onItemRightClicked(ItemQuickDisplayer* item)
+{
+    Hero* hero = EntitiesHandler::getInstance().getHero();
+
+    // Item on the right side (equipped) → unequip it
+    if(equipmentRightSide.contains(item))
+    {
+        swapItemFromRightToLeft(item);
+        emit sig_unequipItem(item->getItem());
+        return;
+    }
+
+    // Item on the left side (inventory) → try to equip it
+    Equipment* equipment = dynamic_cast<Equipment*>(item->getItem());
+    if(!equipment) return;
+    if(!IS_ABLE(hero->getHeroClass(), equipment->getUsable())) return;
+
+    // Determine the target slot based on equipment type
+    QPointF targetPos;
+    if     (dynamic_cast<Weapon*>     (equipment)) targetPos = mWeaponPos;
+    else if(dynamic_cast<Helmet*>     (equipment)) targetPos = mHelmetPos;
+    else if(dynamic_cast<Breastplate*>(equipment)) targetPos = mBreastplatePos;
+    else if(dynamic_cast<Gloves*>     (equipment)) targetPos = mGlovesPos;
+    else if(dynamic_cast<Pant*>       (equipment)) targetPos = mPantPos;
+    else if(dynamic_cast<Footwears*>  (equipment)) targetPos = mFootwearsPos;
+    else if(dynamic_cast<Amulet*>     (equipment)) targetPos = mAmuletPos;
+    else return;
+
+    // If the slot is already occupied, send the existing item back to the left
+    for(ItemQuickDisplayer* rightItem : equipmentRightSide)
+    {
+        if(rightItem->getInitialPosition() == targetPos)
+        {
+            swapItemFromRightToLeft(rightItem);
+            emit sig_unequipItem(rightItem->getItem());
+            break;
+        }
+    }
+
+    // Move the item to the slot and equip it
+    item->setPos(targetPos);
+    item->setInitialPosition(targetPos);
+    equipmentRightSide.append(item);
+    mItemsLeftSide.removeOne(item);
+    emit sig_equipItem(item->getItem());
+}
+
 void Frag_Interface_Gear::paintEvent(QPaintEvent*)
 {
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    // --- Définition des tailles de ronds ---
-    float ratio = 1.5f;
-    int sizeHelmet      = int(ratio * 20);
-    int sizeBreastplate = int(ratio * 30);
-    int sizeGloves      = int(ratio * 20);
-    int sizePants       = int(ratio * 25);
-    int sizeFootwear    = int(ratio * 20);
-    int sizeAmulet      = int(ratio * 15);
-    int sizeWeapon      = int(ratio * 25);
+    // --- Slot states ---
+    Hero* hero = EntitiesHandler::getInstance().getHero();
+    const bool hasHelmet      = hero->getGear()->getHelmet()      != nullptr;
+    const bool hasBreastplate = hero->getGear()->getBreastplate() != nullptr;
+    const bool hasGloves      = hero->getGear()->getGloves()      != nullptr;
+    const bool hasPants       = hero->getGear()->getPant()        != nullptr;
+    const bool hasFootwear    = hero->getGear()->getFootWears()   != nullptr;
+    const bool hasAmulet      = hero->getGear()->getAmulet()      != nullptr;
+    const bool hasWeapon      = hero->getGear()->getWeapon()      != nullptr;
 
-    // Taille des emplacements (100x100) et demi-slot
-    const int slotSize = 100;
-    const qreal slotHalf = slotSize / 2.0;
-
-    // --- Conversion coordonnées scène → widget (centrées) ---
-    // on ajoute slotHalf pour obtenir le centre du slot en scène, puis mapFromScene
-    QPoint helmetPt      = ui->graphicsView->mapFromScene(mHelmetPos + QPointF(slotHalf, slotHalf) + QPoint(ui->graphicsView->x(), ui->graphicsView->y()));
-    QPoint breastplatePt = ui->graphicsView->mapFromScene(mBreastplatePos + QPointF(slotHalf, slotHalf) + QPoint(ui->graphicsView->x(), ui->graphicsView->y()));
-    QPoint glovesPt      = ui->graphicsView->mapFromScene(mGlovesPos + QPointF(slotHalf, slotHalf) + QPoint(ui->graphicsView->x(), ui->graphicsView->y()));
-    QPoint pantsPt       = ui->graphicsView->mapFromScene(mPantPos + QPointF(slotHalf, slotHalf) + QPoint(ui->graphicsView->x(), ui->graphicsView->y()));
-    QPoint footwearPt    = ui->graphicsView->mapFromScene(mFootwearsPos + QPointF(slotHalf, slotHalf) + QPoint(ui->graphicsView->x(), ui->graphicsView->y()));
-    QPoint amuletPt      = ui->graphicsView->mapFromScene(mAmuletPos + QPointF(slotHalf, slotHalf) + QPoint(ui->graphicsView->x(), ui->graphicsView->y()));
-    QPoint weaponPt      = ui->graphicsView->mapFromScene(mWeaponPos + QPointF(slotHalf, slotHalf) + QPoint(ui->graphicsView->x(), ui->graphicsView->y()));
-
-    // Convertir en QPointF pour calculs flottants
-    QPointF helmetC      = QPointF(helmetPt);
-    QPointF breastplateC = QPointF(breastplatePt);
-    QPointF glovesC      = QPointF(glovesPt);
-    QPointF pantsC       = QPointF(pantsPt);
-    QPointF footwearC    = QPointF(footwearPt);
-    QPointF amuletC      = QPointF(amuletPt);
-    QPointF weaponC      = QPointF(weaponPt);
-
-    // rayons
-    qreal rHelmet      = sizeHelmet / 2.0;
-    qreal rBreastplate = sizeBreastplate / 2.0;
-    qreal rGloves      = sizeGloves / 2.0;
-    qreal rPants       = sizePants / 2.0;
-    qreal rFootwear    = sizeFootwear / 2.0;
-    qreal rAmulet      = sizeAmulet / 2.0;
-    qreal rWeapon      = sizeWeapon / 2.0;
-
-    // --- Dessin des connexions (traits) ---
-    painter.setPen(QPen(QBrush("#FFFFFF"), 2, Qt::SolidLine, Qt::RoundCap));
-
-    // lambda pour dessiner une ligne qui s'arrête au bord des cercles (esthétique)
-    auto drawLink = [&](const QPointF &a, qreal ra, const QPointF &b, qreal rb) {
-        qreal dx = b.x() - a.x();
-        qreal dy = b.y() - a.y();
-        qreal len = std::hypot(dx, dy);
-        if (len <= 0.0001) {
-            // Points confondus -> rien à dessiner
-            return;
-        }
-        qreal ux = dx / len;
-        qreal uy = dy / len;
-        QPointF p1(a.x() + ux * ra, a.y() + uy * ra); // départ au bord du 1er cercle
-        QPointF p2(b.x() - ux * rb, b.y() - uy * rb); // fin au bord du 2ème cercle
-        painter.drawLine(p1, p2);
+    // --- Base positions (center of each slot) ---
+    const qreal slotHalf = 50.0;
+    const QPoint vOff(ui->graphicsView->x(), ui->graphicsView->y());
+    auto basePos = [&](const QPointF& sp) -> QPointF {
+        return QPointF(ui->graphicsView->mapFromScene(sp + QPointF(slotHalf, slotHalf) + vOff));
     };
 
-    // connexions demandées
-    drawLink(helmetC, rHelmet,      breastplateC, rBreastplate);
-    drawLink(breastplateC, rBreastplate, pantsC, rPants);
-    drawLink(breastplateC, rBreastplate, weaponC, rWeapon);
-    drawLink(breastplateC, rBreastplate, amuletC, rAmulet);
-    drawLink(breastplateC, rBreastplate, glovesC, rGloves);
-    drawLink(pantsC, rPants, footwearC, rFootwear);
+    // --- Chaotic floating (superposition of 2 movements) ---
+    const qreal floatAmp = 4.0;
+    auto animOff = [&](int i) -> QPointF {
+        return QPointF(
+            floatAmp * (0.6 * std::cos(mAnimTime * 0.7  + mAnimPhases[i])
+                      + 0.4 * std::cos(mAnimTime * 1.618 + mAnimPhases[i] * 1.4)),
+            floatAmp * (0.6 * std::sin(mAnimTime * 0.9  + mAnimPhases[i])
+                      + 0.4 * std::sin(mAnimTime * 1.414 + mAnimPhases[i] * 0.7))
+        );
+    };
 
-    // --- Dessin des ronds blancs (au-dessus des lignes) ---
-    painter.setBrush(QBrush("#FFFFFF"));
+    // --- Animated centers ---
+    QPointF helmetC      = basePos(mHelmetPos)      + animOff(0);
+    QPointF breastplateC = basePos(mBreastplatePos) + animOff(1);
+    QPointF glovesC      = basePos(mGlovesPos)      + animOff(2);
+    QPointF pantsC       = basePos(mPantPos)        + animOff(3);
+    QPointF footwearC    = basePos(mFootwearsPos)   + animOff(4);
+    QPointF amuletC      = basePos(mAmuletPos)      + animOff(5);
+    QPointF weaponC      = basePos(mWeaponPos)      + animOff(6);
+
+    // --- Dot radii ---
+    const float ratio = 1.5f;
+    const qreal rHelmet      = ratio * 20 / 2.0;
+    const qreal rBreastplate = ratio * 30 / 2.0;
+    const qreal rGloves      = ratio * 20 / 2.0;
+    const qreal rPants       = ratio * 25 / 2.0;
+    const qreal rFootwear    = ratio * 20 / 2.0;
+    const qreal rAmulet      = ratio * 15 / 2.0;
+    const qreal rWeapon      = ratio * 25 / 2.0;
+
+    // --- Draw chaotic wavy connections ---
+    // Each connection receives an index to give it its own character
+    auto drawWavyLink = [&](const QPointF& a, qreal ra, bool aOn,
+                            const QPointF& b, qreal rb, bool bOn,
+                            int connIdx)
+    {
+        const qreal dx  = b.x() - a.x();
+        const qreal dy  = b.y() - a.y();
+        const qreal len = std::hypot(dx, dy);
+        if(len < 1.0) return;
+
+        const qreal ux = dx / len,  uy = dy / len;
+        const qreal px = -uy,       py = ux;
+
+        const bool  on        = aOn && bOn;
+        const int   numLines  = on ? 4  : 1;
+        const qreal amplitude = on ? 9.0 : 4.0;
+        const qreal speed     = on ? 2.2 : 0.45;
+        const qreal lineWidth = on ? 1.3 : 0.8;
+        const QColor colBase  = on ? QColor(255, 200, 50) : QColor(255, 255, 255);
+
+        const QPointF start(a.x() + ux * ra, a.y() + uy * ra);
+        const QPointF end  (b.x() - ux * rb, b.y() - uy * rb);
+        const qreal segLen = std::hypot(end.x()-start.x(), end.y()-start.y());
+
+        // Phase unique to this connection
+        const qreal connPhase = mAnimPhases[connIdx % 7];
+
+        for(int l = 0; l < numLines; ++l)
+        {
+            // Each line has its own phase and frequency offset → all different
+            const qreal lf = l * 1.3;   // per-line phase offset (irrational)
+
+            // 3 sine components with irrational frequencies → pattern never repeats
+            const qreal p1 = mAnimTime * speed           + connPhase + lf;
+            const qreal p2 = mAnimTime * speed * 1.618   + connPhase * 1.7 + lf * 0.9;
+            const qreal p3 = mAnimTime * speed * 2.414   + connPhase * 0.5 + lf * 2.1;
+
+            // Slightly different amplitude per line
+            const qreal amp = amplitude * (0.8 + 0.2 * (l % 2 == 0 ? 1.0 : -0.3));
+
+            // Slightly different opacity per line
+            const int alpha = on ? (190 - l * 30) : (110 - l * 20);
+            QColor col = colBase;
+            col.setAlpha(qMax(40, alpha));
+            painter.setPen(QPen(col, lineWidth, Qt::SolidLine, Qt::RoundCap));
+
+            QPainterPath path;
+            const int steps = 56;
+            for(int step = 0; step <= steps; ++step)
+            {
+                const qreal t     = step / (qreal)steps;
+                const qreal along = t * segLen;
+
+                // Envelope: zeroes at both ends → connects cleanly to the dots
+                const qreal envelope = std::sin(M_PI * t);
+
+                // Superposition of 3 sine waves (frequencies φ, √2, ~e — irrational ratios)
+                const qreal wave =
+                    0.50 * std::sin(2.0   * 2.0 * M_PI * t + p1) +
+                    0.30 * std::sin(3.141 * 2.0 * M_PI * t + p2) +
+                    0.20 * std::sin(5.0   * 2.0 * M_PI * t + p3);
+
+                const qreal sine = amp * envelope * wave;
+
+                const qreal x = start.x() + along * ux + sine * px;
+                const qreal y = start.y() + along * uy + sine * py;
+                if(step == 0) path.moveTo(x, y);
+                else          path.lineTo(x, y);
+            }
+            painter.drawPath(path);
+        }
+    };
+
+    // Network connections — each call has its own index
+    drawWavyLink(helmetC,      rHelmet,      hasHelmet,      breastplateC, rBreastplate, hasBreastplate, 0);
+    drawWavyLink(breastplateC, rBreastplate, hasBreastplate, pantsC,       rPants,       hasPants,       1);
+    drawWavyLink(breastplateC, rBreastplate, hasBreastplate, weaponC,      rWeapon,      hasWeapon,      2);
+    drawWavyLink(breastplateC, rBreastplate, hasBreastplate, amuletC,      rAmulet,      hasAmulet,      3);
+    drawWavyLink(breastplateC, rBreastplate, hasBreastplate, glovesC,      rGloves,      hasGloves,      4);
+    drawWavyLink(pantsC,       rPants,       hasPants,       footwearC,    rFootwear,    hasFootwear,    5);
+
+    // --- Draw dots on top of the lines ---
     painter.setPen(Qt::NoPen);
-
-    painter.drawEllipse(helmetC, rHelmet, rHelmet);
-    painter.drawEllipse(glovesC, rGloves, rGloves);
-    painter.drawEllipse(pantsC, rPants, rPants);
-    painter.drawEllipse(footwearC, rFootwear, rFootwear);
-    painter.drawEllipse(amuletC, rAmulet, rAmulet);
-    painter.drawEllipse(weaponC, rWeapon, rWeapon);
-    painter.drawEllipse(breastplateC, rBreastplate, rBreastplate);
+    auto drawDot = [&](const QPointF& c, qreal r, bool on) {
+        painter.setBrush(on ? QColor(255, 200, 50, 230) : QColor(255, 255, 255, 160));
+        painter.drawEllipse(c, r, r);
+    };
+    drawDot(helmetC,      rHelmet,      hasHelmet);
+    drawDot(glovesC,      rGloves,      hasGloves);
+    drawDot(pantsC,       rPants,       hasPants);
+    drawDot(footwearC,    rFootwear,    hasFootwear);
+    drawDot(amuletC,      rAmulet,      hasAmulet);
+    drawDot(weaponC,      rWeapon,      hasWeapon);
+    drawDot(breastplateC, rBreastplate, hasBreastplate);
 }
 
 

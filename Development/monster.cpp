@@ -7,6 +7,7 @@ Monster::Monster(QGraphicsView * view):
     mView(view),
     mIsInView(false),
     mHover(0),
+    mHoverCacheFrame(-1),
     mDamage(0),
     mThreatLevel(0),
     mDescription(QString()),
@@ -215,11 +216,36 @@ void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     QSize fs = mCurrentSprite->grid.frameSize;
     int col = mCurrentSprite->index % mCurrentSprite->grid.col;
     int row = mCurrentSprite->index / mCurrentSprite->grid.col;
+    const QRect spriteRect(col * fs.width(), row * fs.height(), fs.width(), fs.height());
+
+    if(mHover)
+    {
+        // Rebuild silhouette only when the animation frame changes
+        if(mCurrentSprite->index != mHoverCacheFrame || mHoverSilhouette.isNull())
+        {
+            const QSize sz = boundingRect().size().toSize();
+            mHoverSilhouette = QPixmap(sz);
+            mHoverSilhouette.fill(Qt::transparent);
+            QPainter sp(&mHoverSilhouette);
+            sp.drawPixmap(mHoverSilhouette.rect(), mCurrentSprite->image, spriteRect);
+            sp.setCompositionMode(QPainter::CompositionMode_SourceIn);
+            sp.fillRect(mHoverSilhouette.rect(), QColor(30, 30, 30, 70));
+            mHoverCacheFrame = mCurrentSprite->index;
+        }
+
+        // Draw silhouette shifted in 8 directions → filled red contour
+        const int N = 2;
+        for(int dx = -N; dx <= N; dx += N)
+            for(int dy = -N; dy <= N; dy += N)
+                if(dx || dy)
+                    painter->drawPixmap(boundingRect().translated(dx, dy).toRect(),
+                                        mHoverSilhouette);
+    }
 
     painter->drawPixmap(
         boundingRect().toRect(),
         mCurrentSprite->image,
-        QRect(col * fs.width(), row * fs.height(), fs.width(), fs.height())
+        spriteRect
     );
 
 
@@ -984,6 +1010,16 @@ void WolfAlpha::generateRandomLoots()
 
 }
 
+void WolfAlpha::addExtraLoots()
+{
+    if(QRandomGenerator::global()->bounded(4) == 0)
+    {
+        mItems.append(new WolfAlphaPelt);
+        mItems.append(new WolfMeat);
+        mItems.append(new WolfFang);
+    }
+}
+
 
 
 
@@ -1360,9 +1396,9 @@ LaoShanLung::LaoShanLung(QGraphicsView * view):
 
     mSprites.walk.set(sLaoPx().move,       18, 1, 18, 150, SPEED_LAOSHANLUNG,      QSize(12600, 450));
     mSprites.run.set(sLaoPx().move,        18, 1, 18, 100, SPEEDBOOST_LAOSHANLUNG, QSize(12600, 450));
-    mSprites.stand.set(sLaoPx().stand,      1, 1,  1,   0, 0,                      QSize(350, 450));
-    mSprites.dead.set(sLaoPx().dead,        1, 1,  1,   0, 0,                      QSize(350, 450));
-    mSprites.skinned.set(sLaoPx().skinned,  1, 1,  1,   0, 0,                      QSize(350, 450));
+    mSprites.stand.set(sLaoPx().stand,      1, 1,  1,   0, 0,                      QSize(700, 450));
+    mSprites.dead.set(sLaoPx().dead,        1, 1,  1,   0, 0,                      QSize(700, 450));
+    mSprites.skinned.set(sLaoPx().skinned,  1, 1,  1,   0, 0,                      QSize(700, 450));
 
     mSounds[0] = SOUND_LAOSHANLUNG_HEAVYATTACK;
     mSounds[1] = SOUND_LAOSHANLUNG_LIGHTATTACK;

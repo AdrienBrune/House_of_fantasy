@@ -37,6 +37,7 @@
 #include "w_herostats.h"
 #include "w_daynightcycle.h"
 #include "w_gameover.h"
+#include "w_gamevictory.h"
 
 namespace Ui {
 class CTRWindow;
@@ -86,6 +87,7 @@ private slots:
     void onCloseMessageLogger();
     void on_Map_clicked();
     void showGameOver();
+    void showGameVictory();
 
 public:
     void ShowPopUpInfo(LogMessage*);
@@ -124,7 +126,8 @@ private:
     W_QuickToolDrawer * w_quickItemDrawer;
     W_MessageLogger * w_messageLogger;
     W_Animation_Night * w_night;
-    W_GameOver * w_gameOver;
+    W_GameOver    * w_gameOver;
+    W_GameVictory * w_gameVictory;
 public:
     Ui::CTRWindow *ui;
 };
