@@ -31,16 +31,15 @@ Win_Gear::Win_Gear(QWidget *parent) :
     mBagPayload = new Frag_Stats_Displayer(this, "Capacité du sac", QPixmap(":/images/Ressources/bag.png"), hero->getBag()->getPayload().current, hero->getBag()->getPayload().maximum);
     mStamina = new Frag_Stats_Displayer(this, "Endurance", QPixmap(":/icons/Ressources/staminaStat.png"), hero->getStamina().maximum, 0, 1);
 
-    ui->layoutStats->addWidget(mLife, 0, 0);
-    ui->layoutStats->addWidget(mMana, 1, 0);
+    ui->layoutStats->addWidget(mLife,       0, 0);
+    ui->layoutStats->addWidget(mMana,       1, 0);
     ui->layoutStats->addWidget(mExperience, 2, 0);
-    ui->layoutStats->addWidget(mStamina, 3, 0);
-
-    ui->layoutStats->addWidget(mDamage, 0, 1);
-    ui->layoutStats->addWidget(mDefense, 1, 1);
-    ui->layoutStats->addWidget(mDodge, 2, 1);
-    ui->layoutStats->addWidget(mHitSpeed, 3, 1);
-    ui->layoutStats->addWidget(mBagPayload, 4, 1);
+    ui->layoutStats->addWidget(mStamina,    3, 0);
+    ui->layoutStats->addWidget(mDamage,     4, 0);
+    ui->layoutStats->addWidget(mDefense,    5, 0);
+    ui->layoutStats->addWidget(mDodge,      6, 0);
+    ui->layoutStats->addWidget(mHitSpeed,   7, 0);
+    ui->layoutStats->addWidget(mBagPayload, 8, 0);
 
     connect(hero, SIGNAL(sig_lifeChanged()), this, SLOT(displayLifeChanged()), Qt::ConnectionType::QueuedConnection);
     connect(hero, SIGNAL(sig_manaChanged()), this, SLOT(displayManaChanged()), Qt::ConnectionType::QueuedConnection);

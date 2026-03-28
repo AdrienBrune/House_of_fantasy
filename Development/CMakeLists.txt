@@ -7,8 +7,32 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # set(CMAKE_UNITY_BUILD ON) # turbo build !
 
-set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
-#set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/mingw81_64")
+# =========================
+# Build types
+# =========================
+# Custom MAXOS build type : optimisations maximales (O3 + LTO + no debug)
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_MAXOS "/O2 /GL /GS- /DNDEBUG" CACHE STRING "Flags MAXOS (MSVC)" FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS_MAXOS "/LTCG" CACHE STRING "Linker flags MAXOS (MSVC)" FORCE)
+else()
+    set(CMAKE_CXX_FLAGS_MAXOS "-O3 -march=native -flto -DNDEBUG" CACHE STRING "Flags MAXOS (GCC/Clang)" FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS_MAXOS "-flto" CACHE STRING "Linker flags MAXOS (GCC/Clang)" FORCE)
+endif()
+
+# Enregistrement du type pour les IDEs (Qt Creator, VS...)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel" "MAXOS")
+
+if(WIN32)
+    set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
+    #set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/mingw81_64")
+elseif(APPLE)
+    # Adapter selon votre installation Qt macOS (natif ou cross-compil OSXCross)
+    set(CMAKE_PREFIX_PATH "$ENV{OSXCROSS_TARGET_DIR}/macports/pkgs/opt/local/libexec/qt5")
+endif()
+
 
 # --- Qt automatique
 set(CMAKE_AUTOMOC ON)
@@ -92,6 +116,7 @@ set(HEADERS
     ${SRC_DIR}/windows/win_skillinfo.h
     ${SRC_DIR}/windows/win_skills.h
     ${SRC_DIR}/windows/win_menu.h
+    ${SRC_DIR}/windows/w_gamevictory.h
     ${SRC_DIR}/save.h
     ${SRC_DIR}/qcustom_widget.h
     ${SRC_DIR}/widgets/w_spellanimation.h
@@ -156,6 +181,7 @@ set(SOURCES
     ${SRC_DIR}/windows/win_skillinfo.cpp
     ${SRC_DIR}/windows/win_skills.cpp
     ${SRC_DIR}/windows/win_menu.cpp
+    ${SRC_DIR}/windows/w_gamevictory.cpp
     ${SRC_DIR}/save.cpp
 )
 
@@ -275,5 +301,38 @@ if(WIN32)
     )
 endif()
 
+# =========================
+# macOS deployment
+# =========================
+if(APPLE)
+    set_target_properties(House_of_fantasy PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_BUNDLE_NAME "House of Fantasy"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.adrienbrune.houseoffantasy"
+    )
+
+    get_target_property(_qmake_executable Qt5::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
+    set(DEPLOY_TOOL "${_qt_bin_dir}/macdeployqt")
+
+    set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Application_macOS")
+
+    add_custom_command(TARGET House_of_fantasy POST_BUILD
+        COMMAND "${DEPLOY_TOOL}" "$<TARGET_BUNDLE_DIR:House_of_fantasy>" -dmg
+        COMMENT "Running macdeployqt..."
+        VERBATIM
+    )
+
+    add_custom_command(TARGET House_of_fantasy POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "$<TARGET_BUNDLE_DIR:House_of_fantasy>"
+                "${OUTPUT_DIR}/House_of_fantasy.app"
+        COMMENT "Copying .app bundle to Application_macOS/..."
+        VERBATIM
+    )
+endif()
+
 # build command
 #cmake --build . --config Release
+# build MAXOS  : cmake --build . --config MAXOS

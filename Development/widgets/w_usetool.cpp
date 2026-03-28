@@ -187,10 +187,6 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
     ypos = (map->getVillage()->pos().y() + map->getVillage()->boundingRect().height()/2) * area.height() / worldSize.height();
     painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(":/icons/Ressources/icon_village.png"));
 
-    // Draw Goblin Village
-    xpos = (map->getGoblinVillage()->pos().x() + map->getGoblinVillage()->boundingRect().width()/2) * area.width() / worldSize.width();
-    ypos = (map->getGoblinVillage()->pos().y() + map->getGoblinVillage()->boundingRect().height()/2) * area.height() / worldSize.height();
-    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(":/icons/Ressources/icon_goblin_village.png"));
 
     if(mFilterList["monster"])
     {
@@ -308,6 +304,31 @@ void W_UseToolMap::paintEvent(QPaintEvent * event)
                 painter.setPen(Qt::NoPen);
                 painter.drawRect(cellRect);
             }
+        }
+    }
+
+    // Toujours visible après le fog : village gobelin
+    painter.setOpacity(1.0);
+    xpos = (map->getGoblinVillage()->pos().x() + map->getGoblinVillage()->boundingRect().width()/2) * area.width() / worldSize.width();
+    ypos = (map->getGoblinVillage()->pos().y() + map->getGoblinVillage()->boundingRect().height()/2) * area.height() / worldSize.height();
+    painter.drawPixmap(QRect(xpos, ypos, 25, 25), QPixmap(":/icons/Ressources/icon_goblin_village.png"));
+
+    // Toujours visible après le fog : Lao Shan Lung s'il est présent
+    for(Monster* monster : map->getMonsters())
+    {
+        if(monster && monster->type() == eQGraphicItemType::laoshanlung && !monster->isDead())
+        {
+            xpos = (monster->pos().x() + monster->boundingRect().width()/2) * area.width() / worldSize.width();
+            ypos = (monster->pos().y() + monster->boundingRect().height()/2) * area.height() / worldSize.height();
+
+            // Cercle d'alerte rouge derrière l'icône
+            painter.setPen(QPen(QColor(200, 30, 30), 2));
+            painter.setBrush(QColor(180, 20, 20, 80));
+            painter.drawEllipse(QPoint(xpos + 12, ypos + 12), 16, 16);
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(Qt::NoBrush);
+            painter.drawPixmap(QRect(xpos, ypos, 25, 25),
+                               QPixmap(QString(":/icons/Ressources/icon_%1.png").arg(monster->getName())));
         }
     }
 

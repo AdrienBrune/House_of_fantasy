@@ -2,6 +2,7 @@
 #include "ui_ctrwindow.h"
 #include "win_loadinggamescreen.h"
 #include "entitieshandler.h"
+#include <QApplication>
 #include <QDir>
 #include <QCursor>
 #include <QRandomGenerator>
@@ -33,6 +34,7 @@ CTRWindow::CTRWindow(QWidget *parent) :
     w_messageLogger(nullptr),
     w_night(nullptr),
     w_gameOver(nullptr),
+    w_gameVictory(nullptr),
     ui(new Ui::CTRWindow)
 {
     ui->setupUi(this);
@@ -392,6 +394,23 @@ void CTRWindow::showGameOver()
     w_gameOver->raise();
 }
 
+void CTRWindow::showGameVictory()
+{
+    mMap->freeze(true);
+    if(t_PeriodicalEvents)
+        t_PeriodicalEvents->stop();
+
+    if(w_gameVictory)
+        delete w_gameVictory;
+
+    w_gameVictory = new W_GameVictory(this);
+    connect(w_gameVictory, &W_GameVictory::sig_quit, this, []() {
+        QApplication::quit();
+    });
+    w_gameVictory->show();
+    w_gameVictory->raise();
+}
+
 void CTRWindow::fightResult(Character* entityKilled)
 {
     mHero->freeze(false);
@@ -407,15 +426,20 @@ void CTRWindow::fightResult(Character* entityKilled)
         if(monster){
             mSoundManager->playSound(monster->getSoundIndexFor(DIE));
             monster->killMonster();
-            mMap->freeze(false);
             if(mHero->addExperience(monster->getExperience()))
             {
                 ShowPopUpInfo(ML_SHOW_LEVEL_UP(mHero));
             }
             if(monster->getCoin() > 0)
                 mHero->addCoin(monster->getCoin());
-            if(mHero->getLife().current < 30)
-                mSoundManager->startMusicEvent(MUSICEVENT_CLOSE_FIGHT);
+
+            if(dynamic_cast<LaoShanLung*>(monster)) {
+                showGameVictory(); // freeze(true) appelé dans showGameVictory
+            } else {
+                mMap->freeze(false);
+                if(mHero->getLife().current < 30)
+                    mSoundManager->startMusicEvent(MUSICEVENT_CLOSE_FIGHT);
+            }
         }
         mHero->checkMapInteractions();
     }

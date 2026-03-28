@@ -396,7 +396,8 @@ enum eQGraphicItemType
     shovel,
     fishingrod,
     knife,
-    compass
+    compass,
+    laoshanlung
 };
 
 inline bool IsMapitemTypeOrDerived(QGraphicsItem* item)

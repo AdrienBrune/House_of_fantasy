@@ -26,7 +26,7 @@ Map::Map(QWidget * parent, QGraphicsView * view):
     connect(this, SIGNAL(sig_loadingGameUpdate(quint8)), parent, SIGNAL(sig_loadingGameUpdate(quint8)));
     connect(this, SIGNAL(sig_loadingGameStep(const QString&)), parent, SIGNAL(sig_loadingGameStep(const QString&)));
 
-    MapConfig::setRatio(1.5f);
+    MapConfig::setRatio(2.0f);
 
     mScene = new GrassScene(this);
     mScene->setSceneRect(QRect(0, 0, MAP_WIDTH, MAP_HEIGHT));

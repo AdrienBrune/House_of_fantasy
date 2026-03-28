@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QGraphicsScene>
+#include <QTimer>
 #include "item.h"
 #include "equipment.h"
 #include "hero.h"
@@ -28,6 +29,8 @@ signals:
 private slots:
     void onItemMovedHandler(ItemQuickDisplayer*); // check travels R->L or L->R - connect to move signals
     void onItemSelected(ItemQuickDisplayer*);
+    void onItemRightClicked(ItemQuickDisplayer*);
+    void onAnimTick();
 public:
     void addItemLeftSide(Item*);
     void initEquipmentRightSide();
@@ -51,6 +54,9 @@ private:
     QPointF mFootwearsPos;
     QPointF mAmuletPos;
     QPointF mWeaponPos;
+    QTimer* mAnimTimer;
+    qreal   mAnimTime;
+    float   mAnimPhases[7];
 private:
     Ui::Frag_interface_gear *ui;
 };
