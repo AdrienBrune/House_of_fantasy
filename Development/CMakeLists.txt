@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project(House_of_fantasy LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # set(CMAKE_UNITY_BUILD ON) # turbo build !
 
@@ -29,7 +30,8 @@ if(WIN32)
     set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
     #set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/mingw81_64")
 elseif(APPLE)
-    # Adapter selon votre installation Qt macOS (natif ou cross-compil OSXCross)
+    set(Qt5_DIR "/opt/homebrew/opt/qt@5/lib/cmake/Qt5")
+    find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
     set(CMAKE_PREFIX_PATH "$ENV{OSXCROSS_TARGET_DIR}/macports/pkgs/opt/local/libexec/qt5")
 endif()
 

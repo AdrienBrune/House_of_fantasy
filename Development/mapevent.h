@@ -53,9 +53,9 @@ public:
         if (json.contains("items") && json["items"].isArray())
         {
             QJsonArray jsonArrayItems = json["items"].toArray();
-            for (QJsonValueRef item : jsonArrayItems)
+            for (QJsonValueRef element : jsonArrayItems)
             {
-                QJsonObject jsonItem = item.toObject();
+                QJsonObject jsonItem = element.toObject();
                 if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
                 {
                     DEBUG("item type not found, item can't be reconstructed !");

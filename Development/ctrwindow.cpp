@@ -4,6 +4,7 @@
 #include "entitieshandler.h"
 #include <QApplication>
 #include <QDir>
+#include <QStandardPaths>
 #include <QCursor>
 #include <QRandomGenerator>
 
@@ -41,9 +42,8 @@ CTRWindow::CTRWindow(QWidget *parent) :
 
     gItemGenerator = new ItemGenerator();
 
-    QDir directory(QDir::currentPath()+"/"+FILE_SAVE);
-    if(!directory.exists())
-        directory.mkdir(QDir::currentPath()+"/"+FILE_SAVE);
+    QDir directory;
+    directory.mkpath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)+"/"+FILE_SAVE);
 
     w_menu = new Win_Menu();
     connect(w_menu, SIGNAL(sig_startGame(Save*)), this, SLOT(onStartGame(Save*)));
@@ -1262,7 +1262,7 @@ void CTRWindow::on_buttonQuit_clicked()
     mMap->getScene()->removeItem(mHero);
     mMap->getVillage()->removeFromScene(mMap->getScene());
 
-    QString filePath = QString(QDir::currentPath() + "/" + FILE_SAVE + "/%1").arg(mCurrentSave->GetId());
+    QString filePath = QString(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/" + FILE_SAVE + "/%1").arg(mCurrentSave->GetId());
     GameContentStruct game = {
         mHero,
         mMap

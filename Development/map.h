@@ -226,9 +226,9 @@ public:
                 mElementsInMap.clear();
 
                 QJsonArray jsonArrayElements = jsonElements["mapitems"].toArray();
-                for (QJsonValueRef item : jsonArrayElements)
+                for (QJsonValueRef element : jsonArrayElements)
                 {
-                    QJsonObject jsonItem = item.toObject();
+                    QJsonObject jsonItem = element.toObject();
                     if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
                     {
                         DEBUG("item type not found, item can't be reconstructed !");
@@ -248,9 +248,9 @@ public:
                 mItemsInMap.clear();
 
                 QJsonArray jsonArrayElements = jsonElements["items"].toArray();
-                for (QJsonValueRef item : jsonArrayElements)
+                for (QJsonValueRef element : jsonArrayElements)
                 {
-                    QJsonObject jsonItem = item.toObject();
+                    QJsonObject jsonItem = element.toObject();
                     if (!jsonItem.contains("type") || !jsonItem["type"].isDouble())
                     {
                         DEBUG("item type not found, item can't be reconstructed !");
