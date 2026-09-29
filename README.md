@@ -13,6 +13,8 @@
 ---
 
 ![Author](https://img.shields.io/badge/author-Adrien%20Brune-orange.svg)
+![Qt](https://img.shields.io/badge/Qt-5.15.2-green.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-lightgrey.svg)
 ![Status](https://img.shields.io/badge/status-completed-success.svg)
 
 </div>
