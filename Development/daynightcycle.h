@@ -5,6 +5,8 @@
 #include <QTimer>
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
+#include <QPainter>
+#include <QStyleOptionGraphicsItem>
 #include <QtMath>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -13,6 +15,7 @@
 #define TIME_DAWN       0.25
 #define TIME_NOON       0.50
 #define TIME_DUSK       0.75
+#define TIME_START_OF_DAY 0.32
 
 #define DAYNIGHT_TIMER_MS           500
 #define DAYNIGHT_STEPS_PER_CYCLE    2400
@@ -23,8 +26,18 @@
 class DayNightOverlay : public QGraphicsRectItem
 {
 public:
-    using QGraphicsRectItem::QGraphicsRectItem;
+    explicit DayNightOverlay(const QRectF& rect) : QGraphicsRectItem(rect)
+    {
+        // Gives access to option->exposedRect in paint()
+        setFlag(QGraphicsItem::ItemUsesExtendedStyleOption);
+    }
     QPainterPath shape() const override { return QPainterPath(); }
+
+    // Only fill the visible part of the overlay (not the whole map)
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget*) override
+    {
+        painter->fillRect(option->exposedRect.intersected(rect()), brush());
+    }
 };
 
 class DayNightCycle : public QObject
@@ -70,7 +83,7 @@ public:
         }
 
     }
-    void resetTime(qreal time = 0.2); // start at dawn
+    void resetTime(qreal time = TIME_START_OF_DAY);
 
 signals:
     void sig_nightBegins();
@@ -93,7 +106,7 @@ public:
     {
         if (json.contains("time_normalized") && json["time_normalized"].isDouble())
         {
-            mTime = json["time_normalized"].toDouble();
+            resetTime(json["time_normalized"].toDouble()); // also refreshes overlay and night state
         }
     }
 

@@ -7,6 +7,12 @@
 #include <QStandardPaths>
 #include <QCursor>
 #include <QRandomGenerator>
+#include <QOpenGLWidget>
+#include <QSurfaceFormat>
+// <QOpenGLWidget> pulls <windows.h> which #defines "interface" (clashes with variable names)
+#ifdef interface
+#undef interface
+#endif
 
 quint8 loadingStep = 0;
 
@@ -39,6 +45,20 @@ CTRWindow::CTRWindow(QWidget *parent) :
     ui(new Ui::CTRWindow)
 {
     ui->setupUi(this);
+
+    // Map rendering: use the GPU (OpenGL) instead of the CPU raster engine
+    {
+        QOpenGLWidget * glViewport = new QOpenGLWidget();
+        QSurfaceFormat format = glViewport->format();
+        format.setSamples(4); // MSAA: antialiased outlines almost for free on the GPU
+        glViewport->setFormat(format);
+        ui->graphicsView->setViewport(glViewport);
+        // With an OpenGL viewport, partial updates are slower than redrawing everything
+        ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+        ui->graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState
+                                               | QGraphicsView::DontAdjustForAntialiasing);
+        ui->graphicsView->setCacheMode(QGraphicsView::CacheNone);
+    }
 
     gItemGenerator = new ItemGenerator();
 
@@ -117,7 +137,6 @@ void CTRWindow::generateNewGame()
     connect(mMap, &Map::sig_calamitySpawned, this, &CTRWindow::displayCalamitySpawned);
     connect(mMap, &Map::sig_adventurerMapUnlock, this, [this](){ setButtonsEnable(true); });
     ui->graphicsView->setScene(mMap->getScene());
-    ui->graphicsView->setRenderHint(QPainter::Antialiasing);
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
@@ -1256,7 +1275,13 @@ void CTRWindow::on_buttonQuit_clicked()
         mHero->freeze(false);
         mMap->freeze(false);
         return;
-    }  
+    }
+
+    // Switch to the menu first: tearing the scene down while the game window is still
+    // visible displays an empty (black) map for a few frames
+    w_menu->enableButtons(true);
+    w_menu->show();
+    hide();
 
     /* Avoid instances destruction with scene destruction */
     mMap->getScene()->removeItem(mHero);
@@ -1270,12 +1295,7 @@ void CTRWindow::on_buttonQuit_clicked()
     mCurrentSave->UpdateGameContent(game);
     mCurrentSave->SaveToFile(filePath);
 
-    w_menu->enableButtons(true);
-    w_menu->show();
-
     closeGame();
-
-    hide();
 }
 
 void CTRWindow::showQuickToolDrawer(Tool * tool)

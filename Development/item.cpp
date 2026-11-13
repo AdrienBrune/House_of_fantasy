@@ -145,12 +145,14 @@ QRectF Item::boundingRect() const
 
 void Item::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()), mImage);
 
     if(mHover){
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
         painter->setPen(QPen(QBrush(BORDERS_COLOR), 2));
         painter->drawPath(mShape);
+        painter->restore();
     }
 
     Q_UNUSED(widget)
@@ -644,7 +646,7 @@ void MapScroll::updateDiscovery()
             }
         }
 
-        if (object->type() == eQGraphicItemType::monster)
+        if (IsMonsterTypeOrDerived(object))
         {
             Monster * monster = dynamic_cast<Monster*>(object);
             if (monster)

@@ -150,7 +150,6 @@ void Win_Fight::addConsumablesOnScreen()
     mConsumables.clear();
 
     // Update current list
-    mScenePotion->setSceneRect(0,0,ui->itemView->width(), ui->itemView->height());
     QList<Consumable*> list = mHero->getBag()->getItemList<Consumable*>();
     for(Consumable * item : qAsConst(list))
     {
@@ -165,10 +164,11 @@ void Win_Fight::addConsumablesOnScreen()
     {
         item->setPos(offset, 5);
         offset += 105;
-        if(mScenePotion->sceneRect().width() < offset + 105){
-            mScenePotion->setSceneRect(0,0,mScenePotion->sceneRect().width()+105, mScenePotion->sceneRect().height());
-        }
     }
+
+    // Scene sized to its content (not to the view): the view then always centers the potions,
+    // whether this is called before the window is shown or after a potion is used
+    mScenePotion->setSceneRect(0, 0, offset, ui->itemView->height());
 }
 
 void Win_Fight::enableButtons(bool toggle)

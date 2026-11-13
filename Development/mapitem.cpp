@@ -54,7 +54,6 @@ QPainterPath MapItem::shape() const
 
 void MapItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(mImageEvent*boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
 
     Q_UNUSED(widget)
@@ -206,7 +205,6 @@ void Bush::initMapItem()
 
 void Bush::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mNextFrame), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
@@ -481,12 +479,14 @@ void MapItemMovable::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
 
 void MapItemMovable::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
 
     if(mHover){
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
         painter->setPen(QPen(QBrush(BORDERS_COLOR), 2));
         painter->drawPath(mBorders);
+        painter->restore();
     }
 
     Q_UNUSED(widget)

@@ -140,10 +140,11 @@ class ConfirmationDialog : public QDialog {
 
 public:
     ConfirmationDialog(QWidget *parent = nullptr) : QDialog(parent) {
-        // Configuration pour occuper tout l'écran
-        setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
-        setAttribute(Qt::WA_TranslucentBackground);
+        // Overlay *inside* the parent window (child widget), not a separate translucent
+        // top-level window: avoids the black flash when composed over the OpenGL map view
+        setWindowFlags(Qt::Widget);
         setFixedSize(parent->size());
+        move(0, 0);
 
         // Fond semi-transparent couvrant tout l'écran
         QWidget *overlay = new QWidget(this);
@@ -190,6 +191,17 @@ public:
 
         // Centrer la popup dans la fenêtre
         centerPopup->move((width() - centerPopup->width()) / 2, (height() - centerPopup->height()) / 2);
+
+        cancelButton->setFocus();
+    }
+
+protected:
+    // As a child widget, unhandled keys would reach the game window: keep them here
+    // (Escape = cancel, Enter = default button, everything else is swallowed)
+    void keyPressEvent(QKeyEvent *event) override
+    {
+        QDialog::keyPressEvent(event);
+        event->accept();
     }
 };
 

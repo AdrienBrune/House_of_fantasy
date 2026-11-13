@@ -245,6 +245,8 @@ protected:
 
     Action mAction;
     MovementHandler mMove;
+    int mStandZCounter = 0; // throttles Z-order checks while standing
+    int mAggroRollDayTime = -1; // day time of the last aggro roll for the current encounter (-1 = none)
     SpriteHandler mSprites;
     SpriteNavigation* mCurrentSprite;
     QTimer t_isWalking;

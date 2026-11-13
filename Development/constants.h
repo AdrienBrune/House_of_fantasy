@@ -422,6 +422,25 @@ inline bool IsMapitemTypeOrDerived(QGraphicsItem* item)
     }
 }
 
+// Monster and every subclass overriding type() (add new monster types here only)
+inline bool IsMonsterTypeOrDerived(QGraphicsItem* item)
+{
+    if(!item)
+    {
+        return false;
+    }
+
+    switch (item->type())
+    {
+    case eQGraphicItemType::monster:
+    case eQGraphicItemType::laoshanlung:
+        return true;
+
+    default:
+        return false;
+    }
+}
+
 #define ABLE(hero)                          (1<<hero)
 #define IS_ABLE(heroClass, classesAble)     ((classesAble>>heroClass)&1)
 

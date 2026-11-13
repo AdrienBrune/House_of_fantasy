@@ -206,7 +206,6 @@ void Monster::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
 
 void Monster::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     Q_UNUSED(widget)
     Q_UNUSED(option)
 
@@ -426,10 +425,21 @@ void Monster::chooseAction(Hero * hero, DayNightCycle * daynightCycle)
         return;
     }
 
-    if(distanceWithHero < DISTANCE_AGGRO && !hero->isInVillage())
+    const bool heroInAggroRange = distanceWithHero < DISTANCE_AGGRO && !hero->isInVillage();
+    const DayNightCycle::eDayTime dayTime = daynightCycle->getDayTime();
+
+    // Outside the night, the aggro chance is rolled once per encounter (and again if the
+    // time of day changes), not every second: otherwise a 5% chance becomes ~100% in a minute.
+    const bool aggroRollPending = dayTime == DayNightCycle::eDayTime::night
+                               || mAggroRollDayTime != static_cast<int>(dayTime);
+    if(!heroInAggroRange)
+        mAggroRollDayTime = -1; // hero left: next encounter rolls again
+
+    if(heroInAggroRange && aggroRollPending)
     {
+        mAggroRollDayTime = static_cast<int>(dayTime);
         bool aggro = false;
-        switch(daynightCycle->getDayTime())
+        switch(dayTime)
         {
             case DayNightCycle::eDayTime::noon:
                 if(QRandomGenerator::global()->bounded(100) < 5)
@@ -506,11 +516,17 @@ void Monster::advance(int phase)
     // SetZValue if monster is standing
     if(mAction == Action::stand)
     {
+        // A standing monster does not move: checking every ~300 ms is enough
+        // (moving monsters still fix their own Z order every frame in doCollision)
+        constexpr int STAND_Z_CHECK_FRAMES = 10;
+        if(++mStandZCounter < STAND_Z_CHECK_FRAMES)
+            return;
+        mStandZCounter = 0;
+
         QList<QGraphicsItem*> itemsColliding = scene()->collidingItems(this);
-        for(QGraphicsItem * i : qAsConst(itemsColliding))
+        for(QGraphicsItem * monster : qAsConst(itemsColliding))
         {
-            Monster * monster = dynamic_cast<Monster*>(i);
-            if(monster){
+            if(IsMonsterTypeOrDerived(monster)){
                 if(pos().y()+boundingRect().height() > monster->y()+monster->boundingRect().height()){
                     setZValue(Z_MONSTER_FOREGROUND);
                 }else {
@@ -559,7 +575,7 @@ void Monster::doCollision()
     zOffset = itemsColliding.isEmpty() ? Z_MONSTERS : Z_GROUND_FOREGROUND ;
     for(QGraphicsItem * monster : qAsConst(itemsColliding))
     {
-        if(monster->type() == eQGraphicItemType::monster)
+        if(IsMonsterTypeOrDerived(monster))
         {
             if(pos().y()+boundingRect().height() > monster->y()+monster->boundingRect().height())
                 zOffset = Z_MONSTER_FOREGROUND;

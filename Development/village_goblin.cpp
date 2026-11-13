@@ -154,7 +154,6 @@ QRectF Village_Goblin::boundingRect() const
 
 void Village_Goblin::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, 0, 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget);
     Q_UNUSED(option);

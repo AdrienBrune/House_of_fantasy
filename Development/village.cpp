@@ -66,12 +66,14 @@ void House::hoverLeaveEvent(QGraphicsSceneHoverEvent * event)
 
 void House::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, 0, 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
 
     if(mHover){
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
         painter->setPen(QPen(QBrush(BORDERS_COLOR), 3));
         painter->drawPath(mShape);
+        painter->restore();
     }
 
 //    painter->setBrush(QBrush("#7700FF00"));
@@ -598,12 +600,14 @@ void AltarBuilding::initGraphicStuff()
 
 void AltarBuilding::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0, 0, mImage, 0, mAnimation*static_cast<int>(boundingRect().height()), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
 
     if(mHover){
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
         painter->setPen(QPen(QBrush(BORDERS_COLOR), 3));
         painter->drawPath(mShape);
+        painter->restore();
     }
 
     if(mOffers)
@@ -821,9 +825,14 @@ void HeroHouse::setPosition(QPointF position)
 
 void ChevalDeFrise::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-
-    painter->setRenderHint(QPainter::Antialiasing);
-    painter->drawPixmap(0,0, mImage.scaled(boundingRect().size().toSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    const QSize target = boundingRect().size().toSize();
+    if(mScaledImage.isNull() || mScaledSourceKey != mImage.cacheKey()
+       || (mScaledImage.width() != target.width() && mScaledImage.height() != target.height()))
+    {
+        mScaledImage = mImage.scaled(target, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        mScaledSourceKey = mImage.cacheKey();
+    }
+    painter->drawPixmap(0,0, mScaledImage);
 
     Q_UNUSED(widget)
     Q_UNUSED(option)
@@ -1008,7 +1017,6 @@ QRectF Village::boundingRect() const
 
 void Village::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, 0, 0, static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)

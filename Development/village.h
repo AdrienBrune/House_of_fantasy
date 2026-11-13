@@ -595,6 +595,10 @@ protected:
     virtual void setGraphicStuff()=0;
 protected:
     float mRatio;
+private:
+    // Scaled copy of mImage, rebuilt only when the source image or the size changes
+    QPixmap mScaledImage;
+    qint64  mScaledSourceKey = 0;
 };
 class ChevalDeFriseFront : public ChevalDeFrise
 {

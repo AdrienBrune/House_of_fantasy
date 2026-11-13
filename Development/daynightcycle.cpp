@@ -7,7 +7,7 @@
 
 DayNightCycle::DayNightCycle(QGraphicsScene* scene, QObject* parent)
     : QObject(parent),
-      mTime(TIME_DAWN),
+      mTime(TIME_START_OF_DAY),
       mWasNight(false)
 {
     mOverlay = new DayNightOverlay(scene->sceneRect());
@@ -88,10 +88,15 @@ void DayNightCycle::updateOverlay()
 
     auto lerp = [](int a, int b, qreal f) { return static_cast<int>(a + f * (b - a)); };
 
-    mOverlay->setBrush(QColor(
+    const QColor color(
         lerp(frames[i].r, frames[i+1].r, factor),
         lerp(frames[i].g, frames[i+1].g, factor),
         lerp(frames[i].b, frames[i+1].b, factor),
         lerp(frames[i].a, frames[i+1].a, factor)
-    ));
+    );
+
+    // Fully transparent during the day: hide the overlay so it costs nothing
+    mOverlay->setVisible(color.alpha() > 0);
+    if(color != mOverlay->brush().color())
+        mOverlay->setBrush(color);
 }

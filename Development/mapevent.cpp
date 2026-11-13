@@ -117,7 +117,6 @@ void FishingEvent::itemsTook()
 
 void FishingEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mNextFrame), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
@@ -210,7 +209,6 @@ bool BushEvent::isAnimated()
 
 void BushEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mNextFrame), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)
@@ -405,12 +403,14 @@ void ChestEvent::setShape()
 
 void ChestEvent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mRevealChest), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
 
     if(mHover){
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
         painter->setPen(QPen(QBrush(BORDERS_COLOR), 2));
         painter->drawPath(mShape);
+        painter->restore();
     }
 
     Q_UNUSED(widget)
@@ -513,7 +513,6 @@ OreSpot::~OreSpot()
 
 void OreSpot::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->drawPixmap(0,0, mImage, static_cast<int>(mImageSelected*boundingRect().width()), static_cast<int>(boundingRect().height()*mType), static_cast<int>(boundingRect().width()), static_cast<int>(boundingRect().height()));
     Q_UNUSED(widget)
     Q_UNUSED(option)

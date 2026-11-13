@@ -242,7 +242,7 @@ void Hero::checkMapInteractions()
     list = scene()->collidingItems(this);
     for(QGraphicsItem * item : qAsConst(list))
     {
-        if(item->type() == eQGraphicItemType::monster)
+        if(IsMonsterTypeOrDerived(item))
         {
             Monster * monsterDead = dynamic_cast<Monster*>(item);
             if(monsterDead)
@@ -359,7 +359,7 @@ void Hero::checkMapInteractions()
                     }
                 }
             }
-            else if (item->type() == eQGraphicItemType::monster)
+            else if (IsMonsterTypeOrDerived(item))
             {
                 Monster* monster = dynamic_cast<Monster*>(item);
                 if (monster)
